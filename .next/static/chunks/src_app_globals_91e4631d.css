@@ -572,6 +572,10 @@ h1, h2, h3, h4, h5, h6 {
   top: 50%;
 }
 
+.bottom-6 {
+  bottom: 1.5rem;
+}
+
 .z-0 {
   z-index: 0;
 }
@@ -1117,6 +1121,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .max-w-sm {
   max-width: 24rem;
+}
+
+.max-w-3xl {
+  max-width: 48rem;
 }
 
 .flex-1 {
