@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Core type definitions for the Ouroboros MMO engine.
  * Unified with SQL schema parameters and Firestore blueprints.
@@ -44,6 +45,18 @@ export interface POI {
   isDiscovered: boolean;
 }
 
+export interface FacialParameters {
+  jawWidth: number;
+  cheekboneHeight: number;
+  noseLength: number;
+  eyeSpacing: number;
+  browDepth: number;
+  skinVariation: number;
+  eyeColor: string;
+  hasBeard: boolean;
+  beardLength: number;
+}
+
 export interface Agent {
   id: string;
   displayName: string;
@@ -63,6 +76,7 @@ export interface Agent {
   dnaHistory: any[];
   memoryCache: any[];
   awakened: boolean;
+  facialParameters?: FacialParameters;
   lastUpdate?: any;
 }
 
@@ -76,26 +90,15 @@ export interface Monster {
   color: string;
 }
 
-export interface MonsterDna {
+export interface Faction {
   id: string;
-  monsterId: string;
-  morphology: number;
-  aggressionGene: number;
-  speedGene: number;
-  armorGene: number;
-  elementalAffinity: string;
-  isElite: boolean;
-  createdAt: any;
-}
-
-export interface AgentTrust {
-  id: string;
-  agentAId: string;
-  agentBId: string;
-  trustScore: number;
-  reputationWeight: number;
-  lastInteractionTick: number;
-  updatedAt: any;
+  name: string;
+  entityType: 'GUILD' | 'NATION' | 'CULT';
+  leaderUid: string;
+  members: string[];
+  influence: number;
+  territory: string[];
+  lastUpdate: any;
 }
 
 export type ItemRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'AXIOMATIC';

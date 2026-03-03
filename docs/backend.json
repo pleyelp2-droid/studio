@@ -29,9 +29,23 @@
         "dnaHistory": { "type": "array" },
         "memoryCache": { "type": "array" },
         "awakened": { "type": "boolean" },
+        "facialParameters": { "$ref": "#/entities/FacialParameters" },
         "lastUpdate": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "name", "level", "hp"]
+    },
+    "FacialParameters": {
+      "title": "FacialParameters",
+      "type": "object",
+      "properties": {
+        "jawWidth": { "type": "number" },
+        "cheekboneHeight": { "type": "number" },
+        "noseLength": { "type": "number" },
+        "eyeSpacing": { "type": "number" },
+        "browDepth": { "type": "number" },
+        "eyeColor": { "type": "string" },
+        "hasBeard": { "type": "boolean" }
+      }
     },
     "WorldState": {
       "title": "WorldState",
@@ -52,7 +66,6 @@
     "Chunk": {
       "title": "Chunk",
       "type": "object",
-      "description": "A deterministically generated piece of the world grid.",
       "properties": {
         "chunkId": { "type": "string" },
         "x": { "type": "number" },
@@ -62,78 +75,43 @@
         "stabilityIndex": { "type": "number" },
         "corruptionLevel": { "type": "number" },
         "resourceData": { "type": "object" },
-        "logicField": { "type": "array" },
-        "dungeonProbability": { "type": "number" }
+        "logicField": { "type": "array" }
       },
       "required": ["x", "z", "biome"]
     },
     "CombatLog": {
       "title": "CombatLog",
       "type": "object",
-      "description": "A record of a combat engagement.",
       "properties": {
         "attackerUid": { "type": "string" },
         "defenderUid": { "type": "string" },
         "damageDealt": { "type": "number" },
         "damageReceived": { "type": "number" },
-        "skillUsed": { "type": "string" },
         "result": { "type": "string" },
-        "tickNumber": { "type": "number" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "tickNumber": { "type": "number" }
       }
     },
-    "LoreEntry": {
-      "title": "LoreEntry",
+    "Faction": {
+      "title": "Faction",
       "type": "object",
+      "description": "Hierarchy entities like guilds or nations.",
       "properties": {
-        "title": { "type": "string" },
-        "theme": { "type": "string" },
-        "region": { "type": "string" },
-        "content": { "type": "string" },
-        "npcBackground": { "type": "string" }
+        "name": { "type": "string" },
+        "entityType": { "type": "string" },
+        "leaderUid": { "type": "string" },
+        "influence": { "type": "number" },
+        "members": { "type": "array" }
       }
     },
-    "MarketListing": {
-      "title": "MarketListing",
+    "MatrixTransaction": {
+      "title": "MatrixTransaction",
       "type": "object",
       "properties": {
-        "sellerUid": { "type": "string" },
-        "itemName": { "type": "string" },
-        "pricePerUnit": { "type": "number" },
-        "quantity": { "type": "number" },
-        "status": { "type": "string" }
-      }
-    },
-    "AgentTrust": {
-      "title": "AgentTrust",
-      "type": "object",
-      "properties": {
-        "agentA": { "type": "string" },
-        "agentB": { "type": "string" },
-        "trustScore": { "type": "number" },
-        "reputationWeight": { "type": "number" },
-        "lastInteractionTick": { "type": "number" }
-      }
-    },
-    "MonsterDna": {
-      "title": "MonsterDna",
-      "type": "object",
-      "properties": {
-        "monsterId": { "type": "string" },
-        "morphology": { "type": "number" },
-        "aggressionGene": { "type": "number" },
-        "speedGene": { "type": "number" },
-        "isElite": { "type": "boolean" }
-      }
-    },
-    "EconomicSummary": {
-      "title": "EconomicSummary",
-      "type": "object",
-      "properties": {
-        "tickNumber": { "type": "number" },
-        "gdp": { "type": "number" },
-        "inflationRate": { "type": "number" },
-        "tradeVolume": { "type": "number" }
+        "fromUid": { "type": "string" },
+        "toUid": { "type": "string" },
+        "amount": { "type": "number" },
+        "txType": { "type": "string" },
+        "tickNumber": { "type": "number" }
       }
     }
   },
@@ -157,25 +135,17 @@
       "schema": { "$ref": "#/entities/CombatLog" },
       "description": "Combat history logs."
     },
-    "/lore/{loreId}": {
-      "schema": { "$ref": "#/entities/LoreEntry" },
-      "description": "World history and AI background."
+    "/factions/{factionId}": {
+      "schema": { "$ref": "#/entities/Faction" },
+      "description": "Hierarchy and territory data."
     },
-    "/marketplace/{listingId}": {
-      "schema": { "$ref": "#/entities/MarketListing" },
-      "description": "Global trade listings."
+    "/matrixTransactions/{txId}": {
+      "schema": { "$ref": "#/entities/MatrixTransaction" },
+      "description": "Energy flow and ledger."
     },
-    "/agentTrust/{trustId}": {
-      "schema": { "$ref": "#/entities/AgentTrust" },
-      "description": "Social reputation between agents."
-    },
-    "/monsterDna/{dnaId}": {
-      "schema": { "$ref": "#/entities/MonsterDna" },
-      "description": "Genetic data for monster spawns."
-    },
-    "/economicSummaries/{summaryId}": {
-      "schema": { "$ref": "#/entities/EconomicSummary" },
-      "description": "Historical snapshots of the global economy."
+    "/adminLogs/{logId}": {
+      "schema": { "type": "object" },
+      "description": "Audit and event logs for sovereignty."
     }
   }
 }
