@@ -1,9 +1,12 @@
+
 "use client"
 
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
+import { doc } from "firebase/firestore"
 import { 
   Activity, 
   Globe, 
@@ -12,18 +15,16 @@ import {
   Cpu, 
   AlertCircle,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Clock
 } from "lucide-react"
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area
+  Tooltip
 } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
@@ -38,6 +39,10 @@ const worldHistory = [
 ]
 
 export default function DashboardPage() {
+  const db = useFirestore()
+  const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
+  const { data: worldState } = useDoc(worldRef)
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <AppSidebar />
@@ -49,8 +54,8 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-xs font-medium border border-border">
-              <div className="h-2 w-2 rounded-full bg-accent heartbeat-pulse" />
-              <span>HEARTBEAT ACTIVE</span>
+              <div className={`h-2 w-2 rounded-full ${worldState?.tick ? 'bg-accent heartbeat-pulse' : 'bg-muted-foreground'}`} />
+              <span>{worldState?.tick ? 'HEARTBEAT ACTIVE' : 'ENGINE STANDBY'}</span>
             </div>
             <Badge variant="outline" className="text-accent border-accent">v0.9.4-BETA</Badge>
           </div>
@@ -64,47 +69,49 @@ export default function DashboardPage() {
                 <Globe className="h-4 w-4 text-accent" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold font-headline">1,842.0</div>
+                <div className="text-2xl font-bold font-headline">
+                  {worldState?.civilizationIndex?.toFixed(1) || "0.0"}
+                </div>
                 <div className="flex items-center gap-1 text-xs text-emerald-500 mt-1">
                   <ArrowUpRight className="h-3 w-3" />
-                  <span>+12.4% this epoch</span>
+                  <span>Tracking live pulse</span>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="axiom-card-hover border-border bg-card">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Active Agents</CardTitle>
-                <Cpu className="h-4 w-4 text-accent" />
+                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">System Tick</CardTitle>
+                <Clock className="h-4 w-4 text-accent" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold font-headline">24,512</div>
-                <p className="text-xs text-muted-foreground mt-1">89% Efficiency Rating</p>
+                <div className="text-2xl font-bold font-headline">{worldState?.tick || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">Global Deterministic Cycle</p>
               </CardContent>
             </Card>
 
             <Card className="axiom-card-hover border-border bg-card">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Inflation Rate</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Economy Level</CardTitle>
                 <TrendingUp className="h-4 w-4 text-accent" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold font-headline">2.1%</div>
-                <div className="flex items-center gap-1 text-xs text-rose-500 mt-1">
-                  <ArrowDownRight className="h-3 w-3" />
-                  <span>Stabilized from 2.8%</span>
+                <div className="text-2xl font-bold font-headline">{worldState?.economy || 0}</div>
+                <div className="flex items-center gap-1 text-xs text-emerald-500 mt-1">
+                  <ShieldCheck className="h-3 w-3" />
+                  <span>Verified by AxiomCore</span>
                 </div>
               </CardContent>
             </Card>
 
             <Card className="axiom-card-hover border-border bg-card">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Axiom Enforcement</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Stability</CardTitle>
                 <ShieldCheck className="h-4 w-4 text-accent" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold font-headline">SECURE</div>
-                <p className="text-xs text-muted-foreground mt-1">0 Breach detections</p>
+                <div className="text-2xl font-bold font-headline">{worldState?.stability || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">Social Integrity Rating</p>
               </CardContent>
             </Card>
           </div>
@@ -145,10 +152,9 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="space-y-4">
                   {[
-                    { type: 'info', msg: 'New sector discovery in Nebula Region G-4', time: '2m ago' },
-                    { type: 'warning', msg: 'Agent ID-4299 reported inconsistent loot drops', time: '15m ago' },
-                    { type: 'success', msg: 'Civilization Index updated: Milestone 1.8k reached', time: '1h ago' },
-                    { type: 'error', msg: 'AxiomEnforcer blocked suspicious trade attempt', time: '3h ago' },
+                    { type: 'info', msg: `Tick ${worldState?.tick || 0} processed successfully`, time: 'Just now' },
+                    { type: 'success', msg: `Civilization Index sync: ${worldState?.civilizationIndex?.toFixed(2) || '0.00'}`, time: '1m ago' },
+                    { type: 'warning', msg: 'System awaiting parameter initialization', time: '15m ago' },
                   ].map((event, i) => (
                     <div key={i} className="flex gap-3 text-sm items-start p-2 rounded-lg bg-secondary/30">
                       {event.type === 'error' ? <AlertCircle className="h-4 w-4 text-destructive mt-0.5" /> : <Activity className="h-4 w-4 text-accent mt-0.5" />}
