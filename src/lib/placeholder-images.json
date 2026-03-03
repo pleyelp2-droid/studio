@@ -23,6 +23,24 @@
       "description": "Distant space station at the edge of a nebula",
       "imageUrl": "https://images.unsplash.com/photo-1681673819379-a183d9acf860?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxuZWJ1bGElMjBzcGFjZXxlbnwwfHx8fDE3NzI0OTgyNTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "nebula space"
+    },
+    {
+      "id": "asset-starship",
+      "description": "Mark IV Interceptor 3D Model",
+      "imageUrl": "https://images.unsplash.com/photo-1541447271487-09612b3f49f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxzcGFjZXNoaXB8ZW58MHx8fHwxNzcyNTAyOTQzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "spaceship"
+    },
+    {
+      "id": "asset-robot",
+      "description": "Maintenance Droid Rigged Character",
+      "imageUrl": "https://images.unsplash.com/photo-1531746790731-6c307f0c112e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyb2JvdHxlbnwwfHx8fDE3NzI1MDI5NDN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "robot"
+    },
+    {
+      "id": "asset-blueprint",
+      "description": "Modular Outpost Blueprint",
+      "imageUrl": "https://images.unsplash.com/photo-1581092160562-40aa08e78837?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxibHVlcHJpbnR8ZW58MHx8fHwxNzcyNTAyOTQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blueprint"
     }
   ]
 }
