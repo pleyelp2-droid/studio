@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -18,7 +17,8 @@ import {
   Home,
   MonitorPlay,
   BrainCircuit,
-  BookOpen
+  BookOpen,
+  Atom
 } from "lucide-react"
 
 import {
@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/sidebar"
 
 const mainItems = [
-  { title: "Dashboard", icon: LayoutDashboard, url: "/" },
+  { title: "Oversight", icon: LayoutDashboard, url: "/dashboard" },
   { title: "World Preview", icon: MonitorPlay, url: "/world-preview" },
   { title: "Players", icon: Users, url: "/players" },
   { title: "Agent Oversight", icon: ShieldAlert, url: "/agents" },
@@ -47,6 +47,7 @@ const contentItems = [
   { title: "Quest Engine", icon: ScrollText, url: "/quests" },
   { title: "NPC Architect", icon: UserPlus, url: "/npcs" },
   { title: "Lore Archives", icon: BookOpen, url: "/admin/lore" },
+  { title: "Molecule Explorer", icon: Atom, url: "/dashboard/molecules" },
   { title: "Asset Hub", icon: Database, url: "/assets" },
 ]
 
@@ -133,7 +134,7 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Landing Page">
-                  <Link href="/landing">
+                  <Link href="/">
                     <Home />
                     <span>Public Landing</span>
                   </Link>
