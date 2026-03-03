@@ -3,27 +3,28 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * Ouroboros MMO Security Rules
+     * AXIOM FRONTIER SECURITY ARCHITECTURE
      *
      * Core Philosophy:
-     * This ruleset implements a strict Path-Based Ownership model for all user-specific data,
-     * ensuring that players can only access and modify their own agents, inventory, and progress.
-     * Global game data (NPCs, World State, Items) follows a Public-Read/Admin-Write pattern.
+     * This ruleset implements a dual-layer security model: Strict Ownership for player-specific 
+     * data and Public Read/Admin Write for global game state. It prioritizes Authorization 
+     * Independence by utilizing hierarchical paths that mirror user identity.
      *
      * Data Structure:
-     * - /users/{userId}: Root profile for meta-game data.
-     * - /users/{userId}/agents/{agentId}: Player characters.
-     * - /users/{userId}/agents/{agentId}/inventoryItems/{itemId}: Items owned by specific agents.
-     * - /npcs, /items, /quests: Global registries for game content.
-     * - /worldState/global_state: Singleton for world-wide indices (CI, Loot Saturation).
+     * - Private Player Data: Nested under /playerAccounts/{playerId}/, where playerId is the UID.
+     * - Global Game Data: Top-level collections (/items, /npcs, /worldState) are publicly readable.
+     * - Administrative Control: A dedicated /roles_admin collection facilitates DBAC.
      *
      * Key Security Decisions:
-     * - Authorization Independence: By nesting data under /users/{userId}, ownership is verified
-     *   via path parameters without costly cross-document lookups.
-     * - DBAC (Database-Backed Access Control): Admin privileges are determined by the existence
-     *   of a document in the /roles_admin/{userId} collection.
-     * - Prototyping Flexibility: Rules enforce relational integrity (e.g., matching IDs) but
-     *   allow flexible data shapes for rapid iteration.
+     * 1. Authorization is path-based for subcollections to ensure simplicity and performance.
+     * 2. Critical relational fields (like ownerPlayerId) are enforced during creation and made 
+     *    immutable during updates to prevent data hijacking.
+     * 3. NPC-controlled agents are strictly segregated from player-controlled agents via separate paths.
+     * 4. Global configurations and assets are read-only for all players to ensure game integrity.
+     *
+     * Denormalization for Authorization:
+     * To avoid expensive get() calls, ownership fields (e.g., ownerPlayerId, assignedPlayerId) 
+     * are denormalized onto documents and validated against the document path.
      */
 
     // --- Helper Functions ---
@@ -33,17 +34,17 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    /** @description Checks if the authenticated user matches the provided ID. */
+    /** @description Checks if the authenticated user matches the provided userId. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** @description Checks if a user is an administrator via a database lookup. */
+    /** @description Checks if the authenticated user holds an administrator role. */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    /** @description Verifies ownership and existence for destructive operations. */
+    /** @description Verifies ownership and ensures the resource exists for write operations. */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
@@ -51,144 +52,149 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     /**
-     * @description Rules for UserProfile. Enforces self-creation and private access.
-     * @path /users/{userId}
-     * @allow (create) if auth.uid == "user123" and data.id == "user123"
-     * @deny (read) if auth.uid != userId
-     * @principle Ownership and Self-Creation (P3.1, P3.4).
+     * @description Rules for core player profile data.
+     * @path /playerAccounts/{playerId}
+     * @allow (get, list, update) if UID matches playerId.
+     * @deny (create) if data.id does not match path playerId.
+     * @principle Ownership: Restricts access to a user's own account document.
      */
-    match /users/{userId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if false; // Profiles are typically persistent.
+    match /playerAccounts/{playerId} {
+      allow get, list: if isOwner(playerId);
+      allow create: if isOwner(playerId) && request.resource.data.id == playerId;
+      allow update: if isExistingOwner(playerId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(playerId);
+
+      /**
+       * @description Rules for player-owned agents.
+       * @path /playerAccounts/{playerId}/agents/{agentId}
+       * @allow (create) if UID matches path and ownerPlayerId is set correctly.
+       * @deny (update) if attempting to change ownerPlayerId.
+       * @principle Ownership: Subcollection access governed by parent path and relational integrity.
+       */
+      match /agents/{agentId} {
+        allow get, list: if isOwner(playerId);
+        allow create: if isOwner(playerId) && request.resource.data.ownerPlayerId == playerId;
+        allow update: if isExistingOwner(playerId) && request.resource.data.ownerPlayerId == resource.data.ownerPlayerId;
+        allow delete: if isExistingOwner(playerId);
+      }
+
+      /**
+       * @description Rules for player-assigned quests.
+       * @path /playerAccounts/{playerId}/quests/{questId}
+       * @allow (list) for the assigned player.
+       * @deny (create) if assignedPlayerId mismatches the authenticated user.
+       * @principle Relational Integrity: Ensures quest assignments are immutable and owner-protected.
+       */
+      match /quests/{questId} {
+        allow get, list: if isOwner(playerId);
+        allow create: if isOwner(playerId) && request.resource.data.assignedPlayerId == playerId;
+        allow update: if isExistingOwner(playerId) && request.resource.data.assignedPlayerId == resource.data.assignedPlayerId;
+        allow delete: if isExistingOwner(playerId);
+      }
+
+      /**
+       * @description Rules for player financial transactions.
+       * @path /playerAccounts/{playerId}/transactions/{transactionId}
+       * @allow (get) by the player who made the purchase.
+       * @deny (update) Always; transactions are typically immutable records.
+       * @principle Ownership: Protects private purchase history.
+       */
+      match /transactions/{transactionId} {
+        allow get, list: if isOwner(playerId);
+        allow create: if isOwner(playerId) && request.resource.data.playerId == playerId;
+        allow update: if false; // Transactions should be immutable
+        allow delete: if isExistingOwner(playerId);
+      }
     }
 
     /**
-     * @description Rules for Agent. Ensures agents are created under the correct owner.
-     * @path /users/{userId}/agents/{agentId}
-     * @allow (update) if auth.uid == userId and data.playerId == userId
-     * @deny (create) if data.playerId != userId
-     * @principle Relational Integrity (P5) and Ownership (P3.1).
-     */
-    match /users/{userId}/agents/{agentId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.playerId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.playerId == resource.data.playerId;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Rules for InventoryItem. Nested under agents for path-based security.
-     * @path /users/{userId}/agents/{agentId}/inventoryItems/{inventoryItemId}
-     * @allow (list) if auth.uid == userId
-     * @deny (update) if attempting to change agentId
-     * @principle Path-based authorization (P6).
-     */
-    match /users/{userId}/agents/{agentId}/inventoryItems/{inventoryItemId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.agentId == agentId;
-      allow update: if isExistingOwner(userId) && request.resource.data.agentId == resource.data.agentId;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Rules for PlayerQuestStatus. Tracks progress per player.
-     * @path /users/{userId}/playerQuestStatus/{statusId}
-     * @allow (get) if auth.uid == userId
-     * @deny (create) if data.playerId != userId
-     * @principle Ownership (P3.1).
-     */
-    match /users/{userId}/playerQuestStatus/{statusId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.playerId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.playerId == resource.data.playerId;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Rules for Transaction. Financial records for the player.
-     * @path /users/{userId}/transactions/{transactionId}
-     * @allow (create) if auth.uid == userId
-     * @deny (update) if true (transactions are immutable)
-     * @principle Ownership (P3.1) and Immutability.
-     */
-    match /users/{userId}/transactions/{transactionId} {
-      allow get, list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.playerId == userId;
-      allow update, delete: if false; // Transactions must not be modified or deleted.
-    }
-
-    /**
-     * @description Rules for NPC. Publicly readable game entities.
-     * @path /npcs/{npcId}
-     * @allow (get) if true
-     * @deny (write) if !isAdmin()
-     * @principle Public Read/Admin Write (P3.5).
-     */
-    match /npcs/{npcId} {
-      allow get, list: if true;
-      allow write: if isAdmin();
-    }
-
-    /**
-     * @description Rules for WorldState. Global variables for the game heartbeat.
-     * @path /worldState/{worldStateId}
-     * @allow (list) if true
-     * @deny (write) if !isAdmin()
-     * @principle Public Read/Admin Write (P3.5).
-     */
-    match /worldState/{worldStateId} {
-      allow get, list: if true;
-      allow write: if isAdmin();
-    }
-
-    /**
-     * @description Rules for Items. Static game content registry.
+     * @description Master catalog of game items.
      * @path /items/{itemId}
-     * @allow (get) if true
-     * @deny (create) if !isAdmin()
-     * @principle Public Read/Admin Write (P3.5).
+     * @allow (get, list) for any user.
+     * @deny (write) for non-admin users.
+     * @principle Public Read with Owner-Only Writes: Protects global game data integrity.
      */
     match /items/{itemId} {
       allow get, list: if true;
-      allow write: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
     }
 
     /**
-     * @description Rules for Quests. Static and AI-generated content registry.
-     * @path /quests/{questId}
-     * @allow (list) if true
-     * @deny (delete) if !isAdmin()
-     * @principle Public Read/Admin Write (P3.5).
+     * @description Definitions of Non-Player Characters.
+     * @path /npcs/{npcId}
+     * @allow (get) for players to see NPC profiles.
+     * @deny (write) by anyone except administrators.
+     * @principle Administrative Access Control.
      */
-    match /quests/{questId} {
+    match /npcs/{npcId} {
       allow get, list: if true;
-      allow write: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
     }
 
     /**
-     * @description Rules for AssetAssignment. Used by Godot to fetch textures.
-     * @path /assetAssignments/{assignmentId}
-     * @allow (get) if true
-     * @deny (write) if !isAdmin()
-     * @principle Public Read/Admin Write (P3.5).
+     * @description Agents controlled by NPCs, stored outside the player hierarchy.
+     * @path /npcAgents/{agentId}
+     * @allow (get) to visualize NPC entities in the world.
+     * @deny (write) to prevent players from hijacking NPCs.
+     * @principle Structural Segregation: Separates player data from system data.
      */
-    match /assetAssignments/{assignmentId} {
+    match /npcAgents/{agentId} {
       allow get, list: if true;
-      allow write: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
     }
 
     /**
-     * @description Rules for Admin Roles. Used for DBAC.
-     * @path /roles_admin/{userId}
-     * @allow (get) if isSignedIn()
-     * @deny (write) if true (Managed by System/Service Account only)
-     * @principle Database-Backed Access Control (P3.2).
+     * @description Global game assets and storage references.
+     * @path /gameAssets/{assetId}
+     * @allow (list) for client-side loading.
+     * @deny (write) by players.
+     * @principle Public Read: Assets must be accessible to all clients.
      */
-    match /roles_admin/{userId} {
+    match /gameAssets/{assetId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Dynamic metrics of the persistent game world.
+     * @path /worldState/{worldStateId}
+     * @allow (get) for synchronizing client world-view.
+     * @deny (write) by anyone but administrators or Cloud Functions.
+     * @principle Administrative Access Control.
+     */
+    match /worldState/{worldStateId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Configurable parameters for game mechanics.
+     * @path /gameParameters/{parameterId}
+     * @allow (get) for client configuration.
+     * @deny (write) for standard players.
+     * @principle Public Read: Parameters are required for consistent game logic across clients.
+     */
+    match /gameParameters/{parameterId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Registry of administrative users (DBAC).
+     * @path /roles_admin/{adminId}
+     * @allow (get) for the security rules engine to verify admin status.
+     * @deny (write, list) for all users via the client SDK.
+     * @principle Roles: Uses document existence as a lightweight permission check.
+     */
+    match /roles_admin/{adminId} {
       allow get: if isSignedIn();
-      allow list, write: if false;
+      allow list, create, update, delete: if false;
     }
   }
 }
