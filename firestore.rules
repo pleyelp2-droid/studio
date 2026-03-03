@@ -26,31 +26,28 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /players/{playerId} {
-      /**
-       * @allow read: Allow any signed-in user to view (get/list) the pilot directory.
-       * This specifically resolves the 'list' permission error.
-       */
       allow read: if isSignedIn();
-      
-      /**
-       * @allow write: Allow signed-in users to manage player data.
-       */
       allow write: if isSignedIn();
     }
 
     match /worldState/global {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /chunks/{chunkId} {
       /**
-       * @allow read: Publicly readable for the dashboard and world preview.
+       * @allow read: Publicly readable for world rendering.
        */
       allow read: if true;
       
       /**
-       * @allow write: Allowed for signed-in users during prototyping to boot the engine.
+       * @allow write: Allows signed-in users to interact with chunks (harvest, explore).
        */
       allow write: if isSignedIn();
     }
 
-    // Catch-all for other collections (quests, assets, npcs, etc.)
+    // Catch-all for other collections
     match /{document=**} {
       allow read: if isSignedIn();
       allow write: if isAdmin();

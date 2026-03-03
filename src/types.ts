@@ -21,10 +21,15 @@ export enum AgentState {
 }
 
 export interface Chunk {
+  id: string;
   x: number;
   z: number;
-  biome: 'FOREST' | 'DESERT' | 'CITY' | 'WASTELAND';
+  biome: 'FOREST' | 'DESERT' | 'CITY' | 'WASTELAND' | string;
   cellType?: 'SANCTUARY' | 'WILDERNESS' | 'DUNGEON_ENTRANCE';
+  entropy: number;
+  stabilityIndex: number;
+  corruptionLevel: number;
+  resourceData: Record<string, number>;
 }
 
 export interface POI {

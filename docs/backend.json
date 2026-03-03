@@ -34,6 +34,22 @@
         "tick": { "type": "number" }
       },
       "required": ["civilizationIndex", "tick"]
+    },
+    "Chunk": {
+      "title": "Chunk",
+      "type": "object",
+      "description": "A deterministically generated piece of the world grid.",
+      "properties": {
+        "id": { "type": "string" },
+        "x": { "type": "number" },
+        "z": { "type": "number" },
+        "biome": { "type": "string" },
+        "entropy": { "type": "number" },
+        "stabilityIndex": { "type": "number" },
+        "corruptionLevel": { "type": "number" },
+        "resourceData": { "type": "object" }
+      },
+      "required": ["x", "z", "biome", "entropy"]
     }
   },
   "auth": {
@@ -47,6 +63,10 @@
     "/worldState/global": {
       "schema": { "$ref": "#/entities/WorldState" },
       "description": "Global world state."
+    },
+    "/chunks/{chunkId}": {
+      "schema": { "$ref": "#/entities/Chunk" },
+      "description": "World chunk data."
     }
   }
 }
