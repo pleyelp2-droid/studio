@@ -25,7 +25,7 @@ import {
   Activity
 } from "lucide-react"
 import { useAuth } from "@/firebase"
-import { createUserWithEmailAndPassword } from "firebase/auth"
+import { createUserWithEmailAndPassword, signInAnonymously } from "firebase/auth"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 import { PlaceHolderImages } from "@/lib/placeholder-images"

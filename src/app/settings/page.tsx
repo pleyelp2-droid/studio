@@ -124,7 +124,7 @@ export default function SettingsPage() {
           </div>
         </header>
 
-        <main className="p-6 space-y-6 max-w-4xl mx-auto w-full">
+        <main className="p-6 space-y-6 max-4xl mx-auto w-full">
           <Card className="border-border bg-card shadow-2xl">
             <CardHeader className="bg-secondary/10 border-b border-border/50">
               <CardTitle className="font-headline flex items-center gap-3 font-black uppercase italic text-sm tracking-[0.3em] text-accent">
