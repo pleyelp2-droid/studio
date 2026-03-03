@@ -30,7 +30,11 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /players/{playerId} {
-      allow get, list: if isOwner(playerId) || isAdmin();
+      /**
+       * @allow (get, list) Allow any signed-in pilot to view the pilot directory and profiles.
+       * This ensures the "Pilot Directory" works for all members of the collective.
+       */
+      allow get, list: if isSignedIn();
       allow create: if isOwner(playerId) && request.resource.data.id == playerId;
       allow update: if isExistingOwner(playerId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(playerId) || isAdmin();
