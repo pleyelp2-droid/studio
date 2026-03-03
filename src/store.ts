@@ -26,7 +26,6 @@ export const useStore = create<GameState>((set) => ({
 }));
 
 export const skinHashToColors = (hash: string) => {
-  // Logic to derive character colors from a unique hash (e.g., pilot UID)
   const defaultColors = { skin: '#c68642', eyes: '#223366', hair: '#332211' };
   if (!hash) return defaultColors;
   

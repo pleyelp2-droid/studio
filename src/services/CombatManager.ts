@@ -1,4 +1,3 @@
-
 'use client';
 /**
  * @fileOverview Axiom Frontier - Combat Resolution Service
@@ -17,7 +16,7 @@ import {
   addDoc
 } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
-import { CombatResult, PlayerStats } from '@/types';
+import { CombatResult } from '@/types';
 
 const { firestore: db } = initializeFirebase();
 
@@ -78,7 +77,7 @@ export async function resolveCombat(
         if (!defenderSnap.exists()) return null;
         defender = defenderSnap.data();
       } else {
-        // Mock generic monster stats if not a database entity
+        // Mock generic monster stats
         defender = {
           id: defenderUid,
           level: 1,

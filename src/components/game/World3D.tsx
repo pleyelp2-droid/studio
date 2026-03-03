@@ -16,7 +16,7 @@ const isPosInSanctuary = (pos: [number, number, number], chunks: Chunk[]) => {
 };
 
 const DayNightSky = ({ tick }: { tick: number }) => {
-    const dayLength = 1440; // 1440 minutes in a day
+    const dayLength = 1440; 
     const cycle = (tick % dayLength) / dayLength;
 
     const sunAngle = cycle * Math.PI * 2 - Math.PI * 0.5;
@@ -86,10 +86,7 @@ const Stars = () => {
 
 const POIMesh: React.FC<{ poi: POI }> = ({ poi }) => {
     const selectPoi = useStore(state => state.selectPoi);
-    const agents = useStore(state => state.agents);
-    const chunks = useStore(state => state.loadedChunks);
     const meshRef = useRef<THREE.Group>(null);
-    const [isVisible, setIsVisible] = useState(true);
 
     useFrame((state) => {
         if (meshRef.current) {
@@ -154,15 +151,6 @@ const POIMesh: React.FC<{ poi: POI }> = ({ poi }) => {
     );
 };
 
-const SlimeBody: React.FC<{ color: string; scale: number }> = ({ color, scale }) => (
-    <group scale={[scale, scale, scale]}>
-        <mesh castShadow position={[0, 0.6, 0]} scale={[1, 0.7, 1]}>
-            <sphereGeometry args={[1, 16, 12]} />
-            <meshStandardMaterial color={color} transparent opacity={0.8} roughness={0.1} />
-        </mesh>
-    </group>
-);
-
 const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civilizationIndex: number, stability?: number, corruption?: number }) => {
     const materialRef = useRef<THREE.ShaderMaterial>(null);
     const { camera } = useThree();
@@ -207,8 +195,6 @@ const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civ
 };
 
 export const World3D: React.FC<{ tick: number; civilizationIndex: number; stability?: number; corruption?: number }> = ({ tick, civilizationIndex, stability, corruption }) => {
-    const loadedChunks = useStore(state => state.loadedChunks);
-    
     return (
         <div className="w-full h-full bg-black">
             <Canvas shadows dpr={[1, 2]}>
