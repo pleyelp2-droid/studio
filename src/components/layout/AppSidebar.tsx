@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -25,7 +24,8 @@ import {
   FileJson,
   LogIn,
   LogOut,
-  User as UserIcon
+  User as UserIcon,
+  ClipboardList
 } from "lucide-react"
 
 import {
@@ -50,6 +50,7 @@ const mainItems = [
   { title: "World Preview", icon: MonitorPlay, url: "/world-preview" },
   { title: "Players", icon: Users, url: "/players" },
   { title: "Agent Oversight", icon: ShieldAlert, url: "/agents" },
+  { title: "Audit Logs", icon: ClipboardList, url: "/admin/audit-logs" },
 ]
 
 const godotItems = [
