@@ -119,12 +119,12 @@ service cloud.firestore {
     /**
      * @description Singleton document for real-time global world data.
      * @path /worldState/global
-     * @allow (get) All players syncing with the world clock/events.
+     * @allow (get) All users (public) can sync with the world clock/events for the preview.
      * @deny (update) Unauthorized users attempting to manipulate global economy or time.
-     * @principle Provides a single source of truth for all game clients.
+     * @principle Provides a single source of truth for all game clients and public dashboards.
      */
     match /worldState/global {
-      allow get: if isSignedIn();
+      allow get: if true;
       allow list: if isAdmin();
       allow create, update, delete: if isAdmin();
     }
