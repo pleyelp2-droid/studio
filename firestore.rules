@@ -5,8 +5,7 @@ service cloud.firestore {
     /**
      * CORE PHILOSOPHY
      * This ruleset enforces a strict user-ownership model for player-specific data while maintaining 
-     * a public-read model for global game configuration. For prototyping, world state writes are 
-     * allowed for any signed-in user to enable immediate dashboard interaction.
+     * a public-read model for global game configuration. 
      */
 
     // --- Helper Functions ---
@@ -19,10 +18,6 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function isExistingOwner(userId) {
-      return resource != null && isOwner(userId);
-    }
-
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
@@ -31,46 +26,48 @@ service cloud.firestore {
 
     match /players/{playerId} {
       /**
-       * @allow (get, list) Allow any signed-in pilot to view the pilot directory and profiles.
-       * This ensures the "Pilot Directory" works for all members of the collective.
+       * @allow read: Allow any signed-in user to view the pilot directory.
+       * This is critical for the "Pilot Directory" page.
        */
-      allow get, list: if isSignedIn();
-      allow create: if isOwner(playerId) && request.resource.data.id == playerId;
-      allow update: if isExistingOwner(playerId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(playerId) || isAdmin();
-    }
-
-    match /items/{itemId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /quests/{questId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-    /**
-     * @path /worldState/global
-     * @allow (get) Publicly readable for the world preview and dashboard.
-     * @allow (create, update) Allowed for any signed-in user during prototyping to ensure the 
-     * "Boot Engine" functionality works without pre-configured admin roles.
-     */
-    match /worldState/global {
-      allow get: if true;
-      allow list: if isSignedIn();
-      allow create, update: if isSignedIn();
+      allow read: if isSignedIn();
+      
+      /**
+       * @allow write: Only the owner can create or update their own profile.
+       */
+      allow create, update: if isOwner(playerId);
       allow delete: if isAdmin();
     }
 
-    match /products/{productId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
+    match /worldState/global {
+      /**
+       * @allow read: Publicly readable for the dashboard and world preview.
+       */
+      allow read: if true;
+      
+      /**
+       * @allow write: Allowed for signed-in users during prototyping.
+       */
+      allow write: if isSignedIn();
+    }
+
+    match /items/{itemId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /quests/{questId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
     match /assets/{assetId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
     match /roles_admin/{adminId} {

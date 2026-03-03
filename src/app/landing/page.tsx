@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { 
   Download, 
@@ -20,18 +20,19 @@ import {
   Terminal,
   Unplug,
   Fingerprint,
-  Zap,
   ShieldCheck,
-  Activity
+  Sparkles
 } from "lucide-react"
-import { useAuth } from "@/firebase"
-import { createUserWithEmailAndPassword, signInAnonymously } from "firebase/auth"
+import { useAuth, useFirestore } from "@/firebase"
+import { createUserWithEmailAndPassword } from "firebase/auth"
+import { doc, setDoc } from "firebase/firestore"
 import { useToast } from "@/hooks/use-toast"
 import Image from "next/image"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 
 export default function LandingPage() {
   const auth = useAuth()
+  const db = useFirestore()
   const { toast } = useToast()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -39,13 +40,31 @@ export default function LandingPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!auth) return
+    if (!auth || !db) return
     setLoading(true)
     try {
-      await createUserWithEmailAndPassword(auth, email, password)
-      toast({ title: "Neural Link Established", description: "Your consciousness has been registered in the Collective." })
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      const user = userCredential.user
+
+      // Create LIVE player record in Firestore immediately upon signup
+      await setDoc(doc(db, "players", user.uid), {
+        id: user.uid,
+        displayName: email.split('@')[0],
+        level: 1,
+        position: { x: Math.random() * 100, y: 0, z: Math.random() * 100 },
+        createdAt: new Date().toISOString()
+      })
+
+      toast({ 
+        title: "Neural Link Established", 
+        description: "Your consciousness has been registered. Welcome to the Collective." 
+      })
     } catch (e: any) {
-      toast({ variant: "destructive", title: "Registration Denied", description: e.message })
+      toast({ 
+        variant: "destructive", 
+        title: "Registration Denied", 
+        description: e.message 
+      })
     } finally {
       setLoading(false)
     }
