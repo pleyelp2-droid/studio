@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { Shield, Save, RefreshCw, Power, Loader2 } from "lucide-react"
+import { Shield, Save, Power, Loader2 } from "lucide-react"
 import { useFirestore, useDoc, useMemoFirebase, useAuth, useUser } from "@/firebase"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { signInAnonymously } from "firebase/auth"
@@ -61,7 +61,6 @@ export default function SettingsPage() {
       await setDoc(worldRef, { 
         ...params, 
         civilizationIndex: ci, 
-        tick: worldState?.tick || 0,
         updatedAt: serverTimestamp()
       }, { merge: true })
       toast({ title: "Settings Saved", description: `Civilization Index updated to ${ci.toFixed(2)}` })
@@ -77,11 +76,9 @@ export default function SettingsPage() {
     setBooting(true)
     const ci = calculateCI()
     try {
-      // Ensure we are signed in to satisfy Security Rules
-      if (!user && auth) {
-        await signInAnonymously(auth)
-      }
+      if (!user && auth) await signInAnonymously(auth)
       
+      // Explicitly set tick to 1 to initialize the live engine
       await setDoc(worldRef, { 
         ...params, 
         civilizationIndex: ci, 
@@ -89,7 +86,7 @@ export default function SettingsPage() {
         lastHeartbeat: serverTimestamp(),
         updatedAt: serverTimestamp()
       })
-      toast({ title: "Engine Booted", description: "Ouroboros core is now live at Tick 1." })
+      toast({ title: "Engine Booted", description: "Ouroboros core is now live at Tick 1. Backend functions will now take over." })
     } catch (e: any) {
       toast({ variant: "destructive", title: "Boot Failure", description: e.message || "Could not initialize core logic." })
     } finally {
@@ -104,14 +101,14 @@ export default function SettingsPage() {
         <header className="flex h-16 items-center border-b border-border px-6 justify-between shrink-0 bg-background/50 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <h1 className="text-xl font-headline font-semibold">Global World Settings</h1>
+            <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight">World Configuration</h1>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-4">
             <Button 
               variant="outline" 
               onClick={handleBootEngine} 
               disabled={booting}
-              className="border-accent text-accent hover:bg-accent/10 gap-2"
+              className="border-accent text-accent hover:bg-accent/10 gap-3 font-black text-xs uppercase italic tracking-widest"
             >
               {booting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
               Boot Engine
@@ -119,41 +116,41 @@ export default function SettingsPage() {
             <Button 
               onClick={handleSave} 
               disabled={saving}
-              className="axiom-gradient text-white gap-2"
+              className="axiom-gradient text-white gap-3 font-black text-xs uppercase italic tracking-widest shadow-xl"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-              Save Configuration
+              Commit Config
             </Button>
           </div>
         </header>
 
         <main className="p-6 space-y-6 max-w-4xl mx-auto w-full">
-          <Card className="border-border bg-card">
-            <CardHeader>
-              <CardTitle className="font-headline flex items-center gap-2">
-                <Shield className="h-5 w-5 text-accent" />
+          <Card className="border-border bg-card shadow-2xl">
+            <CardHeader className="bg-secondary/10 border-b border-border/50">
+              <CardTitle className="font-headline flex items-center gap-3 font-black uppercase italic text-sm tracking-[0.3em] text-accent">
+                <Shield className="h-5 w-5" />
                 Civilization Parameters
               </CardTitle>
-              <CardDescription>Adjust the core deterministic variables of the Ouroboros engine. Changes affect Godot environment real-time.</CardDescription>
+              <CardDescription className="text-xs uppercase font-bold text-muted-foreground/60">Adjust the core deterministic variables of the Ouroboros engine. Changes affect Godot environment real-time.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-8">
-              <div className="p-10 bg-secondary/20 rounded-xl border border-border text-center relative overflow-hidden">
-                <div className="absolute top-4 right-6 flex items-center gap-2">
-                  <span className="text-[10px] font-mono text-muted-foreground uppercase">Global Tick</span>
-                  <Badge variant="secondary" className="font-mono">{worldState?.tick || 0}</Badge>
+            <CardContent className="space-y-10 pt-8">
+              <div className="p-12 bg-secondary/20 rounded-[2rem] border border-border/50 text-center relative overflow-hidden axiom-card-hover">
+                <div className="absolute top-6 right-8 flex items-center gap-3">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest italic">Global Tick</span>
+                  <Badge variant="secondary" className="font-black text-[12px] bg-accent/20 text-accent border-accent/20 px-3 py-1 italic">{worldState?.tick || 0}</Badge>
                 </div>
-                <div className="text-xs text-muted-foreground uppercase tracking-[0.3em] mb-2">Projected Civilization Index</div>
-                <div className="text-6xl font-bold font-headline text-accent drop-shadow-[0_0_15px_rgba(96,212,255,0.3)]">
+                <div className="text-[10px] text-muted-foreground uppercase tracking-[0.5em] font-black mb-4 italic">Projected Civilization Index</div>
+                <div className="text-7xl font-black font-headline text-accent drop-shadow-[0_0_30px_rgba(96,212,255,0.4)] italic">
                   {calculateCI().toFixed(2)}
                 </div>
               </div>
 
-              <div className="grid gap-8 md:grid-cols-2">
+              <div className="grid gap-10 md:grid-cols-2">
                 {Object.entries(params).map(([key, value]) => (
-                  <div key={key} className="space-y-4 p-5 border border-border/50 rounded-xl bg-background/30 axiom-card-hover">
+                  <div key={key} className="space-y-5 p-6 border border-border/30 rounded-2xl bg-background/50 axiom-card-hover transition-all duration-500">
                     <div className="flex justify-between items-center">
-                      <Label className="capitalize font-bold text-sm tracking-wide">{key}</Label>
-                      <span className="text-xs font-mono text-accent bg-accent/10 px-2 py-0.5 rounded-full">{value}</span>
+                      <Label className="capitalize font-black text-xs tracking-[0.2em] italic text-white/80">{key}</Label>
+                      <span className="text-[10px] font-black text-accent bg-accent/10 px-3 py-1 rounded-full border border-accent/20">{value}</span>
                     </div>
                     <Slider
                       value={[value]}
