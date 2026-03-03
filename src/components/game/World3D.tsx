@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Html, OrbitControls, Sky, PerspectiveCamera, Environment, ContactShadows, Float } from '@react-three/drei';
@@ -53,10 +52,10 @@ const POIModel = ({ poi }: { poi: POI }) => {
     );
   }
 
-  if (poi.type === 'BUILDING' || poi.type === 'HOUSE' || poi.type === 'FORGE' || poi.type === 'BANK_VAULT') {
+  if (poi.type === 'BUILDING' || poi.type === 'HOUSE' || poi.type === 'FORGE' || poi.type === 'BANK_VAULT' || poi.type === 'MARKET_STALL') {
     const isMajor = poi.type === 'FORGE' || poi.type === 'BANK_VAULT' || poi.type === 'BUILDING';
     const height = isMajor ? 12 : 4;
-    const color = poi.type === 'FORGE' ? ARL_COLORS.blood : poi.type === 'BANK_VAULT' ? ARL_COLORS.gold : ARL_COLORS.arcane;
+    const color = poi.type === 'FORGE' ? ARL_COLORS.blood : poi.type === 'BANK_VAULT' ? ARL_COLORS.gold : poi.type === 'MARKET_STALL' ? ARL_COLORS.teal : ARL_COLORS.arcane;
 
     return (
       <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>

@@ -127,12 +127,11 @@
     background: linear-gradient(135deg, var(--arl-arcane) 0%, var(--arl-teal) 100%);
   }
 
-  /* Fixed axiom-card-hover to avoid @apply opacity error with variables */
   .axiom-card-hover {
-    @apply transition-all duration-300;
+    transition: all 300ms ease;
   }
   .axiom-card-hover:hover {
-    border-color: rgba(31, 184, 184, 0.5); /* axiom-cyan (#1fb8b8) at 50% */
+    border-color: rgba(31, 184, 184, 0.5);
     box-shadow: 0 0 20px rgba(31, 184, 184, 0.15);
   }
 }
