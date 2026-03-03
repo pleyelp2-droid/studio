@@ -165,6 +165,8 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
 };
 
 const POIModel = ({ poi }: { poi: POI }) => {
+  const rotationY = poi.rotationY || 0;
+
   if (poi.type === 'SHRINE') {
     return (
       <Float speed={3} rotationIntensity={1} floatIntensity={2}>
@@ -182,16 +184,76 @@ const POIModel = ({ poi }: { poi: POI }) => {
     );
   }
 
-  if (poi.type === 'BUILDING') {
+  if (poi.type === 'BUILDING' || poi.type === 'BANK_VAULT' || poi.type === 'FORGE') {
     return (
-      <group position={[poi.position[0], 0, poi.position[2]]}>
+      <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
         <mesh position={[0, 5, 0]} castShadow>
           <cylinderGeometry args={[1.2, 2.5, 10, 6]} />
           <meshStandardMaterial color="#1a1a1a" metalness={0.8} roughness={0.2} />
         </mesh>
         <mesh position={[0, 10.5, 0]}>
           <coneGeometry args={[0.4, 2, 6]} />
-          <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={2} />
+          <meshStandardMaterial color={poi.type === 'BANK_VAULT' ? '#FBBF24' : poi.type === 'FORGE' ? '#EF4444' : '#60D4FF'} emissive={poi.type === 'BANK_VAULT' ? '#FBBF24' : poi.type === 'FORGE' ? '#EF4444' : '#60D4FF'} emissiveIntensity={2} />
+        </mesh>
+      </group>
+    );
+  }
+
+  if (poi.type === 'HOUSE') {
+    return (
+      <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
+        <mesh position={[0, 1.5, 0]} castShadow>
+          <boxGeometry args={[4, 3, 4]} />
+          <meshStandardMaterial color="#222" roughness={0.8} />
+        </mesh>
+        <mesh position={[0, 3.5, 0]} rotation={[0, Math.PI / 4, 0]}>
+          <coneGeometry args={[3.2, 2, 4]} />
+          <meshStandardMaterial color="#333" />
+        </mesh>
+        <mesh position={[0, 1.5, 2.01]}>
+          <boxGeometry args={[1, 2, 0.1]} />
+          <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={0.5} />
+        </mesh>
+      </group>
+    );
+  }
+
+  if (poi.type === 'WALL') {
+    return (
+      <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
+        <mesh position={[0, 4, 0]} castShadow>
+          <boxGeometry args={[20, 8, 3]} />
+          <meshStandardMaterial color="#111" metalness={0.5} roughness={0.5} />
+        </mesh>
+        {/* Battlements */}
+        {[-8, -4, 0, 4, 8].map(x => (
+          <mesh key={x} position={[x, 8.5, 0]}>
+            <boxGeometry args={[2, 1, 3]} />
+            <meshStandardMaterial color="#111" />
+          </mesh>
+        ))}
+      </group>
+    );
+  }
+
+  if (poi.type === 'GATE') {
+    return (
+      <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
+        <mesh position={[-6, 6, 0]} castShadow>
+          <boxGeometry args={[4, 12, 4]} />
+          <meshStandardMaterial color="#111" />
+        </mesh>
+        <mesh position={[6, 6, 0]} castShadow>
+          <boxGeometry args={[4, 12, 4]} />
+          <meshStandardMaterial color="#111" />
+        </mesh>
+        <mesh position={[0, 10, 0]}>
+          <boxGeometry args={[16, 4, 4]} />
+          <meshStandardMaterial color="#111" />
+        </mesh>
+        <mesh position={[0, 4, 0]}>
+          <planeGeometry args={[8, 8]} />
+          <meshStandardMaterial color="#60D4FF" transparent opacity={0.3} emissive="#60D4FF" emissiveIntensity={1} side={THREE.DoubleSide} />
         </mesh>
       </group>
     );

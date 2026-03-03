@@ -50,12 +50,13 @@ export interface Chunk {
   lastUpdate?: any;
 }
 
-export type POIType = 'SHRINE' | 'RUIN' | 'NEST' | 'DUNGEON' | 'MARKET_STALL' | 'TREE' | 'BUILDING' | 'MINE' | 'FOREST' | 'BANK_VAULT' | 'FORGE';
+export type POIType = 'SHRINE' | 'RUIN' | 'NEST' | 'DUNGEON' | 'MARKET_STALL' | 'TREE' | 'BUILDING' | 'MINE' | 'FOREST' | 'BANK_VAULT' | 'FORGE' | 'WALL' | 'GATE' | 'HOUSE';
 
 export interface POI {
   id: string;
   type: POIType;
   position: [number, number, number];
+  rotationY?: number;
   isDiscovered: boolean;
   discoveryRadius?: number;
   rewardInsight?: number;

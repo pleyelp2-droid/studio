@@ -3,6 +3,7 @@
 /**
  * @fileOverview Axiom Frontier - World Building Service
  * Procedurally generates POIs, monsters, and resources for world chunks.
+ * Handles City Layouts including Walls, Gates, and Houses.
  */
 
 import { Chunk, POI, Monster, ResourceNode, MONSTER_TEMPLATES } from '../types';
@@ -25,10 +26,62 @@ export class WorldBuildingService {
     const isSanctuary = chunk.cellType === 'SANCTUARY' || chunk.biome === 'CITY';
 
     if (isSanctuary) {
-      // Hub Manifestation
+      // 1. Perimeter Walls & Gates
+      // Place walls along the edges of the city chunk
+      const wallSize = 20;
+      const boundary = 38; // Slightly inside the 40 limit
+
+      // Top & Bottom Walls
+      for (let x = -boundary; x <= boundary; x += wallSize) {
+        // Skip space for gates in the center of edges
+        if (Math.abs(x) < 10) {
+          pois.push({
+            id: `gate-n-${chunk.id}-${x}`,
+            type: 'GATE',
+            position: [chunkWorldX, 0, chunkWorldZ - boundary],
+            rotationY: 0,
+            isDiscovered: true
+          });
+          pois.push({
+            id: `gate-s-${chunk.id}-${x}`,
+            type: 'GATE',
+            position: [chunkWorldX, 0, chunkWorldZ + boundary],
+            rotationY: Math.PI,
+            isDiscovered: true
+          });
+          continue;
+        }
+        pois.push({ id: `wall-tn-${chunk.id}-${x}`, type: 'WALL', position: [chunkWorldX + x, 0, chunkWorldZ - boundary], rotationY: 0, isDiscovered: true });
+        pois.push({ id: `wall-ts-${chunk.id}-${x}`, type: 'WALL', position: [chunkWorldX + x, 0, chunkWorldZ + boundary], rotationY: 0, isDiscovered: true });
+      }
+
+      // Left & Right Walls
+      for (let z = -boundary; z <= boundary; z += wallSize) {
+        if (Math.abs(z) < 10) {
+          pois.push({
+            id: `gate-w-${chunk.id}-${z}`,
+            type: 'GATE',
+            position: [chunkWorldX - boundary, 0, chunkWorldZ],
+            rotationY: Math.PI / 2,
+            isDiscovered: true
+          });
+          pois.push({
+            id: `gate-e-${chunk.id}-${z}`,
+            type: 'GATE',
+            position: [chunkWorldX + boundary, 0, chunkWorldZ],
+            rotationY: -Math.PI / 2,
+            isDiscovered: true
+          });
+          continue;
+        }
+        pois.push({ id: `wall-wl-${chunk.id}-${z}`, type: 'WALL', position: [chunkWorldX - boundary, 0, chunkWorldZ + z], rotationY: Math.PI / 2, isDiscovered: true });
+        pois.push({ id: `wall-wr-${chunk.id}-${z}`, type: 'WALL', position: [chunkWorldX + boundary, 0, chunkWorldZ + z], rotationY: Math.PI / 2, isDiscovered: true });
+      }
+
+      // 2. Hub Buildings
       pois.push({
         id: `city-forge-${chunk.id}`,
-        type: 'BUILDING',
+        type: 'FORGE',
         position: [chunkWorldX + 15, 0, chunkWorldZ + 10],
         isDiscovered: true,
         discoveryRadius: 10,
@@ -48,7 +101,7 @@ export class WorldBuildingService {
       });
       pois.push({
         id: `city-bank-${chunk.id}`,
-        type: 'BUILDING',
+        type: 'BANK_VAULT',
         position: [chunkWorldX + 20, 0, chunkWorldZ - 15],
         isDiscovered: true,
         discoveryRadius: 10,
@@ -66,11 +119,33 @@ export class WorldBuildingService {
         loreFragment: 'The Nexus Shrine — center of all axioms.',
         threatLevel: 0
       });
+
+      // 3. Residential Blocks (Houses)
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          const dataVal = chunk.axiomaticData[i][j];
+          const posX = chunkWorldX + (i * 10 - 35);
+          const posZ = chunkWorldZ + (j * 10 - 35);
+
+          // Avoid placing houses on top of hub buildings (simple distance check)
+          const distToCenter = Math.hypot(posX - chunkWorldX, posZ - chunkWorldZ);
+          if (distToCenter > 15 && distToCenter < 35 && dataVal > 0.5) {
+            pois.push({
+              id: `house-${chunk.id}-${i}-${j}`,
+              type: 'HOUSE',
+              position: [posX, 0, posZ],
+              rotationY: Math.floor(dataVal * 4) * (Math.PI / 2),
+              isDiscovered: true,
+              threatLevel: 0
+            });
+          }
+        }
+      }
       
       return { pois, monsters, resources };
     }
 
-    // Wilderness Manifestation - Optimized Thresholds for more content
+    // Wilderness Manifestation
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
         const force = chunk.logicField[i][j];
@@ -80,7 +155,6 @@ export class WorldBuildingService {
         const posX = chunkWorldX + (i * 10 - 35);
         const posZ = chunkWorldZ + (j * 10 - 35);
 
-        // Shrines (Resonance POIs) - Threshold: High Density, Low Noise
         if (dataVal > 0.8 && magnitude < 0.1) {
           pois.push({
             id: `poi-${chunk.id}-${i}-${j}`,
@@ -94,7 +168,6 @@ export class WorldBuildingService {
           });
         }
 
-        // Monsters (Corrupted Entities) - Threshold: Higher Noise
         if (magnitude > 0.1 && dataVal < 0.4) {
           const mType = magnitude > 0.18 ? 'DRAGON' : magnitude > 0.14 ? 'ORC' : 'GOBLIN';
           const template = MONSTER_TEMPLATES[mType] || MONSTER_TEMPLATES['GOBLIN'];
@@ -113,7 +186,6 @@ export class WorldBuildingService {
           });
         }
 
-        // Resource Nodes
         if (magnitude > 0.05 && magnitude < 0.15 && dataVal > 0.4) {
           const rType = dataVal > 0.7 ? 'SILVER_ORE' : 'IRON_ORE';
           resources.push({
@@ -124,7 +196,6 @@ export class WorldBuildingService {
           });
         }
 
-        // Trees / Flora
         if (chunk.biome === 'FOREST' && dataVal > 0.3 && Math.random() < 0.2) {
            pois.push({
             id: `tree-${chunk.id}-${i}-${j}`,
@@ -137,7 +208,6 @@ export class WorldBuildingService {
           });
         }
 
-        // Dungeons / Ruins - Rare Emergence
         if (magnitude > 0.08 && Math.random() < 0.02) {
           pois.push({
             id: `poi-rare-${chunk.id}-${i}-${j}`,
