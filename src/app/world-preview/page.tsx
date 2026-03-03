@@ -16,18 +16,22 @@ import {
   RefreshCw,
   AlertCircle,
   Unplug,
-  Gamepad2
+  Gamepad2,
+  Monitor,
+  Smartphone
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { World3D } from "@/components/game/World3D"
 import { useStore } from "@/store"
 import { WorldBuildingService } from "@/services/WorldBuildingService"
+import { MobileControls } from "@/components/game/MobileControls"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 export default function WorldPreviewPage() {
   const db = useFirestore()
   const { user } = useUser()
+  const { isMobile, setIsMobile, controlMode } = useStore()
   const setAgents = useStore(state => state.setAgents)
   
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
@@ -42,6 +46,17 @@ export default function WorldPreviewPage() {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [currentEra, setCurrentEra] = useState("Awaiting Logic Core")
 
+  // Device Detection
+  useEffect(() => {
+    const checkDevice = () => {
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsMobile(isTouch || window.innerWidth < 1024);
+    };
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, [setIsMobile]);
+
   useEffect(() => {
     if (liveAgents) {
       setAgents(liveAgents as any);
@@ -55,7 +70,6 @@ export default function WorldPreviewPage() {
       else if (ci < 800) setCurrentEra("Industrial Hub")
       else setCurrentEra("Chrome Metropolis")
 
-      // Generate mock high-science chunk data for visualization
       const mockChunk = {
         id: "0_0", x: 0, z: 0, seed: 42, 
         biome: ci < 400 ? 'PLAINS' : ci < 800 ? 'FOREST' : 'CITY',
@@ -104,12 +118,13 @@ export default function WorldPreviewPage() {
           </div>
         </header>
 
-        <main className={`p-6 space-y-6 max-w-7xl mx-auto w-full transition-all duration-500 ${isFullscreen ? 'fixed inset-0 z-[100] bg-background p-0 m-0 max-w-none' : ''}`}>
-          <div className="grid gap-6 lg:grid-cols-12 h-full">
-            <Card className={`lg:col-span-8 border-border bg-card overflow-hidden flex flex-col relative group ${isFullscreen ? 'rounded-none border-0 h-full' : 'aspect-video shadow-2xl shadow-accent/10'}`}>
+        <main className={`p-6 space-y-6 max-w-7xl mx-auto w-full h-full transition-all duration-500 ${isFullscreen ? 'fixed inset-0 z-[100] bg-background p-0 m-0 max-w-none' : ''}`}>
+          <div className="grid gap-6 lg:grid-cols-12 h-[calc(100vh-120px)]">
+            <Card className={`lg:col-span-8 border-border bg-card overflow-hidden flex flex-col relative group ${isFullscreen ? 'rounded-none border-0 h-full' : 'shadow-2xl shadow-accent/10'}`}>
               <div className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-xl border border-white/10 text-[10px] font-black text-white uppercase italic tracking-widest">
-                  <Gamepad2 className="h-3 w-3 text-accent" /> Use WASD to Navigate
+                  {isMobile ? <Smartphone className="h-3 w-3 text-accent" /> : <Monitor className="h-3 w-3 text-accent" />}
+                  {isMobile ? `MODE: ${controlMode}` : 'USE WASD TO NAVIGATE'}
                 </div>
                 <button 
                   onClick={() => setIsFullscreen(!isFullscreen)}
@@ -120,6 +135,8 @@ export default function WorldPreviewPage() {
               </div>
 
               <div className="relative flex-1 bg-black overflow-hidden">
+                {isMobile && <MobileControls />}
+                
                 {(isWorldLoading || isAgentsLoading) ? (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-30">
                     <RefreshCw className="h-12 w-12 animate-spin text-accent" />

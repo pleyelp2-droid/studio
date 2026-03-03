@@ -85,8 +85,9 @@ const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolea
 const LocalPlayerController = ({ agent }: { agent: Agent }) => {
   const { camera } = useThree();
   const db = useFirestore();
+  const { virtualInput, controlMode, targetPosition, setTargetPosition } = useStore();
   const moveSpeed = 0.25;
-  const updateInterval = 500; // ms
+  const updateInterval = 500;
   const lastUpdateRef = useRef(0);
 
   const keys = useRef<{ [key: string]: boolean }>({});
@@ -106,22 +107,41 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
     let moving = false;
     const newPos = { ...agent.position };
 
-    if (keys.current['w']) { newPos.z -= moveSpeed; moving = true; }
-    if (keys.current['s']) { newPos.z += moveSpeed; moving = true; }
-    if (keys.current['a']) { newPos.x -= moveSpeed; moving = true; }
-    if (keys.current['d']) { newPos.x += moveSpeed; moving = true; }
+    // Unified input processing
+    if (controlMode === 'KEYBOARD') {
+      if (keys.current['w']) { newPos.z -= moveSpeed; moving = true; }
+      if (keys.current['s']) { newPos.z += moveSpeed; moving = true; }
+      if (keys.current['a']) { newPos.x -= moveSpeed; moving = true; }
+      if (keys.current['d']) { newPos.x += moveSpeed; moving = true; }
+    } else if (controlMode === 'JOYSTICK') {
+      if (Math.abs(virtualInput.x) > 0.1 || Math.abs(virtualInput.z) > 0.1) {
+        newPos.x += virtualInput.x * moveSpeed;
+        newPos.z += virtualInput.z * moveSpeed;
+        moving = true;
+      }
+    } else if (controlMode === 'PUSH_TO_WALK' && targetPosition) {
+      const dx = targetPosition.x - agent.position.x;
+      const dz = targetPosition.z - agent.position.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      
+      if (dist > 0.5) {
+        newPos.x += (dx / dist) * moveSpeed;
+        newPos.z += (dz / dist) * moveSpeed;
+        moving = true;
+      } else {
+        setTargetPosition(null);
+      }
+    }
 
     if (moving) {
       agent.position.x = newPos.x;
       agent.position.z = newPos.z;
       agent.state = AgentState.EXPLORING;
 
-      // Update camera to follow
       camera.position.x = newPos.x + 20;
       camera.position.z = newPos.z + 20;
       camera.lookAt(newPos.x, 0, newPos.z);
 
-      // Throttled sync to Firestore
       const now = Date.now();
       if (now - lastUpdateRef.current > updateInterval) {
         lastUpdateRef.current = now;
@@ -157,10 +177,6 @@ const POIModel = ({ poi }: { poi: POI }) => {
             <torusGeometry args={[2.5, 0.05, 16, 100]} />
             <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={2} />
           </mesh>
-          <mesh rotation={[-Math.PI / 4, Math.PI / 2, 0]}>
-            <torusGeometry args={[3.2, 0.03, 16, 100]} />
-            <meshStandardMaterial color="#2E2EB3" emissive="#2E2EB3" emissiveIntensity={1} />
-          </mesh>
         </group>
       </Float>
     );
@@ -177,24 +193,18 @@ const POIModel = ({ poi }: { poi: POI }) => {
           <coneGeometry args={[0.4, 2, 6]} />
           <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={2} />
         </mesh>
-        <pointLight position={[0, 8, 0]} intensity={10} color="#60D4FF" distance={20} />
       </group>
     );
   }
 
-  if (poi.type === 'MARKET_STALL') {
+  if (poi.type === 'DUNGEON') {
     return (
-      <group position={[poi.position[0], 0, poi.position[2]]}>
-        <mesh position={[0, 0.1, 0]} receiveShadow>
-          <cylinderGeometry args={[3, 3.2, 0.2, 32]} />
-          <meshStandardMaterial color="#222" metalness={0.5} />
+      <group position={[poi.position[0], -0.4, poi.position[2]]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[4, 32]} />
+          <meshStandardMaterial color="#000" emissive="#60D4FF" emissiveIntensity={2} />
         </mesh>
-        <Float speed={2} floatIntensity={0.5}>
-          <mesh position={[0, 1.5, 0]}>
-            <torusGeometry args={[2, 0.1, 16, 100]} />
-            <meshStandardMaterial color="#2E2EB3" emissive="#2E2EB3" emissiveIntensity={1} />
-          </mesh>
-        </Float>
+        <pointLight position={[0, 2, 0]} intensity={20} color="#60D4FF" distance={30} />
       </group>
     );
   }
@@ -210,18 +220,6 @@ const POIModel = ({ poi }: { poi: POI }) => {
             </mesh>
           </Float>
         ))}
-      </group>
-    );
-  }
-
-  if (poi.type === 'DUNGEON') {
-    return (
-      <group position={[poi.position[0], -0.5, poi.position[2]]}>
-        <mesh rotation={[-Math.PI/2, 0, 0]}>
-          <circleGeometry args={[4, 32]} />
-          <meshStandardMaterial color="#000" emissive="#60D4FF" emissiveIntensity={2} />
-        </mesh>
-        <pointLight position={[0, 2, 0]} intensity={20} color="#60D4FF" distance={30} />
       </group>
     );
   }
@@ -314,6 +312,7 @@ const DayNightSky = ({ tick }: { tick: number }) => {
 
 const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civilizationIndex: number, stability?: number, corruption?: number }) => {
     const materialRef = useRef<THREE.ShaderMaterial>(null);
+    const { setTargetPosition, controlMode } = useStore();
     const { camera } = useThree();
     
     const uniforms = useMemo(() => ({
@@ -341,8 +340,19 @@ const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civ
         }
     });
 
+    const handlePointerDown = (e: any) => {
+      if (controlMode === 'PUSH_TO_WALK') {
+        setTargetPosition({ x: e.point.x, z: e.point.z });
+      }
+    };
+
     return (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
+        <mesh 
+          rotation={[-Math.PI / 2, 0, 0]} 
+          position={[0, -0.1, 0]} 
+          receiveShadow
+          onPointerDown={handlePointerDown}
+        >
             <planeGeometry args={[1000, 1000, 128, 128]} />
             <shaderMaterial
                 ref={materialRef}
@@ -387,25 +397,20 @@ export const World3D: React.FC<{ tick: number; civilizationIndex: number; stabil
                 
                 <Terrain civilizationIndex={civilizationIndex} stability={stability} corruption={corruption} />
                 
-                {/* Render Local Player */}
                 {localAgent && <LocalPlayerController agent={localAgent} />}
 
-                {/* Render Other Agents */}
                 {otherAgents.map(agent => (
                   <AgentModel key={agent.id} agent={agent} />
                 ))}
 
-                {/* Render Monsters */}
                 {worldContent.monsters.map(monster => (
                   <MonsterModel key={monster.id} monster={monster} />
                 ))}
 
-                {/* Render POIs */}
                 {worldContent.pois.map(poi => (
                   <POIModel key={poi.id} poi={poi} />
                 ))}
 
-                {/* Render Resources */}
                 {worldContent.resources.map(res => (
                   <mesh key={res.id} position={[res.position[0], 0.2, res.position[2]]} castShadow>
                     <octahedronGeometry args={[0.4, 0]} />

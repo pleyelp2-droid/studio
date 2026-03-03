@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { Shield, Save, Power, Loader2, UserPlus, Pause, Play, RotateCcw } from "lucide-react"
+import { Shield, Save, Power, Loader2, UserPlus, Pause, Play, RotateCcw, Download, Terminal } from "lucide-react"
 import { useFirestore, useDoc, useMemoFirebase, useAuth, useUser } from "@/firebase"
 import { doc, setDoc, serverTimestamp, collection, addDoc, updateDoc } from "firebase/firestore"
 import { signInAnonymously } from "firebase/auth"
@@ -53,6 +53,32 @@ export default function SettingsPage() {
   const calculateCI = () => {
     const { economy, military, stability, knowledge, culture, corruption } = params
     return (0.2 * economy) + (0.2 * military) + (0.15 * stability) + (0.15 * knowledge) + (0.15 * culture) - (0.15 * corruption)
+  }
+
+  const exportForGodot = () => {
+    const config = {
+      engine_version: "0.9.4",
+      civilization_index: calculateCI(),
+      world_seed: 42,
+      kappa: 1.0,
+      determinism_protocol: "OUROBOROS_V1",
+      global_parameters: params,
+      firestore_config: {
+        project_id: "studio-5485353702-8ce01",
+        root_collection: "worldState"
+      }
+    };
+    
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'OuroborosGodotConfig.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({ title: "Godot Export Ready", description: "World metadata downloaded for .gd integration." });
   }
 
   const handleToggleEngine = async () => {
@@ -168,21 +194,20 @@ export default function SettingsPage() {
           <div className="flex gap-4">
             <Button 
               variant="outline" 
+              onClick={exportForGodot}
+              className="border-white/10 text-white hover:bg-white/5 gap-3 font-black text-xs uppercase italic tracking-widest"
+            >
+              <Terminal className="h-4 w-4 text-accent" />
+              Godot Metadata
+            </Button>
+            <Button 
+              variant="outline" 
               onClick={handleToggleEngine} 
               disabled={toggling || !worldState?.tick}
               className="border-accent/20 text-accent hover:bg-accent/10 gap-3 font-black text-xs uppercase italic tracking-widest"
             >
               {toggling ? <Loader2 className="h-4 w-4 animate-spin" /> : worldState?.paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
               {worldState?.paused ? "Resume Engine" : "Pause Engine"}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleRollback} 
-              disabled={!worldState?.tick}
-              className="border-destructive/20 text-destructive hover:bg-destructive/10 gap-3 font-black text-xs uppercase italic tracking-widest"
-            >
-              <RotateCcw className="h-4 w-4" />
-              Emergency Rollback
             </Button>
             <Button 
               onClick={handleSave} 
@@ -195,7 +220,7 @@ export default function SettingsPage() {
           </div>
         </header>
 
-        <main className="p-6 space-y-6 max-4xl mx-auto w-full">
+        <main className="p-6 space-y-6 max-w-4xl mx-auto w-full">
           <Card className="border-border bg-card shadow-2xl">
             <CardHeader className="bg-secondary/10 border-b border-border/50">
               <CardTitle className="font-headline flex items-center gap-3 font-black uppercase italic text-sm tracking-[0.3em] text-accent">

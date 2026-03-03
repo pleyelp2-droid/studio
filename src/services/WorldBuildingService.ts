@@ -9,9 +9,6 @@ import { Chunk, POI, Monster, ResourceNode, MONSTER_TEMPLATES } from '../types';
 
 export class WorldBuildingService {
   
-  /**
-   * Generates content for a chunk based on its mathematical logic field and axiomatic density.
-   */
   static generateAxiomaticContent(chunk: Chunk): {
     pois: POI[],
     monsters: Monster[],
@@ -21,15 +18,14 @@ export class WorldBuildingService {
     const monsters: Monster[] = [];
     const resources: ResourceNode[] = [];
     
-    // Safety check for required data
     if (!chunk.logicField || !chunk.axiomaticData) return { pois, monsters, resources };
 
     const chunkWorldX = chunk.x * 80;
     const chunkWorldZ = chunk.z * 80;
     const isSanctuary = chunk.cellType === 'SANCTUARY' || chunk.biome === 'CITY';
 
-    // Sanctuary Generation (Cities / Outposts)
     if (isSanctuary) {
+      // Hub Manifestation
       pois.push({
         id: `city-forge-${chunk.id}`,
         type: 'BUILDING',
@@ -71,48 +67,10 @@ export class WorldBuildingService {
         threatLevel: 0
       });
       
-      // City Foliage
-      for (let k = 1; k <= 3; k++) {
-        pois.push({
-          id: `city-tree${k}-${chunk.id}`,
-          type: 'TREE',
-          position: [
-            chunkWorldX + (k === 1 ? -25 : k === 2 ? 28 : -30), 
-            0, 
-            chunkWorldZ + (k === 1 ? -20 : k === 2 ? 22 : 25)
-          ],
-          isDiscovered: true,
-          discoveryRadius: 5,
-          rewardInsight: 1,
-          threatLevel: 0
-        });
-      }
-
-      // Procedural Residential/Industrial Buildings
-      for (let i = 0; i < 8; i++) {
-        for (let j = 0; j < 8; j++) {
-          const dataVal = chunk.axiomaticData[i][j];
-          const posX = chunkWorldX + (i * 10 - 35);
-          const posZ = chunkWorldZ + (j * 10 - 35);
-
-          if (dataVal > 0.6 && Math.random() < 0.25) {
-            pois.push({
-              id: `bldg-${chunk.id}-${i}-${j}`,
-              type: 'BUILDING',
-              position: [posX, 0, posZ],
-              isDiscovered: true,
-              discoveryRadius: 10,
-              rewardInsight: 2,
-              threatLevel: 0
-            });
-          }
-        }
-      }
-
       return { pois, monsters, resources };
     }
 
-    // Wilderness Generation (Combat, Exploration, Extraction)
+    // Wilderness Manifestation - Optimized Thresholds for more content
     for (let i = 0; i < 8; i++) {
       for (let j = 0; j < 8; j++) {
         const force = chunk.logicField[i][j];
@@ -122,8 +80,8 @@ export class WorldBuildingService {
         const posX = chunkWorldX + (i * 10 - 35);
         const posZ = chunkWorldZ + (j * 10 - 35);
 
-        // Shrines (Resonance POIs)
-        if (dataVal > 0.8 && magnitude < 0.08) {
+        // Shrines (Resonance POIs) - Threshold: High Density, Low Noise
+        if (dataVal > 0.8 && magnitude < 0.1) {
           pois.push({
             id: `poi-${chunk.id}-${i}-${j}`,
             type: 'SHRINE',
@@ -131,51 +89,33 @@ export class WorldBuildingService {
             isDiscovered: false,
             discoveryRadius: 15,
             rewardInsight: 10,
-            loreFragment: `Axiomatic Resonance detected at ${chunk.id}.`,
+            loreFragment: `Axiomatic Resonance detected.`,
             threatLevel: 0.1
           });
         }
 
-        // Monsters (Corrupted Entities)
+        // Monsters (Corrupted Entities) - Threshold: Higher Noise
         if (magnitude > 0.1 && dataVal < 0.4) {
-          const chunkDist = Math.hypot(chunk.x, chunk.z);
-          const roll = Math.random();
-          const mType = (roll > 0.85 && chunkDist >= 4) ? 'DRAGON' : 
-                        (roll > 0.6 && chunkDist >= 2) ? 'ORC' : 
-                        roll > 0.35 ? 'GOBLIN' : 'SLIME';
-          
-          const nameMap: Record<string, string> = {
-            'GOBLIN': 'Glitch Scavenger',
-            'SLIME': 'Entropy Slime',
-            'ORC': 'Corrupted Brute',
-            'DRAGON': 'Entropy Drake'
-          };
-          const colorMap: Record<string, string> = {
-            'GOBLIN': '#ef4444',
-            'SLIME': '#22c55e',
-            'ORC': '#a855f7',
-            'DRAGON': '#f97316'
-          };
-          
+          const mType = magnitude > 0.18 ? 'DRAGON' : magnitude > 0.14 ? 'ORC' : 'GOBLIN';
           const template = MONSTER_TEMPLATES[mType] || MONSTER_TEMPLATES['GOBLIN'];
           monsters.push({
             id: `m-${chunk.id}-${i}-${j}`,
             type: mType,
-            name: nameMap[mType] || mType,
+            name: `${mType} Signature`,
             position: [posX, 0, posZ],
             rotationY: Math.random() * Math.PI * 2,
             stats: { ...template, maxHp: template.hp },
             xpReward: template.xp,
             state: 'IDLE',
             targetId: null,
-            color: colorMap[mType] || '#ef4444',
+            color: '#ef4444',
             scale: template.scale
           });
         }
 
-        // Resource Nodes (Extraction Points)
+        // Resource Nodes
         if (magnitude > 0.05 && magnitude < 0.15 && dataVal > 0.4) {
-          const rType = dataVal > 0.8 ? 'SILVER_ORE' : dataVal > 0.6 ? 'IRON_ORE' : 'STONE';
+          const rType = dataVal > 0.7 ? 'SILVER_ORE' : 'IRON_ORE';
           resources.push({
             id: `res-${chunk.id}-${i}-${j}`,
             type: rType as any,
@@ -184,8 +124,8 @@ export class WorldBuildingService {
           });
         }
 
-        // Biome Specific POIs
-        if (chunk.biome === 'FOREST' && dataVal > 0.3 && Math.random() < 0.4) {
+        // Trees / Flora
+        if (chunk.biome === 'FOREST' && dataVal > 0.3 && Math.random() < 0.2) {
            pois.push({
             id: `tree-${chunk.id}-${i}-${j}`,
             type: 'TREE',
@@ -197,15 +137,15 @@ export class WorldBuildingService {
           });
         }
 
-        // Dungeon Entrances
-        if (magnitude > 0.06 && Math.random() < 0.05) {
+        // Dungeons / Ruins - Rare Emergence
+        if (magnitude > 0.08 && Math.random() < 0.02) {
           pois.push({
-            id: `dungeon-${chunk.id}-${i}-${j}`,
+            id: `poi-rare-${chunk.id}-${i}-${j}`,
             type: Math.random() > 0.5 ? 'DUNGEON' : 'RUIN',
             position: [posX, 0, posZ],
             isDiscovered: false,
-            discoveryRadius: 25,
-            rewardInsight: 30,
+            discoveryRadius: 20,
+            rewardInsight: 25,
             threatLevel: 0.6
           });
         }

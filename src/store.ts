@@ -1,7 +1,9 @@
+
 import { create } from 'zustand';
 import { Agent, POI, Chunk, Monster } from './types';
 
 export type LogType = 'SYSTEM' | 'ERROR' | 'COMBAT' | 'ECONOMY';
+export type ControlMode = 'KEYBOARD' | 'JOYSTICK' | 'PUSH_TO_WALK';
 
 interface LogEntry {
   id: string;
@@ -17,6 +19,18 @@ interface GameState {
   loadedChunks: Chunk[];
   logs: LogEntry[];
   selectedPoiId: string | null;
+  
+  // Control State
+  isMobile: boolean;
+  controlMode: ControlMode;
+  virtualInput: { x: number; z: number };
+  targetPosition: { x: number; z: number } | null;
+
+  setIsMobile: (is: boolean) => void;
+  setControlMode: (mode: ControlMode) => void;
+  setVirtualInput: (input: { x: number; z: number }) => void;
+  setTargetPosition: (pos: { x: number; z: number } | null) => void;
+
   selectPoi: (id: string | null) => void;
   updateUptime: (time: number) => void;
   setAgents: (agents: Agent[]) => void;
@@ -32,6 +46,17 @@ export const useStore = create<GameState>((set) => ({
   loadedChunks: [],
   logs: [],
   selectedPoiId: null,
+  
+  isMobile: false,
+  controlMode: 'KEYBOARD',
+  virtualInput: { x: 0, z: 0 },
+  targetPosition: null,
+
+  setIsMobile: (isMobile) => set({ isMobile, controlMode: isMobile ? 'JOYSTICK' : 'KEYBOARD' }),
+  setControlMode: (controlMode) => set({ controlMode }),
+  setVirtualInput: (virtualInput) => set({ virtualInput }),
+  setTargetPosition: (targetPosition) => set({ targetPosition }),
+
   selectPoi: (id) => set({ selectedPoiId: id }),
   updateUptime: (time) => set((state) => ({ serverStats: { ...state.serverStats, uptime: time } })),
   setAgents: (agents) => set({ agents }),
@@ -45,7 +70,7 @@ export const useStore = create<GameState>((set) => ({
         timestamp: new Date().toISOString(),
       },
       ...state.logs
-    ].slice(0, 50) // Keep last 50 logs
+    ].slice(0, 50)
   })),
   clearLogs: () => set({ logs: [] }),
 }));
