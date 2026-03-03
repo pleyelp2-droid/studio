@@ -1,15 +1,17 @@
+
 'use client';
 
-import { Html, OrbitControls, Sky, PerspectiveCamera, Environment, ContactShadows } from '@react-three/drei';
+import { Html, OrbitControls, Sky, PerspectiveCamera, Environment, ContactShadows, Float } from '@react-three/drei';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import React, { useMemo, useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useStore } from '../../store';
-import { POI, Chunk, Monster, Agent, AgentState } from '../../types';
+import { POI, Chunk, Monster, Agent, AgentState, ResourceNode } from '../../types';
 import { axiomFragmentShader, axiomVertexShader } from './AxiomShader';
 import { createHumanoidModel, HumanoidModel } from './HumanoidModel';
 import { AnimationController } from './AnimationSystem';
 import { attachEquipment, EquipmentSlots } from './EquipmentRenderer';
+import { WorldBuildingService } from '@/services/WorldBuildingService';
 
 const AgentModel = ({ agent }: { agent: Agent }) => {
   const groupRef = useRef<THREE.Group>(null);
@@ -18,7 +20,7 @@ const AgentModel = ({ agent }: { agent: Agent }) => {
 
   useEffect(() => {
     const humanoid = createHumanoidModel({
-      skinTone: agent.thinkingMatrix?.alignment > 0.5 ? '#d1a37c' : '#8d5524',
+      skinTone: agent.thinkingMatrix?.alignment !== undefined && agent.thinkingMatrix.alignment > 0.5 ? '#d1a37c' : '#8d5524',
       bodyScale: 1.0 + (agent.level * 0.01)
     });
     setModel(humanoid);
@@ -39,12 +41,11 @@ const AgentModel = ({ agent }: { agent: Agent }) => {
 
   useEffect(() => {
     if (model) {
-      // Mock equipment based on class for preview
       const slots: EquipmentSlots = {
         head: agent.npcClass === 'SOVEREIGN' ? { id: 'h1', name: 'Crown', rarity: 'AXIOMATIC', type: 'ARMOR', stats: {}, level: 1, value: 0 } : null,
         chest: null,
         legs: null,
-        mainHand: agent.npcClass === 'PILOT' ? { id: 'w1', name: 'Blade', rarity: 'RARE', type: 'WEAPON', stats: {}, level: 1, value: 0 } : null,
+        mainHand: agent.npcClass === 'PILOT' || agent.npcClass === 'NEURAL_EMERGENT' ? { id: 'w1', name: 'Blade', rarity: 'RARE', type: 'WEAPON', stats: {}, level: 1, value: 0 } : null,
         offHand: null
       };
       attachEquipment(model.group, slots);
@@ -54,8 +55,7 @@ const AgentModel = ({ agent }: { agent: Agent }) => {
   useFrame((state, delta) => {
     if (animController) animController.update(delta);
     if (groupRef.current) {
-      // Smooth interpolation to target position
-      const targetPos = new THREE.Vector3(agent.position.x, agent.position.y, agent.position.z);
+      const targetPos = new THREE.Vector3(agent.position.x, agent.position.y || 0, agent.position.z);
       groupRef.current.position.lerp(targetPos, 0.1);
     }
   });
@@ -71,8 +71,76 @@ const AgentModel = ({ agent }: { agent: Agent }) => {
             {agent.displayName} <span className="text-accent ml-1">LVL {agent.level}</span>
           </div>
           <div className="w-12 h-1 bg-secondary rounded-full overflow-hidden border border-white/10">
-            <div className="h-full bg-emerald-500" style={{ width: `${(agent.hp / agent.maxHp) * 100}%` }} />
+            <div className="h-full bg-emerald-500" style={{ width: `${((agent.hp || 100) / (agent.maxHp || 100)) * 100}%` }} />
           </div>
+        </div>
+      </Html>
+    </group>
+  );
+};
+
+const POIModel = ({ poi }: { poi: POI }) => {
+  const material = useMemo(() => new THREE.MeshStandardMaterial({ 
+    color: poi.type === 'SHRINE' ? '#60D4FF' : poi.type === 'BUILDING' ? '#444' : '#22c55e',
+    emissive: poi.type === 'SHRINE' ? '#60D4FF' : '#000',
+    emissiveIntensity: 0.5,
+    roughness: 0.2,
+    metalness: 0.8
+  }), [poi.type]);
+
+  if (poi.type === 'SHRINE') {
+    return (
+      <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
+        <mesh position={[poi.position[0], 1.5, poi.position[2]]} material={material}>
+          <octahedronGeometry args={[1, 0]} />
+          <mesh position={[0, 0, 0]} rotation={[Math.PI / 4, 0, 0]}>
+            <torusGeometry args={[1.5, 0.05, 16, 100]} />
+          </mesh>
+        </mesh>
+      </Float>
+    );
+  }
+
+  if (poi.type === 'TREE') {
+    return (
+      <group position={[poi.position[0], 0, poi.position[2]]}>
+        <mesh position={[0, 1, 0]}>
+          <cylinderGeometry args={[0.2, 0.3, 2, 8]} />
+          <meshStandardMaterial color="#4a3728" />
+        </mesh>
+        <mesh position={[0, 2.5, 0]}>
+          <coneGeometry args={[1.2, 3, 8]} />
+          <meshStandardMaterial color="#1a472a" />
+        </mesh>
+      </group>
+    );
+  }
+
+  return (
+    <mesh position={[poi.position[0], 1, poi.position[2]]} material={material} castShadow receiveShadow>
+      <boxGeometry args={[3, 2, 3]} />
+    </mesh>
+  );
+};
+
+const MonsterModel = ({ monster }: { monster: Monster }) => {
+  const groupRef = useRef<THREE.Group>(null);
+  
+  useFrame((state) => {
+    if (groupRef.current) {
+      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.2 + 0.5;
+    }
+  });
+
+  return (
+    <group ref={groupRef} position={[monster.position[0], 0.5, monster.position[2]]}>
+      <mesh castShadow>
+        <sphereGeometry args={[monster.scale, 16, 16]} />
+        <meshStandardMaterial color={monster.color} emissive={monster.color} emissiveIntensity={0.3} />
+      </mesh>
+      <Html position={[0, 1.5, 0]} center distanceFactor={10}>
+        <div className="px-1.5 py-0.5 rounded bg-red-900/80 border border-red-500 text-white text-[8px] font-black uppercase tracking-tighter whitespace-nowrap shadow-xl">
+          {monster.name}
         </div>
       </Html>
     </group>
@@ -104,10 +172,10 @@ const DayNightSky = ({ tick }: { tick: number }) => {
                 turbidity={isNight ? 20 : 2}
                 rayleigh={isNight ? 0.1 : 1}
             />
-            <ambientLight intensity={THREE.MathUtils.lerp(0.1, 0.5, dayFactor)} color={fogColor} />
+            <ambientLight intensity={THREE.MathUtils.lerp(0.2, 0.8, dayFactor)} color={fogColor} />
             <directionalLight
                 position={[sunX * 100, Math.max(sunY * 150, 5), sunZ * 100]}
-                intensity={THREE.MathUtils.lerp(0.05, 1.5, dayFactor)}
+                intensity={THREE.MathUtils.lerp(0.1, 2.0, dayFactor)}
                 castShadow
             />
             <fog attach="fog" args={[fogColor, 120, 500]} />
@@ -160,6 +228,24 @@ const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civ
 
 export const World3D: React.FC<{ tick: number; civilizationIndex: number; stability?: number; corruption?: number }> = ({ tick, civilizationIndex, stability, corruption }) => {
     const agents = useStore(state => state.agents);
+    const monsters = useStore(state => state.monsters);
+    const chunks = useStore(state => state.loadedChunks);
+
+    // Generate full axiomatic content from loaded chunks
+    const worldContent = useMemo(() => {
+      const allPois: POI[] = [];
+      const allMonsters: Monster[] = [];
+      const allResources: ResourceNode[] = [];
+      
+      chunks.forEach(chunk => {
+        const content = WorldBuildingService.generateAxiomaticContent(chunk);
+        allPois.push(...content.pois);
+        allMonsters.push(...content.monsters);
+        allResources.push(...content.resources);
+      });
+
+      return { pois: allPois, monsters: monsters.length > 0 ? monsters : allMonsters, resources: allResources };
+    }, [chunks, monsters]);
 
     return (
         <div className="w-full h-full bg-black">
@@ -170,8 +256,27 @@ export const World3D: React.FC<{ tick: number; civilizationIndex: number; stabil
                 
                 <Terrain civilizationIndex={civilizationIndex} stability={stability} corruption={corruption} />
                 
+                {/* Render Agents */}
                 {agents.map(agent => (
                   <AgentModel key={agent.id} agent={agent} />
+                ))}
+
+                {/* Render Monsters */}
+                {worldContent.monsters.map(monster => (
+                  <MonsterModel key={monster.id} monster={monster} />
+                ))}
+
+                {/* Render POIs (Buildings, Shrines, Trees) */}
+                {worldContent.pois.map(poi => (
+                  <POIModel key={poi.id} poi={poi} />
+                ))}
+
+                {/* Render Resources */}
+                {worldContent.resources.map(res => (
+                  <mesh key={res.id} position={[res.position[0], 0.2, res.position[2]]}>
+                    <icosahedronGeometry args={[0.5, 0]} />
+                    <meshStandardMaterial color={res.type === 'SILVER_ORE' ? '#C0C0C0' : '#FFD700'} metalness={1} roughness={0.1} />
+                  </mesh>
                 ))}
 
                 <ContactShadows resolution={1024} scale={20} blur={2} opacity={0.35} far={10} color="#000000" />
