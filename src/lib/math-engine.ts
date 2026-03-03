@@ -75,3 +75,10 @@ export function chunkResources(seed: number, x: number, z: number): Record<strin
 export function resourceDecay(current: number, rate: number, min: number): number {
   return Math.max(min, current * (1 - rate));
 }
+
+/**
+ * Calculates market price based on supply and demand
+ */
+export function marketPrice(base: number, demand: number, supply: number): number {
+  return base * (demand / (supply + KAPPA));
+}
