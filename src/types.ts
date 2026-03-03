@@ -151,3 +151,23 @@ export interface ComplianceMatrixEntry {
   duality: 'PASS' | 'WARN' | 'FAIL';
   status: 'COMPLIANT' | 'DEGRADED' | 'IDLE' | 'PARTIAL';
 }
+
+export interface AdminAuditLog {
+  id: string;
+  adminId: string;
+  action: string;
+  targetType: string;
+  targetId: string;
+  details: any;
+  ipAddress: string;
+  timestamp: any;
+}
+
+export interface SecurityLockout {
+  id: string;
+  identifier: string;
+  lockoutType: 'LOGIN' | 'TRANSACTION';
+  attempts: number;
+  lockedUntil: any | null;
+  updatedAt: any;
+}
