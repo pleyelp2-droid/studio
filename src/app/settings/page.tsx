@@ -76,9 +76,10 @@ export default function SettingsPage() {
     setBooting(true)
     const ci = calculateCI()
     try {
+      // Ensure the user is signed in to satisfy Security Rules
       if (!user && auth) await signInAnonymously(auth)
       
-      // Explicitly set tick to 1 to initialize the live engine
+      // Initialize the world state singleton with starting tick
       await setDoc(worldRef, { 
         ...params, 
         civilizationIndex: ci, 
@@ -86,7 +87,7 @@ export default function SettingsPage() {
         lastHeartbeat: serverTimestamp(),
         updatedAt: serverTimestamp()
       })
-      toast({ title: "Engine Booted", description: "Ouroboros core is now live at Tick 1. Backend functions will now take over." })
+      toast({ title: "Engine Booted", description: "Ouroboros core is now live at Tick 1. Logic cycle initiated." })
     } catch (e: any) {
       toast({ variant: "destructive", title: "Boot Failure", description: e.message || "Could not initialize core logic." })
     } finally {

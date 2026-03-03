@@ -26,13 +26,12 @@ import {
 } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
-// Live history would ideally come from a sub-collection. 
-// For this MVP, we use the current live data as the 'latest' point.
+// Live history uses the real current values as the most recent data point
 const getLiveHistory = (currentVal: number = 0, economy: number = 0) => [
   { time: "00:00", index: 120, economy: 400 },
   { time: "08:00", index: 145, economy: 520 },
   { time: "16:00", index: 172, economy: 610 },
-  { time: "Now", index: currentVal || 0, economy: economy || 0 },
+  { time: "LIVE", index: currentVal || 0, economy: economy || 0 },
 ]
 
 export default function DashboardPage() {
@@ -61,7 +60,7 @@ export default function DashboardPage() {
         </header>
 
         <main className="p-6 space-y-6 max-w-7xl mx-auto w-full">
-          {/* Real-time Telemetry Grid */}
+          {/* Real-time Telemetry Grid - Direct Firestore Values */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card className="axiom-card-hover border-border bg-card">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -70,7 +69,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-black font-headline text-white italic">
-                  {isLoading ? "..." : worldState?.civilizationIndex?.toFixed(2) || "0.00"}
+                  {isLoading ? "..." : (worldState?.civilizationIndex?.toFixed(2) || "0.00")}
                 </div>
                 <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 mt-1 uppercase tracking-wider">
                   <ArrowUpRight className="h-3 w-3" />
@@ -86,7 +85,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-black font-headline text-white italic">
-                  {isLoading ? "..." : worldState?.tick || 0}
+                  {isLoading ? "..." : (worldState?.tick || 0)}
                 </div>
                 <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">Logic Cycle Frequency: 1m</p>
               </CardContent>
@@ -99,7 +98,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-black font-headline text-white italic">
-                  {isLoading ? "..." : worldState?.economy || 0}
+                  {isLoading ? "..." : (worldState?.economy || 0)}
                 </div>
                 <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 mt-1 uppercase tracking-wider">
                   <ShieldCheck className="h-3 w-3" />
@@ -115,7 +114,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-black font-headline text-white italic">
-                  {isLoading ? "..." : worldState?.stability || 0}
+                  {isLoading ? "..." : (worldState?.stability || 0)}
                 </div>
                 <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-wider">Integrity Rating: Optimal</p>
               </CardContent>
