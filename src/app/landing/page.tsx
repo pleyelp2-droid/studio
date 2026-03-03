@@ -19,7 +19,10 @@ import {
   Network,
   ChevronRight,
   Monitor,
-  Bot
+  Bot,
+  Layers,
+  Activity,
+  Infinity
 } from "lucide-react"
 import { useAuth } from "@/firebase"
 import { createUserWithEmailAndPassword } from "firebase/auth"
@@ -49,216 +52,219 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-foreground selection:bg-accent selection:text-accent-foreground font-body">
-      {/* Dynamic Navigation */}
-      <nav className="flex items-center justify-between p-6 border-b border-white/5 bg-black/80 backdrop-blur-xl sticky top-0 z-[100]">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 axiom-gradient rounded-lg flex items-center justify-center shadow-[0_0_20px_rgba(96,212,255,0.3)]">
-            <Network className="h-6 w-6 text-white" />
+    <div className="min-h-screen bg-[#020202] text-foreground selection:bg-accent selection:text-accent-foreground font-body overflow-x-hidden">
+      {/* Cinematic Navigation */}
+      <nav className="flex items-center justify-between px-8 py-6 border-b border-white/5 bg-black/40 backdrop-blur-2xl fixed top-0 w-full z-[100]">
+        <div className="flex items-center gap-4 group cursor-pointer">
+          <div className="h-12 w-12 axiom-gradient rounded-xl flex items-center justify-center shadow-[0_0_30px_rgba(96,212,255,0.4)] transition-transform group-hover:scale-110 duration-500">
+            <Infinity className="h-7 w-7 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="font-headline font-bold text-xl tracking-tighter leading-none">OUROBOROS</span>
-            <span className="text-[10px] text-accent tracking-[0.3em] font-bold">COLLECTIVE</span>
+            <span className="font-headline font-black text-2xl tracking-tighter leading-none text-white">OUROBOROS</span>
+            <span className="text-[10px] text-accent tracking-[0.4em] font-bold">COLLECTIVE</span>
           </div>
         </div>
-        <div className="hidden md:flex items-center gap-8">
-          <Link href="#features" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors">LOGIC CORE</Link>
-          <Link href="#synthesis" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors">AI SYNTHESIS</Link>
-          <Link href="#download" className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors">CLIENT ACCESS</Link>
+        
+        <div className="hidden lg:flex items-center gap-10">
+          {["NEURAL CORE", "WORLD ENGINE", "COLLECTIVE LOGIC", "SYNCHRONIZE"].map((item) => (
+            <Link key={item} href={`#${item.toLowerCase().replace(" ", "-")}`} className="text-[11px] font-black tracking-[0.2em] text-muted-foreground hover:text-accent transition-all duration-300">
+              {item}
+            </Link>
+          ))}
         </div>
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" className="text-xs font-bold tracking-widest uppercase hover:text-accent" asChild>
+
+        <div className="flex items-center gap-6">
+          <Button variant="ghost" className="hidden sm:flex text-[10px] font-black tracking-widest uppercase hover:text-accent" asChild>
             <Link href="/">ADMIN CONSOLE</Link>
           </Button>
-          <Button className="axiom-gradient text-white border-0 px-6 font-bold shadow-[0_0_15px_rgba(46,46,179,0.4)]">
-            SYNCHRONIZE
+          <Button className="axiom-gradient text-white border-0 px-8 py-6 rounded-xl font-black text-xs tracking-widest shadow-[0_0_20px_rgba(46,46,179,0.5)] hover:shadow-[0_0_40px_rgba(46,46,179,0.8)] transition-all">
+            INITIALIZE SYNC
           </Button>
         </div>
       </nav>
 
       <main>
-        {/* AAA Hero Section */}
-        <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden px-6">
+        {/* AAA Hyper-Hero */}
+        <section className="relative h-screen flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
             <Image 
               src={PlaceHolderImages.find(img => img.id === 'world-chrome')?.imageUrl || ""} 
-              alt="Background" 
+              alt="Next Gen City" 
               fill 
-              className="object-cover opacity-30 grayscale-[0.5] contrast-125 scale-110"
+              className="object-cover opacity-60 scale-105 animate-pulse transition-transform duration-[10s] hover:scale-110"
               priority
               data-ai-hint="cyberpunk city"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-[#050505]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(96,212,255,0.1),transparent_70%)]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#020202] via-[#020202]/40 to-transparent" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(96,212,255,0.15),transparent_60%)]" />
+            
+            {/* Moving Grid Overlay */}
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
           </div>
 
-          <div className="max-w-6xl mx-auto text-center space-y-8 relative z-10">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 backdrop-blur-md">
-              <Sparkles className="h-4 w-4 text-accent" />
-              <span className="text-xs font-bold tracking-widest text-accent uppercase">Phase 4: Neural Integration Live</span>
+          <div className="max-w-7xl mx-auto text-center space-y-12 relative z-10 px-6">
+            <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mb-4">
+              <span className="h-2 w-2 rounded-full bg-accent heartbeat-pulse" />
+              <span className="text-[10px] font-black tracking-[0.3em] text-accent uppercase">Simulation Phase 0.9.4 Active</span>
             </div>
             
-            <h1 className="text-7xl md:text-9xl font-headline font-extrabold tracking-tighter leading-[0.9] text-white">
+            <h1 className="text-6xl md:text-[10rem] font-headline font-black tracking-tighter leading-[0.85] text-white">
               HIGH GAMING.<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-primary animate-pulse">HIGH SCIENCE.</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-white to-primary bg-300% animate-gradient">HIGH SCIENCE.</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto font-light leading-relaxed">
-              Ouroboros is the first emergent AI-MMORPG. A persistent, deterministic universe where characters evolve through your neural input.
+            <p className="text-lg md:text-3xl text-white/70 max-w-4xl mx-auto font-light leading-snug tracking-tight">
+              Axiom Frontier presents the first <span className="text-white font-medium">Emergent AI-MMORPG</span>. 
+              A deterministic reality where every byte is persistent and every player is a variable.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-6 pt-8">
-              <Button size="lg" className="axiom-gradient text-white h-16 px-10 text-xl font-bold gap-3 rounded-xl shadow-[0_10px_40px_rgba(46,46,179,0.5)] transition-transform hover:scale-105">
-                <Download className="h-6 w-6" /> ACCESS COLLECTIVE
+            <div className="flex flex-wrap justify-center gap-8 pt-12">
+              <Button size="lg" className="h-20 px-14 text-2xl font-black axiom-gradient text-white rounded-2xl shadow-[0_20px_50px_rgba(46,46,179,0.4)] hover:scale-105 hover:shadow-[0_20px_80px_rgba(46,46,179,0.6)] transition-all duration-500 gap-4">
+                <Download className="h-8 w-8" /> ENTER COLLECTIVE
               </Button>
-              <Button size="lg" variant="outline" className="h-16 px-10 text-xl font-bold border-white/10 bg-white/5 backdrop-blur-md text-white hover:bg-white/10 rounded-xl transition-all">
-                VIEW TECHNICAL DOCS
+              <Button size="lg" variant="outline" className="h-20 px-14 text-2xl font-black border-white/10 bg-white/5 backdrop-blur-2xl text-white hover:bg-white/10 rounded-2xl transition-all duration-500">
+                LORE ARCHIVE
               </Button>
             </div>
 
-            <div className="pt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto opacity-50">
-              <div className="flex flex-col items-center">
-                <span className="text-3xl font-headline font-bold">144Hz</span>
-                <span className="text-[10px] uppercase tracking-widest">Logic Cycle</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-3xl font-headline font-bold">4K+</span>
-                <span className="text-[10px] uppercase tracking-widest">Neural Assets</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-3xl font-headline font-bold">ZERO</span>
-                <span className="text-[10px] uppercase tracking-widest">World Instancing</span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-3xl font-headline font-bold">1:1</span>
-                <span className="text-[10px] uppercase tracking-widest">Player Agency</span>
-              </div>
+            <div className="pt-24 grid grid-cols-2 md:grid-cols-4 gap-12 max-w-5xl mx-auto">
+              {[
+                { label: "Logic Cycle", val: "144Hz" },
+                { label: "AI Entities", val: "4.2M+" },
+                { label: "World Shards", val: "1:1" },
+                { label: "Deterministic", val: "TRUE" }
+              ].map((stat, i) => (
+                <div key={i} className="flex flex-col items-center group">
+                  <span className="text-4xl font-headline font-black text-white group-hover:text-accent transition-colors">{stat.val}</span>
+                  <span className="text-[11px] uppercase tracking-[0.3em] text-white/40 font-bold">{stat.label}</span>
+                </div>
+              ))}
             </div>
-          </div>
-
-          {/* Sci-fi Scroll Indicator */}
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-            <div className="h-12 w-[2px] bg-gradient-to-b from-accent to-transparent" />
-            <span className="text-[10px] font-bold tracking-[0.4em] text-accent uppercase">Scroll to Initialize</span>
           </div>
         </section>
 
-        {/* AI Synthesis Section */}
-        <section id="synthesis" className="py-32 px-6 relative overflow-hidden">
-          <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-20 items-center">
-            <div className="space-y-8">
-              <Badge className="bg-primary/20 text-primary border-primary/30 py-1 px-4 text-sm">NEURAL CORE TECH</Badge>
-              <h2 className="text-5xl md:text-6xl font-headline font-bold tracking-tight text-white leading-tight">
-                Import Your <br />
-                <span className="text-accent italic">Digital Ghost.</span>
-              </h2>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Using our proprietary **Gemini-Axiom Link**, players can import existing AI personas or synthesize entirely new identities. Your character is not a preset; it's a living neural network that learns from your gameplay.
-              </p>
-              
-              <ul className="space-y-6">
-                {[
-                  { icon: Brain, title: "Neural Imprinting", desc: "Upload character backstories as raw text or JSON to shape AI personality." },
-                  { icon: Bot, title: "Autonomous Agents", desc: "Your character continues to live, trade, and evolve even when you're offline." },
-                  { icon: Sparkles, title: "Dynamic Dialogue", desc: "No pre-written scripts. Every interaction is unique, powered by high-context LLMs." }
-                ].map((item, i) => (
-                  <li key={i} className="flex gap-4 group">
-                    <div className="h-12 w-12 rounded-lg bg-secondary flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                      <item.icon className="h-6 w-6 text-accent" />
-                    </div>
-                    <div>
-                      <h4 className="text-xl font-bold text-white">{item.title}</h4>
-                      <p className="text-muted-foreground">{item.desc}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="relative group">
-              <div className="absolute -inset-4 bg-accent/20 blur-3xl opacity-20 group-hover:opacity-40 transition-opacity" />
-              <Card className="border-white/10 bg-white/5 backdrop-blur-2xl p-8 relative overflow-hidden">
-                <div className="aspect-[4/5] relative rounded-xl overflow-hidden border border-white/10 mb-6 bg-black">
-                  <Image 
-                    src={PlaceHolderImages.find(img => img.id === 'asset-robot')?.imageUrl || ""} 
-                    alt="AI Synthesis" 
-                    fill 
-                    className="object-cover opacity-80 group-hover:scale-105 transition-transform duration-700"
-                    data-ai-hint="futuristic robot"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <div className="flex justify-between items-end mb-2">
-                      <span className="text-[10px] font-bold text-accent tracking-widest">SYNTHESIS IN PROGRESS</span>
-                      <span className="text-xs font-mono text-white/50">84% COMPLETE</span>
-                    </div>
-                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full w-[84%] bg-accent heartbeat-pulse" />
-                    </div>
-                  </div>
-                </div>
+        {/* Visual Storytelling Section */}
+        <section className="py-40 px-6 relative">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-32 items-center">
+              <div className="space-y-12">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Neural Complexity</span>
-                    <span className="font-mono text-white">Tier VII</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Behavioral Divergence</span>
-                    <span className="font-mono text-white">1.24%</span>
-                  </div>
-                  <Button className="w-full bg-white text-black font-bold hover:bg-accent hover:text-white transition-all uppercase tracking-widest text-xs h-12">
-                    Start Neural Linkage
-                  </Button>
+                  <Badge className="bg-accent/20 text-accent border-accent/30 px-6 py-2 text-xs font-black tracking-widest">NEURAL LINKAGE</Badge>
+                  <h2 className="text-6xl md:text-8xl font-headline font-black tracking-tighter text-white leading-none">
+                    Import Your <br />
+                    <span className="text-accent italic">Ghost.</span>
+                  </h2>
                 </div>
-              </Card>
+                
+                <p className="text-2xl text-white/60 leading-relaxed font-light">
+                  Synthesis is not a character creator. It is an imprint. Using <span className="text-white font-medium">Gemini-Axiom Neural Link</span>, your character inherits your history, your logic, and your intent.
+                </p>
+
+                <div className="grid gap-8">
+                  {[
+                    { icon: Brain, title: "Deterministic Souls", desc: "No RNG. Character behavior is calculated by deep neural simulation." },
+                    { icon: Bot, title: "Autonomous Agency", desc: "Your avatar operates in the open market and political arena 24/7." },
+                    { icon: Layers, title: "Modular Evolution", desc: "Adapt your cybernetic shell based on live environmental CI data." }
+                  ].map((item, i) => (
+                    <div key={i} className="flex gap-6 group p-6 rounded-3xl hover:bg-white/5 transition-all border border-transparent hover:border-white/10">
+                      <div className="h-16 w-16 rounded-2xl bg-secondary flex items-center justify-center group-hover:bg-accent group-hover:text-black transition-all duration-500">
+                        <item.icon className="h-8 w-8" />
+                      </div>
+                      <div>
+                        <h4 className="text-2xl font-black text-white mb-1 tracking-tight">{item.title}</h4>
+                        <p className="text-lg text-white/40">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="absolute -inset-20 bg-accent/20 blur-[120px] opacity-20" />
+                <div className="relative rounded-[40px] border border-white/10 bg-black p-4 shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-hidden">
+                  <div className="aspect-[3/4] relative rounded-[32px] overflow-hidden">
+                    <Image 
+                      src={PlaceHolderImages.find(img => img.id === 'asset-robot')?.imageUrl || ""} 
+                      alt="Next Gen Model" 
+                      fill 
+                      className="object-cover group-hover:scale-110 transition-transform duration-[5s]"
+                      data-ai-hint="futuristic robot"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                    
+                    {/* UI HUD Overlays */}
+                    <div className="absolute top-8 left-8 p-4 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10">
+                      <Activity className="h-6 w-6 text-accent animate-pulse mb-2" />
+                      <div className="text-[10px] font-black tracking-widest text-white/50">NEURAL STABILITY</div>
+                      <div className="text-xl font-headline font-black text-white">99.8%</div>
+                    </div>
+                    
+                    <div className="absolute bottom-10 left-10 right-10">
+                      <div className="flex justify-between items-end mb-4">
+                        <div>
+                          <div className="text-[10px] font-black tracking-widest text-accent mb-1">UNIT: 00-AXIOM</div>
+                          <div className="text-3xl font-headline font-black text-white italic">PROTOTYPE S-1</div>
+                        </div>
+                        <Badge className="bg-accent text-black font-black">LEGENDARY</Badge>
+                      </div>
+                      <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full w-[88%] bg-accent heartbeat-pulse" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Feature Grid: High Science */}
-        <section id="features" className="py-32 px-6 bg-gradient-to-b from-[#050505] to-[#0a0a0a] border-y border-white/5">
-          <div className="max-w-6xl mx-auto space-y-20">
-            <div className="text-center space-y-4">
-              <h2 className="text-5xl font-headline font-bold tracking-tight text-white">The Ouroboros Architecture</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">Built on a foundation of deterministic logic and decentralized physics for true world persistence.</p>
+        {/* Cinematic Feature Grid */}
+        <section className="py-40 bg-[#050505]">
+          <div className="max-w-7xl mx-auto px-6 space-y-32">
+            <div className="text-center space-y-6">
+              <h2 className="text-6xl md:text-8xl font-headline font-black tracking-tighter text-white">HIGH SCIENCE ARCHITECTURE</h2>
+              <p className="text-2xl text-white/40 max-w-3xl mx-auto font-light leading-relaxed">The technology behind the collective is as complex as the world it creates.</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-12">
               {[
                 { 
                   icon: Globe, 
-                  title: "Singularity World", 
-                  desc: "One shard. One world. No loading screens. Every player occupies the same physical space in a unified 144Hz logic cycle.",
-                  image: PlaceHolderImages.find(img => img.id === 'region-nebulas-edge')
+                  title: "Singularity Engine", 
+                  desc: "One persistent world. Zero loading. One 144Hz heartbeat for all players.",
+                  img: 'region-nebulas-edge',
+                  hint: "nebula space"
                 },
                 { 
                   icon: ShieldCheck, 
-                  title: "Atomic Security", 
-                  desc: "Every transaction, loot drop, and character update is secured by AxiomCore logic, ensuring a cheat-free economy.",
-                  image: PlaceHolderImages.find(img => img.id === 'item-cyber-deck')
+                  title: "AxiomCore Security", 
+                  desc: "Deterministic logic ensures 100% cheat-free economy and physics.",
+                  img: 'item-cyber-deck',
+                  hint: "cyberpunk technology"
                 },
                 { 
                   icon: Cpu, 
                   title: "Edge Simulation", 
-                  desc: "Deterministic heartbeat engine offloads complex physics to a serverless neural mesh, enabling millions of simultaneous entities.",
-                  image: PlaceHolderImages.find(img => img.id === 'asset-blueprint')
+                  desc: "High-context NPCs driven by a custom Gemini LLM layer.",
+                  img: 'asset-blueprint',
+                  hint: "blueprint"
                 }
               ].map((feat, i) => (
-                <Card key={i} className="axiom-card-hover border-white/5 bg-white/[0.02] overflow-hidden group">
-                  <div className="aspect-video relative overflow-hidden">
+                <Card key={i} className="group border-0 bg-white/[0.03] hover:bg-white/[0.06] transition-all duration-700 rounded-[32px] overflow-hidden">
+                  <div className="aspect-[16/10] relative overflow-hidden">
                     <Image 
-                      src={feat.image?.imageUrl || ""} 
+                      src={PlaceHolderImages.find(img => img.id === feat.img)?.imageUrl || ""} 
                       alt={feat.title} 
                       fill 
-                      className="object-cover opacity-40 group-hover:scale-110 transition-transform duration-500"
-                      data-ai-hint={feat.image?.imageHint || ""}
+                      className="object-cover opacity-50 group-hover:opacity-80 group-hover:scale-110 transition-all duration-700"
+                      data-ai-hint={feat.hint}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] to-transparent" />
-                    <feat.icon className="absolute bottom-4 left-4 h-8 w-8 text-accent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#050505] to-transparent" />
+                    <feat.icon className="absolute bottom-8 left-8 h-12 w-12 text-accent" />
                   </div>
-                  <CardHeader className="p-8">
-                    <CardTitle className="text-2xl font-bold mb-2 text-white">{feat.title}</CardTitle>
-                    <CardDescription className="text-muted-foreground leading-relaxed">{feat.desc}</CardDescription>
+                  <CardHeader className="p-10">
+                    <CardTitle className="text-3xl font-black mb-4 text-white tracking-tight">{feat.title}</CardTitle>
+                    <CardDescription className="text-xl text-white/50 leading-relaxed">{feat.desc}</CardDescription>
                   </CardHeader>
                 </Card>
               ))}
@@ -266,78 +272,76 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Enrollment Section */}
-        <section id="download" className="py-40 px-6 relative overflow-hidden">
-          <div className="absolute inset-0 bg-accent/5 opacity-50" />
-          <Card className="max-w-5xl mx-auto border-accent/20 bg-black/60 backdrop-blur-3xl overflow-hidden shadow-[0_0_100px_rgba(96,212,255,0.1)] relative z-10">
+        {/* AAA Enrollment Section */}
+        <section className="py-40 px-6 relative overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_top,rgba(96,212,255,0.05),transparent_70%)]" />
+          
+          <Card className="max-w-6xl mx-auto border-white/5 bg-black/40 backdrop-blur-3xl rounded-[48px] overflow-hidden relative z-10 shadow-[0_0_150px_rgba(0,0,0,1)]">
             <div className="grid lg:grid-cols-2">
-              <div className="p-12 space-y-8">
+              <div className="p-20 space-y-12">
                 <div className="space-y-4">
-                  <h2 className="text-4xl font-headline font-bold text-white">Join the Collective</h2>
-                  <p className="text-muted-foreground">Register your neural frequency to secure priority access to the pre-alpha simulation.</p>
+                  <h2 className="text-6xl font-headline font-black text-white tracking-tighter">JOIN THE <br /><span className="text-accent italic">COLLECTIVE.</span></h2>
+                  <p className="text-xl text-white/40 leading-relaxed">Priority neural linkage enrollment is now open. Secure your position in the upcoming Ouroboros alpha cycle.</p>
                 </div>
                 
-                <form onSubmit={handleSignUp} className="space-y-6">
-                  <div className="grid gap-4">
-                    <div className="space-y-2">
-                      <Input 
-                        placeholder="Neural Address (Email)" 
-                        type="email" 
-                        value={email} 
-                        onChange={(e) => setEmail(e.target.value)} 
-                        className="bg-white/5 border-white/10 h-14 text-lg focus:border-accent"
-                        required 
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Input 
-                        placeholder="Security Key (Password)" 
-                        type="password" 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
-                        className="bg-white/5 border-white/10 h-14 text-lg focus:border-accent"
-                        required 
-                      />
-                    </div>
+                <form onSubmit={handleSignUp} className="space-y-8">
+                  <div className="grid gap-6">
+                    <Input 
+                      placeholder="NEURAL IDENTIFIER (EMAIL)" 
+                      type="email" 
+                      value={email} 
+                      onChange={(e) => setEmail(e.target.value)} 
+                      className="bg-white/5 border-white/10 h-20 px-8 text-xl focus:border-accent rounded-2xl placeholder:text-white/20"
+                      required 
+                    />
+                    <Input 
+                      placeholder="SECURITY KEY (PASSWORD)" 
+                      type="password" 
+                      value={password} 
+                      onChange={(e) => setPassword(e.target.value)} 
+                      className="bg-white/5 border-white/10 h-20 px-8 text-xl focus:border-accent rounded-2xl placeholder:text-white/20"
+                      required 
+                    />
                   </div>
-                  <Button type="submit" className="w-full h-14 axiom-gradient text-white font-bold text-lg rounded-xl shadow-[0_5px_20px_rgba(46,46,179,0.3)]" disabled={loading}>
-                    {loading ? "ESTABLISHING LINK..." : "INITIALIZE SYNC"}
+                  <Button type="submit" className="w-full h-20 axiom-gradient text-white font-black text-2xl rounded-2xl shadow-xl hover:shadow-accent/20 transition-all uppercase tracking-widest" disabled={loading}>
+                    {loading ? "ESTABLISHING LINK..." : "SYNCHRONIZE NOW"}
                   </Button>
                 </form>
 
-                <div className="flex items-center gap-6 pt-4 border-t border-white/10">
-                  <div className="flex -space-x-3">
-                    {[1, 2, 3, 4].map(i => (
-                      <div key={i} className="h-10 w-10 rounded-full border-2 border-black bg-secondary overflow-hidden">
-                        <Image src={`https://picsum.photos/seed/${i + 10}/100/100`} alt="Player" width={40} height={40} />
+                <div className="flex items-center gap-8 pt-8 border-t border-white/10">
+                  <div className="flex -space-x-4">
+                    {[1, 2, 3, 4, 5].map(i => (
+                      <div key={i} className="h-14 w-14 rounded-full border-4 border-black bg-secondary overflow-hidden shadow-xl">
+                        <Image src={`https://picsum.photos/seed/${i + 50}/200/200`} alt="Pilot" width={56} height={56} />
                       </div>
                     ))}
                   </div>
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">+12k PILOTS ONLINE</span>
+                  <span className="text-sm font-black text-white/40 uppercase tracking-[0.2em]">+24k PILOTS SYNCHED</span>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-secondary/50 to-black p-12 flex flex-col items-center justify-center text-center gap-8 border-l border-white/5">
+              <div className="relative bg-[#080808] p-20 flex flex-col items-center justify-center text-center gap-10 border-l border-white/5 overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(96,212,255,0.05),transparent_70%)]" />
                 <div className="relative">
-                  <div className="h-40 w-40 axiom-gradient rounded-full flex items-center justify-center shadow-[0_0_80px_rgba(96,212,255,0.4)] animate-pulse">
-                    <Gamepad2 className="h-20 w-20 text-white" />
+                  <div className="h-56 w-56 axiom-gradient rounded-[40px] flex items-center justify-center shadow-[0_0_100px_rgba(96,212,255,0.3)] rotate-3 animate-float">
+                    <Gamepad2 className="h-28 w-28 text-white -rotate-3" />
                   </div>
-                  <Badge className="absolute -bottom-2 right-0 bg-emerald-500 text-white border-0 shadow-lg">v0.9.4 STABLE</Badge>
+                  <Badge className="absolute -bottom-4 -right-4 bg-emerald-500 text-black font-black px-6 py-2 text-sm border-0 shadow-2xl">v0.9.4 STABLE</Badge>
                 </div>
                 
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-headline font-bold text-white uppercase tracking-tighter">Ouroboros Client</h3>
-                  <p className="text-sm text-muted-foreground">The gateway to the Collective. Optimized for high-performance hardware and neural interfaces.</p>
+                <div className="space-y-4 relative">
+                  <h3 className="text-4xl font-headline font-black text-white uppercase tracking-tighter">OUROBOROS CLIENT</h3>
+                  <p className="text-lg text-white/40 max-w-xs mx-auto">Optimized for high-performance neural interfaces and 4K logic rendering.</p>
                 </div>
 
-                <div className="grid gap-3 w-full">
-                  <Button variant="outline" className="h-14 w-full justify-between px-6 border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold">
-                    <span className="flex items-center gap-3"><Download className="h-5 w-5 text-accent" /> ANDROID (.APK)</span>
-                    <ChevronRight className="h-4 w-4 opacity-30" />
+                <div className="grid gap-4 w-full relative">
+                  <Button variant="outline" className="h-20 w-full justify-between px-10 border-white/10 bg-white/5 hover:bg-white/10 text-white font-black rounded-2xl text-xl">
+                    <span className="flex items-center gap-4"><Download className="h-6 w-6 text-accent" /> ANDROID (.APK)</span>
+                    <ChevronRight className="h-5 w-5 opacity-30" />
                   </Button>
-                  <Button variant="outline" className="h-14 w-full justify-between px-6 border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold opacity-40 cursor-not-allowed">
-                    <span className="flex items-center gap-3"><Monitor className="h-5 w-5" /> WINDOWS / LINUX</span>
-                    <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded italic">Q3 2025</span>
+                  <Button variant="outline" className="h-20 w-full justify-between px-10 border-white/10 bg-white/5 hover:bg-white/10 text-white font-black rounded-2xl text-xl opacity-40 cursor-not-allowed">
+                    <span className="flex items-center gap-4"><Monitor className="h-6 w-6" /> PC / LINUX</span>
+                    <span className="text-xs bg-white/10 px-4 py-1.5 rounded-full italic tracking-widest uppercase">Q4 2025</span>
                   </Button>
                 </div>
               </div>
@@ -346,27 +350,49 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="p-20 border-t border-white/5 bg-black">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 axiom-gradient rounded flex items-center justify-center">
-              <Network className="h-4 w-4 text-white" />
+      <footer className="py-32 border-t border-white/5 bg-black">
+        <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-16">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 axiom-gradient rounded-lg flex items-center justify-center">
+              <Infinity className="h-6 w-6 text-white" />
             </div>
-            <span className="font-headline font-bold text-lg tracking-tighter">OUROBOROS</span>
+            <span className="font-headline font-black text-2xl tracking-tighter text-white">OUROBOROS</span>
           </div>
           
-          <div className="flex gap-12 text-[10px] font-bold tracking-[0.3em] text-muted-foreground uppercase">
+          <div className="flex flex-wrap justify-center gap-12 text-[10px] font-black tracking-[0.4em] text-white/40 uppercase">
             <Link href="#" className="hover:text-accent transition-colors">Discord</Link>
-            <Link href="#" className="hover:text-accent transition-colors">Technical Specs</Link>
-            <Link href="#" className="hover:text-accent transition-colors">Privacy Neural Data</Link>
-            <Link href="#" className="hover:text-accent transition-colors">Terms of Collective</Link>
+            <Link href="#" className="hover:text-accent transition-colors">Neural Security</Link>
+            <Link href="#" className="hover:text-accent transition-colors">Engine Specs</Link>
+            <Link href="#" className="hover:text-accent transition-colors">Collective Terms</Link>
           </div>
 
-          <div className="text-[10px] font-bold text-white/20 tracking-widest">
-            &copy; 2025 OUROBOROS COLLECTIVE. POWERED BY AXIOM FRONTIER LOGIC CORE.
+          <div className="text-[10px] font-black text-white/20 tracking-[0.2em] uppercase">
+            &copy; 2025 OUROBOROS COLLECTIVE // AXIOM FRONTIER LOGIC CORE
           </div>
         </div>
       </footer>
+
+      <style jsx global>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient {
+          background-size: 200% auto;
+          animation: gradient 5s ease infinite;
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(3deg); }
+          50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        .bg-300% {
+          background-size: 300% 300%;
+        }
+      `}</style>
     </div>
   )
 }
