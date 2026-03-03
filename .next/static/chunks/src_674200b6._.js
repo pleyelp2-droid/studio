@@ -679,7 +679,7 @@ __turbopack_context__.s([
 ]);
 'use client';
 const axiomVertexShader = "\nvarying vec2 vUv;\nvarying vec3 vPosition;\nvarying float vElevation;\nvarying float vGlitch;\nvarying float vFogDepth;\nvarying vec3 vNormal;\n\nuniform float uTime;\nuniform float uAwakeningDensity;\nuniform float uBiome; \nuniform float uAxiomaticIntensity;\nuniform float uStability;\nuniform float uCorruption;\n\nvec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }\nfloat snoise(vec2 v){\n  const vec4 C = vec4(0.211324865405187, 0.366025403784439,\n           -0.577350269189626, 0.024390243902439);\n  vec2 i  = floor(v + dot(v, C.yy) );\n  vec2 x0 = v -   i + dot(i, C.xx);\n  vec2 i1;\n  i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);\n  vec4 x12 = x0.xyxy + C.xxzz;\n  x12.xy -= i1;\n  i = mod(i, 289.0);\n  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))\n  + i.x + vec3(0.0, i1.x, 1.0 ));\n  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);\n  m = m*m ;\n  m = m*m ;\n  vec3 x = 2.0 * fract(p * C.www) - 1.0;\n  vec3 h = abs(x) - 0.5;\n  vec3 ox = floor(x + 0.5);\n  vec3 a0 = x - ox;\n  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );\n  vec3 g;\n  g.x  = a0.x  * x0.x  + h.x  * x0.y;\n  g.yz = a0.yz * x12.xz + h.yz * x12.yw;\n  return 130.0 * dot(m, g);\n}\n\nvoid main() {\n  vUv = uv;\n  vec3 pos = position;\n  \n  float amplitude = 1.0;\n  float frequency = 1.0;\n  \n  if (abs(uBiome - 0.0) < 0.1) { \n      amplitude = 0.1;\n      frequency = 0.5;\n  } else if (abs(uBiome - 1.0) < 0.1) { \n      amplitude = 2.0;\n      frequency = 1.2;\n  } else if (abs(uBiome - 2.0) < 0.1) { \n      amplitude = 8.0;\n      frequency = 0.7;\n  } else { \n      amplitude = 1.0;\n      frequency = 0.6;\n  }\n\n  float elevation = snoise(pos.xz * 0.015 * frequency) * amplitude;\n  elevation += snoise(pos.xz * 0.04 * frequency) * (amplitude * 0.3);\n\n  float glitchFactor = step(0.99, sin(uTime * 2.0 + pos.x * 15.0)) * (uAwakeningDensity + uCorruption * 0.3);\n  pos.x += glitchFactor * 0.3 * snoise(pos.xz + uTime);\n  vGlitch = glitchFactor;\n\n  pos.y += elevation;\n  \n  vec4 modelPosition = modelMatrix * vec4(pos, 1.0);\n  vec4 viewPosition = viewMatrix * modelPosition;\n  \n  vPosition = modelPosition.xyz;\n  vElevation = elevation;\n  vFogDepth = -viewPosition.z;\n  vNormal = normalMatrix * normal;\n\n  gl_Position = projectionMatrix * viewPosition;\n}\n";
-const axiomFragmentShader = '\nvarying vec2 vUv;\nvarying vec3 vPosition;\nvarying float vElevation;\nvarying float vGlitch;\nvarying float vFogDepth;\nvarying vec3 vNormal;\n\nuniform float uTime;\nuniform float uAwakeningDensity; \nuniform float uBiome;\nuniform float uAxiomaticIntensity;\nuniform float uStability;\nuniform float uCorruption;\nuniform vec3 uCameraPosition;\nuniform vec3 uFogColor;\nuniform float uFogNear;\nuniform float uFogFar;\n\nvoid main() {\n    vec3 normal = normalize(vNormal);\n    float lighting = 0.5 + 0.5 * max(dot(normal, normalize(vec3(0.5, 1.0, 0.2))), 0.0);\n\n    vec3 finalColor = vec3(0.05, 0.06, 0.12);\n    \n    // BIOME COLORING\n    if (abs(uBiome - 0.0) < 0.1) finalColor = vec3(0.02, 0.03, 0.08); // City\n    else if (abs(uBiome - 1.0) < 0.1) finalColor = vec3(0.02, 0.08, 0.04); // Forest\n    else if (abs(uBiome - 2.0) < 0.1) finalColor = vec3(0.1, 0.12, 0.2); // Mountain\n\n    // ANTI-ARTIFACT GRID TECH - Precision distance-aware fade\n    // Prevents Moire patterns and horizon "streaks"\n    float dist = length(vPosition - uCameraPosition);\n    float gridFade = 1.0 - smoothstep(80.0, 250.0, dist); \n    \n    vec2 gridUV = vPosition.xz * 0.25; \n    vec2 derivative = fwidth(gridUV) + 0.0001; \n    vec2 grid = abs(fract(gridUV - 0.5) - 0.5) / derivative;\n    float line = min(grid.x, grid.y);\n    float gridPattern = 1.0 - smoothstep(0.0, 1.0, line);\n    \n    vec3 gridColor = vec3(0.12, 0.72, 0.72); // Teal Logic\n    finalColor = mix(finalColor, gridColor, gridPattern * 0.35 * gridFade);\n\n    // PULSING NEURAL VEINS\n    float pulse = sin(vPosition.x * 0.1 + vPosition.z * 0.1 + uTime * 2.0) * 0.5 + 0.5;\n    finalColor += gridColor * pulse * 0.1 * uAwakeningDensity * gridFade;\n\n    finalColor *= lighting;\n\n    float fogFactor = smoothstep(uFogNear, uFogFar, vFogDepth);\n    gl_FragColor = vec4(mix(finalColor, uFogColor, fogFactor), 1.0);\n}\n';
+const axiomFragmentShader = "\nvarying vec2 vUv;\nvarying vec3 vPosition;\nvarying float vElevation;\nvarying float vGlitch;\nvarying float vFogDepth;\nvarying vec3 vNormal;\n\nuniform float uTime;\nuniform float uAwakeningDensity; \nuniform float uBiome;\nuniform float uAxiomaticIntensity;\nuniform float uStability;\nuniform float uCorruption;\nuniform vec3 uCameraPosition;\nuniform vec3 uFogColor;\nuniform float uFogNear;\nuniform float uFogFar;\n\nvoid main() {\n    vec3 normal = normalize(vNormal);\n    float lighting = 0.5 + 0.5 * max(dot(normal, normalize(vec3(0.5, 1.0, 0.2))), 0.0);\n\n    vec3 finalColor = vec3(0.05, 0.06, 0.12);\n    \n    // BIOME COLORING\n    if (abs(uBiome - 0.0) < 0.1) finalColor = vec3(0.02, 0.03, 0.08); // City\n    else if (abs(uBiome - 1.0) < 0.1) finalColor = vec3(0.02, 0.08, 0.04); // Forest\n    else if (abs(uBiome - 2.0) < 0.1) finalColor = vec3(0.1, 0.12, 0.2); // Mountain\n\n    // OPTIMIZED GRID TECH\n    float dist = length(vPosition - uCameraPosition);\n    float gridFade = 1.0 - smoothstep(100.0, 250.0, dist); \n    \n    vec2 gridUV = vPosition.xz * 0.25; \n    vec2 derivative = fwidth(gridUV) + 0.0001; \n    vec2 grid = abs(fract(gridUV - 0.5) - 0.5) / derivative;\n    float line = min(grid.x, grid.y);\n    float gridPattern = 1.0 - smoothstep(0.0, 1.0, line);\n    \n    vec3 gridColor = vec3(0.12, 0.72, 0.72); // Teal Logic\n    finalColor = mix(finalColor, gridColor, gridPattern * 0.3 * gridFade);\n\n    // PULSING NEURAL VEINS\n    float pulse = sin(vPosition.x * 0.1 + vPosition.z * 0.1 + uTime * 2.0) * 0.5 + 0.5;\n    finalColor += gridColor * pulse * 0.08 * uAwakeningDensity * gridFade;\n\n    finalColor *= lighting;\n\n    float fogFactor = smoothstep(uFogNear, uFogFar, vFogDepth);\n    gl_FragColor = vec4(mix(finalColor, uFogColor, fogFactor), 1.0);\n}\n";
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -1907,7 +1907,7 @@ const HighScienceSpire = (param)=>{
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
                         color: color,
                         emissive: color,
-                        emissiveIntensity: 25
+                        emissiveIntensity: 30
                     }, void 0, false, {
                         fileName: "[project]/src/components/game/World3D.tsx",
                         lineNumber: 67,
@@ -1937,9 +1937,9 @@ const HighScienceSpire = (param)=>{
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("torusGeometry", {
                                 args: [
                                     isMajor ? 5.0 : 2.8,
-                                    0.12,
-                                    16,
-                                    100
+                                    0.1,
+                                    8,
+                                    48
                                 ]
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
@@ -1949,7 +1949,7 @@ const HighScienceSpire = (param)=>{
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
                                 color: color,
                                 emissive: color,
-                                emissiveIntensity: 15,
+                                emissiveIntensity: 20,
                                 transparent: true,
                                 opacity: 0.9
                             }, void 0, false, {
@@ -1972,9 +1972,9 @@ const HighScienceSpire = (param)=>{
                         children: [
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("boxGeometry", {
                                 args: [
-                                    0.5,
-                                    0.5,
-                                    0.5
+                                    0.4,
+                                    0.4,
+                                    0.4
                                 ]
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
@@ -1984,7 +1984,7 @@ const HighScienceSpire = (param)=>{
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
                                 color: color,
                                 emissive: color,
-                                emissiveIntensity: 40
+                                emissiveIntensity: 50
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
                                 lineNumber: 78,
@@ -2019,9 +2019,9 @@ const HighScienceSpire = (param)=>{
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("torusGeometry", {
                             args: [
                                 isMajor ? 5.8 : 3.5,
-                                0.08,
-                                12,
-                                100
+                                0.06,
+                                8,
+                                48
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
@@ -2031,7 +2031,7 @@ const HighScienceSpire = (param)=>{
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
                             color: ARL_COLORS.teal,
                             emissive: ARL_COLORS.teal,
-                            emissiveIntensity: 8,
+                            emissiveIntensity: 10,
                             transparent: true,
                             opacity: 0.7
                         }, void 0, false, {
@@ -2062,8 +2062,8 @@ const HighScienceSpire = (param)=>{
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("sphereGeometry", {
                             args: [
                                 isMajor ? 9.0 : 5.0,
-                                32,
-                                32
+                                16,
+                                16
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
@@ -2090,21 +2090,6 @@ const HighScienceSpire = (param)=>{
                 fileName: "[project]/src/components/game/World3D.tsx",
                 lineNumber: 90,
                 columnNumber: 7
-            }, ("TURBOPACK compile-time value", void 0)),
-            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("pointLight", {
-                position: [
-                    0,
-                    height,
-                    0
-                ],
-                color: color,
-                intensity: 40,
-                distance: 70,
-                decay: 2
-            }, void 0, false, {
-                fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 97,
-                columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
@@ -2124,9 +2109,9 @@ const POIModel = (param)=>{
     const rotationY = poi.rotationY || 0;
     if (poi.type === 'SHRINE') {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$Float$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Float"], {
-            speed: 6,
-            rotationIntensity: 3,
-            floatIntensity: 4,
+            speed: 4,
+            rotationIntensity: 2,
+            floatIntensity: 2,
             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("group", {
                 position: [
                     poi.position[0],
@@ -2144,7 +2129,7 @@ const POIModel = (param)=>{
                                 ]
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 110,
+                                lineNumber: 108,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
@@ -2152,16 +2137,16 @@ const POIModel = (param)=>{
                                 metalness: 1,
                                 roughness: 0.01,
                                 emissive: ARL_COLORS.teal,
-                                emissiveIntensity: 10
+                                emissiveIntensity: 15
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 111,
+                                lineNumber: 109,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 109,
+                        lineNumber: 107,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("mesh", {
@@ -2175,38 +2160,38 @@ const POIModel = (param)=>{
                                 args: [
                                     3.8,
                                     0.1,
-                                    24,
-                                    128
+                                    12,
+                                    64
                                 ]
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 114,
+                                lineNumber: 112,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
                                 color: ARL_COLORS.teal,
                                 emissive: ARL_COLORS.teal,
-                                emissiveIntensity: 15
+                                emissiveIntensity: 20
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 115,
+                                lineNumber: 113,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 113,
+                        lineNumber: 111,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0))
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 108,
+                lineNumber: 106,
                 columnNumber: 9
             }, ("TURBOPACK compile-time value", void 0))
         }, void 0, false, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 107,
+            lineNumber: 105,
             columnNumber: 7
         }, ("TURBOPACK compile-time value", void 0));
     }
@@ -2225,7 +2210,7 @@ const POIModel = (param)=>{
             type: poi.type
         }, void 0, false, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 126,
+            lineNumber: 124,
             columnNumber: 12
         }, ("TURBOPACK compile-time value", void 0));
     }
@@ -2260,7 +2245,7 @@ const POIModel = (param)=>{
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 134,
+                            lineNumber: 132,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
@@ -2268,16 +2253,16 @@ const POIModel = (param)=>{
                             metalness: 1,
                             roughness: 0.02,
                             emissive: ARL_COLORS.teal,
-                            emissiveIntensity: isGate ? 2.5 : 0.6
+                            emissiveIntensity: isGate ? 3.0 : 0.8
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 135,
+                            lineNumber: 133,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 133,
+                    lineNumber: 131,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("mesh", {
@@ -2290,33 +2275,33 @@ const POIModel = (param)=>{
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("boxGeometry", {
                             args: [
                                 isGate ? 6.5 : 20.5,
-                                0.3,
+                                0.2,
                                 3.5
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 138,
+                            lineNumber: 136,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
                             color: ARL_COLORS.teal,
                             emissive: ARL_COLORS.teal,
-                            emissiveIntensity: 8
+                            emissiveIntensity: 10
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 139,
+                            lineNumber: 137,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 137,
+                    lineNumber: 135,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0))
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 132,
+            lineNumber: 130,
             columnNumber: 7
         }, ("TURBOPACK compile-time value", void 0));
     }
@@ -2382,7 +2367,7 @@ const AgentModel = (param)=>{
                 object: model.group
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 186,
+                lineNumber: 184,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$web$2f$Html$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Html"], {
@@ -2403,7 +2388,7 @@ const AgentModel = (param)=>{
                                 children: "PILOT //"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 190,
+                                lineNumber: 188,
                                 columnNumber: 25
                             }, ("TURBOPACK compile-time value", void 0)),
                             agent.displayName,
@@ -2416,29 +2401,29 @@ const AgentModel = (param)=>{
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 191,
+                                lineNumber: 189,
                                 columnNumber: 33
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 189,
+                        lineNumber: 187,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0))
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 188,
+                    lineNumber: 186,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0))
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 187,
+                lineNumber: 185,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 185,
+        lineNumber: 183,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -2552,7 +2537,7 @@ const LocalPlayerController = (param)=>{
         isLocal: true
     }, void 0, false, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 279,
+        lineNumber: 277,
         columnNumber: 10
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -2648,12 +2633,12 @@ const Terrain = (param)=>{
                 args: [
                     1200,
                     1200,
-                    256,
-                    256
+                    128,
+                    128
                 ]
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 322,
+                lineNumber: 320,
                 columnNumber: 13
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("shaderMaterial", {
@@ -2664,13 +2649,13 @@ const Terrain = (param)=>{
                 side: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$three$2f$build$2f$three$2e$core$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DoubleSide"]
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 323,
+                lineNumber: 321,
                 columnNumber: 13
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 316,
+        lineNumber: 314,
         columnNumber: 9
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -2728,10 +2713,7 @@ const World3D = (param)=>{
         className: "w-full h-full bg-black",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$fiber$2f$dist$2f$react$2d$three$2d$fiber$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["Canvas"], {
             shadows: true,
-            dpr: [
-                1,
-                2
-            ],
+            dpr: 1,
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$PerspectiveCamera$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["PerspectiveCamera"], {
                     makeDefault: true,
@@ -2743,7 +2725,7 @@ const World3D = (param)=>{
                     fov: 45
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 353,
+                    lineNumber: 351,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$Sky$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Sky"], {
@@ -2756,74 +2738,74 @@ const World3D = (param)=>{
                     rayleigh: 0.4
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 354,
+                    lineNumber: 352,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$Environment$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Environment"], {
                     preset: "night"
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 355,
+                    lineNumber: 353,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ambientLight", {
-                    intensity: 0.25
+                    intensity: 0.4
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 356,
+                    lineNumber: 354,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("pointLight", {
                     position: [
                         0,
-                        80,
+                        100,
                         0
                     ],
-                    intensity: 2.5,
+                    intensity: 3.0,
                     color: ARL_COLORS.teal
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 357,
+                    lineNumber: 355,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(Terrain, {
                     civilizationIndex: civilizationIndex
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 358,
+                    lineNumber: 356,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 localAgent && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(LocalPlayerController, {
                     agent: localAgent
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 359,
+                    lineNumber: 357,
                     columnNumber: 32
                 }, ("TURBOPACK compile-time value", void 0)),
                 otherAgents.map((agent)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AgentModel, {
                         agent: agent
                     }, agent.id, false, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 360,
+                        lineNumber: 358,
                         columnNumber: 43
                     }, ("TURBOPACK compile-time value", void 0))),
                 worldContent.pois.map((poi)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(POIModel, {
                         poi: poi
                     }, poi.id, false, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 361,
+                        lineNumber: 359,
                         columnNumber: 47
                     }, ("TURBOPACK compile-time value", void 0))),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$ContactShadows$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ContactShadows"], {
-                    resolution: 1024,
+                    resolution: 512,
                     scale: 100,
-                    blur: 3.0,
-                    opacity: 0.8,
-                    far: 25,
+                    blur: 2.5,
+                    opacity: 0.7,
+                    far: 20,
                     color: "#000000"
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 362,
+                    lineNumber: 360,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$OrbitControls$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["OrbitControls"], {
@@ -2834,18 +2816,18 @@ const World3D = (param)=>{
                     enableDamping: true
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 363,
+                    lineNumber: 361,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0))
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 352,
+            lineNumber: 350,
             columnNumber: 13
         }, ("TURBOPACK compile-time value", void 0))
     }, void 0, false, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 351,
+        lineNumber: 349,
         columnNumber: 9
     }, ("TURBOPACK compile-time value", void 0));
 };

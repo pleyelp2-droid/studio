@@ -23,24 +23,31 @@ const ARL_COLORS = {
   border: "#1e2a4a"
 };
 
+// PRE-MEMOIZED SHARED GEOMETRIES (Massive Performance Win)
+const GEOMETRIES = {
+  octahedron: new THREE.OctahedronGeometry(1, 0),
+  torusSmall: new THREE.TorusGeometry(2.8, 0.08, 8, 32),
+  torusLarge: new THREE.TorusGeometry(5.0, 0.1, 8, 32),
+  box: new THREE.BoxGeometry(1, 1, 1),
+  spireBase: new THREE.CylinderGeometry(0.3, 1.5, 12, 6),
+  spireBaseMajor: new THREE.CylinderGeometry(0.6, 3.0, 24, 6),
+  foundation: new THREE.CylinderGeometry(3.0, 3.8, 2.0, 6),
+  foundationMajor: new THREE.CylinderGeometry(6.0, 7.0, 2.0, 6),
+};
+
 const HighScienceSpire = ({ position, rotationY, color, type }: { position: [number, number, number], rotationY: number, color: string, type: string }) => {
   const ring1Ref = useRef<THREE.Group>(null);
   const ring2Ref = useRef<THREE.Group>(null);
-  const ring3Ref = useRef<THREE.Group>(null);
   const coreRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    if (ring1Ref.current) ring1Ref.current.rotation.y = t * 0.8;
-    if (ring2Ref.current) ring2Ref.current.rotation.y = -t * 1.2;
-    if (ring3Ref.current) {
-      ring3Ref.current.rotation.z = t * 0.5;
-      ring3Ref.current.rotation.x = t * 0.3;
-    }
+    // Simplified rotations for performance
+    if (ring1Ref.current) ring1Ref.current.rotation.y = t * 0.5;
+    if (ring2Ref.current) ring2Ref.current.rotation.y = -t * 0.8;
     if (coreRef.current) {
-      coreRef.current.position.y = Math.sin(t * 3.0) * 0.5 + 8.5;
-      coreRef.current.rotation.z = t * 2.0;
-      coreRef.current.rotation.y = t * 1.0;
+      coreRef.current.position.y = Math.sin(t * 2.0) * 0.3 + 8.5;
+      coreRef.current.rotation.z = t;
     }
   });
 
@@ -50,47 +57,43 @@ const HighScienceSpire = ({ position, rotationY, color, type }: { position: [num
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
       {/* Heavy Hexagonal Foundation */}
-      <mesh position={[0, 0.6, 0]} receiveShadow>
-        <cylinderGeometry args={[isMajor ? 6.0 : 3.0, isMajor ? 7.0 : 3.8, 2.0, 6]} />
-        <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.05} />
+      <mesh 
+        geometry={isMajor ? GEOMETRIES.foundationMajor : GEOMETRIES.foundation} 
+        position={[0, 0.6, 0]} 
+        receiveShadow
+      >
+        <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.1} />
       </mesh>
 
       {/* Primary Tapered Spire */}
-      <mesh position={[0, height / 2, 0]} castShadow>
-        <cylinderGeometry args={[isMajor ? 0.6 : 0.3, isMajor ? 3.0 : 1.5, height, 6]} />
-        <meshStandardMaterial color={ARL_COLORS.border} metalness={1} roughness={0.02} />
+      <mesh 
+        geometry={isMajor ? GEOMETRIES.spireBaseMajor : GEOMETRIES.spireBase} 
+        position={[0, height / 2, 0]} 
+        castShadow
+      >
+        <meshStandardMaterial color={ARL_COLORS.border} metalness={1} roughness={0.1} />
       </mesh>
 
       {/* Floating Energy Core */}
-      <mesh ref={coreRef} position={[0, 8.5, 0]}>
-        <octahedronGeometry args={[isMajor ? 1.8 : 0.9]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={30} />
+      <mesh 
+        ref={coreRef} 
+        geometry={GEOMETRIES.octahedron} 
+        position={[0, 8.5, 0]} 
+        scale={isMajor ? 1.8 : 0.9}
+      >
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={15} />
       </mesh>
 
       {/* Multi-Stage Orbital Logic Rings */}
       <group position={[0, height * 0.85, 0]} ref={ring1Ref}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[isMajor ? 5.0 : 2.8, 0.1, 8, 48]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={20} transparent opacity={0.9} />
-        </mesh>
-        <mesh position={[isMajor ? 5.0 : 2.8, 0, 0]}>
-          <boxGeometry args={[0.4, 0.4, 0.4]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={50} />
+        <mesh geometry={isMajor ? GEOMETRIES.torusLarge : GEOMETRIES.torusSmall} rotation={[Math.PI / 2, 0, 0]}>
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={10} transparent opacity={0.8} />
         </mesh>
       </group>
 
       <group position={[0, height * 0.5, 0]} ref={ring2Ref}>
-        <mesh rotation={[Math.PI / 2, 0, Math.PI / 4]}>
-          <torusGeometry args={[isMajor ? 5.8 : 3.5, 0.06, 8, 48]} />
-          <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={10} transparent opacity={0.7} />
-        </mesh>
-      </group>
-
-      {/* Translucent Logic Shield */}
-      <group position={[0, height * 0.65, 0]} ref={ring3Ref}>
-        <mesh>
-          <sphereGeometry args={[isMajor ? 9.0 : 5.0, 16, 16]} />
-          <meshStandardMaterial color={color} transparent opacity={0.05} wireframe />
+        <mesh geometry={isMajor ? GEOMETRIES.torusLarge : GEOMETRIES.torusSmall} rotation={[Math.PI / 2, 0, Math.PI / 4]}>
+          <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={5} transparent opacity={0.6} />
         </mesh>
       </group>
     </group>
@@ -102,15 +105,13 @@ const POIModel = ({ poi }: { poi: POI }) => {
 
   if (poi.type === 'SHRINE') {
     return (
-      <Float speed={4} rotationIntensity={2} floatIntensity={2}>
+      <Float speed={2} rotationIntensity={1} floatIntensity={1}>
         <group position={[poi.position[0], 3.5, poi.position[2]]}>
-          <mesh castShadow>
-            <octahedronGeometry args={[2.5, 0]} />
-            <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.01} emissive={ARL_COLORS.teal} emissiveIntensity={15} />
+          <mesh geometry={GEOMETRIES.octahedron} scale={2.5} castShadow>
+            <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.1} emissive={ARL_COLORS.teal} emissiveIntensity={10} />
           </mesh>
-          <mesh rotation={[Math.PI / 4, 0, 0]}>
-            <torusGeometry args={[3.8, 0.1, 12, 64]} />
-            <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={20} />
+          <mesh geometry={GEOMETRIES.torusSmall} scale={1.5} rotation={[Math.PI / 4, 0, 0]}>
+            <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={12} />
           </mesh>
         </group>
       </Float>
@@ -130,11 +131,7 @@ const POIModel = ({ poi }: { poi: POI }) => {
       <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
         <mesh position={[0, 4.5, 0]} castShadow receiveShadow>
           <boxGeometry args={[isGate ? 6.0 : 20, 9, 3.2]} />
-          <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.02} emissive={ARL_COLORS.teal} emissiveIntensity={isGate ? 3.0 : 0.8} />
-        </mesh>
-        <mesh position={[0, 9, 0]}>
-          <boxGeometry args={[isGate ? 6.5 : 20.5, 0.2, 3.5]} />
-          <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={10} />
+          <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.1} emissive={ARL_COLORS.teal} emissiveIntensity={isGate ? 2.0 : 0.5} />
         </mesh>
       </group>
     );
@@ -173,7 +170,7 @@ const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolea
     if (animController) animController.update(delta);
     if (groupRef.current && !isLocal) {
       const targetPos = new THREE.Vector3(agent.position.x, agent.position.y || 0, agent.position.z);
-      groupRef.current.position.lerp(targetPos, 0.15);
+      groupRef.current.position.lerp(targetPos, 0.1);
     }
   });
 
@@ -184,9 +181,8 @@ const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolea
       <primitive object={model.group} />
       <Html position={[0, 3.5, 0]} center distanceFactor={15}>
         <div className="flex flex-col items-center gap-1 pointer-events-none">
-          <div className={`px-3 py-1.5 rounded-lg bg-black/95 border-2 ${isLocal ? 'border-axiom-cyan shadow-[0_0_20px_rgba(31,184,184,0.6)]' : 'border-white/30'} text-[#e8dfc8] text-[11px] font-black uppercase tracking-[0.2em] whitespace-nowrap backdrop-blur-xl transition-all`}>
-            {isLocal && <span className="text-axiom-cyan mr-2 animate-pulse">PILOT //</span>}
-            {agent.displayName} <span className="text-axiom-cyan ml-2 opacity-80 font-mono">LVL {agent.level}</span>
+          <div className={`px-2 py-1 rounded bg-black/90 border ${isLocal ? 'border-axiom-cyan shadow-lg' : 'border-white/20'} text-[#e8dfc8] text-[10px] font-black uppercase tracking-widest whitespace-nowrap backdrop-blur-md`}>
+            {agent.displayName}
           </div>
         </div>
       </Html>
@@ -199,7 +195,7 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
   const db = useFirestore();
   const { virtualInput, controlMode, targetPosition, setTargetPosition } = useStore();
   const moveSpeed = 0.65;
-  const updateInterval = 350;
+  const updateInterval = 500; // Increased interval for network stability
   const lastUpdateRef = useRef(0);
 
   const keys = useRef<{ [key: string]: boolean }>({});
@@ -279,7 +275,6 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
 
 const Terrain = ({ civilizationIndex }: { civilizationIndex: number }) => {
     const materialRef = useRef<THREE.ShaderMaterial>(null);
-    const { camera } = useThree();
     const setTargetPosition = useStore(state => state.setTargetPosition);
     const controlMode = useStore(state => state.controlMode);
     
@@ -317,7 +312,8 @@ const Terrain = ({ civilizationIndex }: { civilizationIndex: number }) => {
           receiveShadow
           onPointerDown={handlePointerDown}
         >
-            <planeGeometry args={[1200, 1200, 128, 128]} />
+            {/* Reduced vertex count from 128 to 64 for 75% faster vertex processing */}
+            <planeGeometry args={[1200, 1200, 64, 64]} />
             <shaderMaterial 
               ref={materialRef} 
               vertexShader={axiomVertexShader} 
@@ -347,17 +343,19 @@ export const World3D: React.FC<{ tick: number; civilizationIndex: number; localP
 
     return (
         <div className="w-full h-full bg-black">
-            <Canvas shadows dpr={1}>
+            {/* DPR set to 1 to prevent huge performance hit on high-res displays */}
+            <Canvas shadows dpr={1} gl={{ antialias: false, powerPreference: 'high-performance' }}>
                 <PerspectiveCamera makeDefault position={[50, 40, 50]} fov={45} />
                 <Sky sunPosition={[100, 15, 100]} turbidity={0.05} rayleigh={0.4} />
                 <Environment preset="night" />
                 <ambientLight intensity={0.4} />
-                <pointLight position={[0, 100, 0]} intensity={3.0} color={ARL_COLORS.teal} />
+                {/* Single central light source for global technological presence */}
+                <pointLight position={[0, 100, 0]} intensity={2.0} color={ARL_COLORS.teal} />
                 <Terrain civilizationIndex={civilizationIndex} />
                 {localAgent && <LocalPlayerController agent={localAgent} />}
                 {otherAgents.map(agent => <AgentModel key={agent.id} agent={agent} />)}
                 {worldContent.pois.map(poi => <POIModel key={poi.id} poi={poi} />)}
-                <ContactShadows resolution={512} scale={100} blur={2.5} opacity={0.7} far={20} color="#000000" />
+                <ContactShadows resolution={256} scale={100} blur={2} opacity={0.5} far={20} color="#000000" />
                 <OrbitControls 
                   enablePan={true} 
                   maxPolarAngle={Math.PI / 2.1} 

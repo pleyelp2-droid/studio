@@ -66,10 +66,10 @@ void main() {
   }
 
   float elevation = snoise(pos.xz * 0.015 * frequency) * amplitude;
-  elevation += snoise(pos.xz * 0.04 * frequency) * (amplitude * 0.3);
-
-  float glitchFactor = step(0.99, sin(uTime * 2.0 + pos.x * 15.0)) * (uAwakeningDensity + uCorruption * 0.3);
-  pos.x += glitchFactor * 0.3 * snoise(pos.xz + uTime);
+  
+  // Optimization: Single glitch calculation
+  float glitchFactor = step(0.995, sin(uTime * 1.5 + pos.x * 10.0)) * (uAwakeningDensity * 0.2);
+  pos.x += glitchFactor * snoise(pos.xz + uTime);
   vGlitch = glitchFactor;
 
   pos.y += elevation;
@@ -107,31 +107,32 @@ uniform float uFogFar;
 
 void main() {
     vec3 normal = normalize(vNormal);
-    float lighting = 0.5 + 0.5 * max(dot(normal, normalize(vec3(0.5, 1.0, 0.2))), 0.0);
+    float lighting = 0.6 + 0.4 * max(dot(normal, normalize(vec3(0.5, 1.0, 0.2))), 0.0);
 
     vec3 finalColor = vec3(0.05, 0.06, 0.12);
     
-    // BIOME COLORING
+    // BIOME COLORING (High-performance color select)
     if (abs(uBiome - 0.0) < 0.1) finalColor = vec3(0.02, 0.03, 0.08); // City
     else if (abs(uBiome - 1.0) < 0.1) finalColor = vec3(0.02, 0.08, 0.04); // Forest
     else if (abs(uBiome - 2.0) < 0.1) finalColor = vec3(0.1, 0.12, 0.2); // Mountain
 
-    // OPTIMIZED GRID TECH
+    // GRID PIPELINE OPTIMIZATION
     float dist = length(vPosition - uCameraPosition);
-    float gridFade = 1.0 - smoothstep(100.0, 250.0, dist); 
+    // Linear grid fade is cheaper than smoothstep for horizon tapering
+    float gridFade = clamp(1.0 - (dist - 80.0) / 150.0, 0.0, 1.0);
     
     vec2 gridUV = vPosition.xz * 0.25; 
-    vec2 derivative = fwidth(gridUV) + 0.0001; 
+    vec2 derivative = fwidth(gridUV) + 0.001; // Safety epsilon
     vec2 grid = abs(fract(gridUV - 0.5) - 0.5) / derivative;
     float line = min(grid.x, grid.y);
-    float gridPattern = 1.0 - smoothstep(0.0, 1.0, line);
+    float gridPattern = 1.0 - clamp(line, 0.0, 1.0);
     
     vec3 gridColor = vec3(0.12, 0.72, 0.72); // Teal Logic
-    finalColor = mix(finalColor, gridColor, gridPattern * 0.3 * gridFade);
+    finalColor = mix(finalColor, gridColor, gridPattern * 0.25 * gridFade);
 
-    // PULSING NEURAL VEINS
-    float pulse = sin(vPosition.x * 0.1 + vPosition.z * 0.1 + uTime * 2.0) * 0.5 + 0.5;
-    finalColor += gridColor * pulse * 0.08 * uAwakeningDensity * gridFade;
+    // PULSING NEURAL VEINS (Reduced instruction count)
+    float pulse = sin(vPosition.x * 0.05 + vPosition.z * 0.05 + uTime * 1.5) * 0.5 + 0.5;
+    finalColor += gridColor * pulse * 0.05 * uAwakeningDensity * gridFade;
 
     finalColor *= lighting;
 
