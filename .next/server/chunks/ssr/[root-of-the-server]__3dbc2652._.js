@@ -1956,7 +1956,7 @@ const POIModel = ({ poi })=>{
                                 ]
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 44,
+                                lineNumber: 43,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("primitive", {
@@ -1964,13 +1964,13 @@ const POIModel = ({ poi })=>{
                                 attach: "material"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 45,
+                                lineNumber: 44,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 43,
+                        lineNumber: 42,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("mesh", {
@@ -1989,7 +1989,7 @@ const POIModel = ({ poi })=>{
                                 ]
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 48,
+                                lineNumber: 47,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
@@ -1998,31 +1998,31 @@ const POIModel = ({ poi })=>{
                                 emissiveIntensity: 5
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 49,
+                                lineNumber: 48,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 47,
+                        lineNumber: 46,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0))
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 42,
+                lineNumber: 41,
                 columnNumber: 9
             }, ("TURBOPACK compile-time value", void 0))
         }, void 0, false, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 41,
+            lineNumber: 40,
             columnNumber: 7
         }, ("TURBOPACK compile-time value", void 0));
     }
-    if (poi.type === 'BUILDING' || poi.type === 'HOUSE' || poi.type === 'FORGE' || poi.type === 'BANK_VAULT') {
+    if (poi.type === 'BUILDING' || poi.type === 'HOUSE' || poi.type === 'FORGE' || poi.type === 'BANK_VAULT' || poi.type === 'MARKET_STALL') {
         const isMajor = poi.type === 'FORGE' || poi.type === 'BANK_VAULT' || poi.type === 'BUILDING';
         const height = isMajor ? 12 : 4;
-        const color = poi.type === 'FORGE' ? ARL_COLORS.blood : poi.type === 'BANK_VAULT' ? ARL_COLORS.gold : ARL_COLORS.arcane;
+        const color = poi.type === 'FORGE' ? ARL_COLORS.blood : poi.type === 'BANK_VAULT' ? ARL_COLORS.gold : poi.type === 'MARKET_STALL' ? ARL_COLORS.teal : ARL_COLORS.arcane;
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("group", {
             position: [
                 poi.position[0],
@@ -2051,7 +2051,7 @@ const POIModel = ({ poi })=>{
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 64,
+                            lineNumber: 63,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("primitive", {
@@ -2059,13 +2059,13 @@ const POIModel = ({ poi })=>{
                             attach: "material"
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 65,
+                            lineNumber: 64,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 63,
+                    lineNumber: 62,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("mesh", {
@@ -2085,7 +2085,7 @@ const POIModel = ({ poi })=>{
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 69,
+                            lineNumber: 68,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("primitive", {
@@ -2093,13 +2093,13 @@ const POIModel = ({ poi })=>{
                             attach: "material"
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 70,
+                            lineNumber: 69,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 68,
+                    lineNumber: 67,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0)),
                 [
@@ -2127,7 +2127,7 @@ const POIModel = ({ poi })=>{
                                 ]
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 75,
+                                lineNumber: 74,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
@@ -2136,13 +2136,13 @@ const POIModel = ({ poi })=>{
                                 emissiveIntensity: 3
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 76,
+                                lineNumber: 75,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, i, true, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 74,
+                        lineNumber: 73,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0))),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("mesh", {
@@ -2160,7 +2160,7 @@ const POIModel = ({ poi })=>{
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 81,
+                            lineNumber: 80,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
@@ -2169,13 +2169,13 @@ const POIModel = ({ poi })=>{
                             emissiveIntensity: 10
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 82,
+                            lineNumber: 81,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 80,
+                    lineNumber: 79,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("pointLight", {
@@ -2189,13 +2189,13 @@ const POIModel = ({ poi })=>{
                     distance: 20
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 85,
+                    lineNumber: 84,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0))
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 62,
+            lineNumber: 61,
             columnNumber: 7
         }, ("TURBOPACK compile-time value", void 0));
     }
@@ -2230,7 +2230,7 @@ const POIModel = ({ poi })=>{
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 95,
+                            lineNumber: 94,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("primitive", {
@@ -2238,13 +2238,13 @@ const POIModel = ({ poi })=>{
                             attach: "material"
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 96,
+                            lineNumber: 95,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 94,
+                    lineNumber: 93,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("mesh", {
@@ -2262,7 +2262,7 @@ const POIModel = ({ poi })=>{
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 99,
+                            lineNumber: 98,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
@@ -2271,19 +2271,19 @@ const POIModel = ({ poi })=>{
                             emissiveIntensity: 2
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 100,
+                            lineNumber: 99,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 98,
+                    lineNumber: 97,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0))
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 93,
+            lineNumber: 92,
             columnNumber: 7
         }, ("TURBOPACK compile-time value", void 0));
     }
@@ -2337,7 +2337,7 @@ const AgentModel = ({ agent, isLocal = false })=>{
                 object: model.group
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 147,
+                lineNumber: 146,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$web$2f$Html$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Html"], {
@@ -2358,7 +2358,7 @@ const AgentModel = ({ agent, isLocal = false })=>{
                                 children: "YOU //"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 151,
+                                lineNumber: 150,
                                 columnNumber: 25
                             }, ("TURBOPACK compile-time value", void 0)),
                             agent.displayName,
@@ -2371,29 +2371,29 @@ const AgentModel = ({ agent, isLocal = false })=>{
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 152,
+                                lineNumber: 151,
                                 columnNumber: 33
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 150,
+                        lineNumber: 149,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0))
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 149,
+                    lineNumber: 148,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0))
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 148,
+                lineNumber: 147,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 146,
+        lineNumber: 145,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -2492,7 +2492,7 @@ const LocalPlayerController = ({ agent })=>{
         isLocal: true
     }, void 0, false, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 243,
+        lineNumber: 242,
         columnNumber: 10
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -2581,7 +2581,7 @@ const Terrain = ({ civilizationIndex })=>{
                 ]
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 288,
+                lineNumber: 287,
                 columnNumber: 13
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("shaderMaterial", {
@@ -2592,13 +2592,13 @@ const Terrain = ({ civilizationIndex })=>{
                 side: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$three$2f$build$2f$three$2e$core$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["DoubleSide"]
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 289,
+                lineNumber: 288,
                 columnNumber: 13
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 282,
+        lineNumber: 281,
         columnNumber: 9
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -2644,7 +2644,7 @@ const World3D = ({ tick, civilizationIndex, localPlayerId })=>{
                     fov: 50
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 319,
+                    lineNumber: 318,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$Sky$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Sky"], {
@@ -2657,21 +2657,21 @@ const World3D = ({ tick, civilizationIndex, localPlayerId })=>{
                     rayleigh: 0.5
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 320,
+                    lineNumber: 319,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$Environment$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Environment"], {
                     preset: "night"
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 321,
+                    lineNumber: 320,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("ambientLight", {
                     intensity: 0.2
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 322,
+                    lineNumber: 321,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("pointLight", {
@@ -2684,35 +2684,35 @@ const World3D = ({ tick, civilizationIndex, localPlayerId })=>{
                     color: ARL_COLORS.teal
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 323,
+                    lineNumber: 322,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(Terrain, {
                     civilizationIndex: civilizationIndex
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 324,
+                    lineNumber: 323,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 localAgent && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(LocalPlayerController, {
                     agent: localAgent
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 325,
+                    lineNumber: 324,
                     columnNumber: 32
                 }, ("TURBOPACK compile-time value", void 0)),
                 otherAgents.map((agent)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(AgentModel, {
                         agent: agent
                     }, agent.id, false, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 326,
+                        lineNumber: 325,
                         columnNumber: 43
                     }, ("TURBOPACK compile-time value", void 0))),
                 worldContent.pois.map((poi)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(POIModel, {
                         poi: poi
                     }, poi.id, false, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 327,
+                        lineNumber: 326,
                         columnNumber: 47
                     }, ("TURBOPACK compile-time value", void 0))),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$ContactShadows$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["ContactShadows"], {
@@ -2724,7 +2724,7 @@ const World3D = ({ tick, civilizationIndex, localPlayerId })=>{
                     color: "#000000"
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 328,
+                    lineNumber: 327,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$OrbitControls$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["OrbitControls"], {
@@ -2735,18 +2735,18 @@ const World3D = ({ tick, civilizationIndex, localPlayerId })=>{
                     enableDamping: true
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 329,
+                    lineNumber: 328,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0))
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 318,
+            lineNumber: 317,
             columnNumber: 13
         }, ("TURBOPACK compile-time value", void 0))
     }, void 0, false, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 317,
+        lineNumber: 316,
         columnNumber: 9
     }, ("TURBOPACK compile-time value", void 0));
 };

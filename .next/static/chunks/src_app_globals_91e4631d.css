@@ -1131,6 +1131,10 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 24rem;
 }
 
+.max-w-xs {
+  max-width: 20rem;
+}
+
 .flex-1 {
   flex: 1;
 }
@@ -1774,6 +1778,10 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(255, 255, 255, .05);
 }
 
+.border-red-500\/20 {
+  border-color: rgba(239, 68, 68, .2);
+}
+
 .border-l-transparent {
   border-left-color: rgba(0, 0, 0, 0);
 }
@@ -1986,6 +1994,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .bg-white\/\[0\.03\] {
   background-color: rgba(255, 255, 255, .03);
+}
+
+.bg-red-500\/5 {
+  background-color: rgba(239, 68, 68, .05);
 }
 
 .bg-\[linear-gradient\(rgba\(18\,16\,16\,0\)_50\%\,rgba\(0\,0\,0\,0\.15\)_50\%\)\] {
@@ -2785,6 +2797,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .text-white\/90 {
   color: rgba(255, 255, 255, .9);
+}
+
+.text-axiom-gold {
+  color: var(--arl-gold);
 }
 
 .underline {
@@ -3657,6 +3673,10 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(255, 255, 255, .07);
 }
 
+.hover\:bg-red-500\/10:hover {
+  background-color: rgba(239, 68, 68, .1);
+}
+
 .hover\:text-accent:hover {
   color: hsl(var(--accent));
 }
@@ -3883,6 +3903,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .group:hover .group-hover\:opacity-40 {
   opacity: .4;
+}
+
+.group:hover .group-hover\:opacity-20 {
+  opacity: .2;
 }
 
 .group:hover .group-hover\:axiom-gradient {
