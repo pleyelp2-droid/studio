@@ -1,6 +1,6 @@
-
 "use client"
 
+import { useState } from "react"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
@@ -13,20 +13,56 @@ import {
   ShieldCheck, 
   FileJson, 
   Cpu, 
-  ExternalLink,
-  Code,
   Copy,
-  Zap
+  Code,
+  FileCode,
+  Check,
+  Eye
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { firebaseConfig } from "@/firebase/config"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+
+const SCRIPTS = [
+  { name: 'FirebaseConnector.gd', path: '/godot/FirebaseConnector.gd' },
+  { name: 'WorldSync.gd', path: '/godot/WorldSync.gd' },
+  { name: 'TextureManager.gd', path: '/godot/TextureManager.gd' }
+]
 
 export default function GodotBridgePage() {
   const { toast } = useToast()
+  const [viewingScript, setViewingScript] = useState<{name: string, content: string} | null>(null)
+  const [loadingScript, setLoadingScript] = useState(false)
 
   const copyToClipboard = (text: string, label: string) => {
+    if (!text) return
     navigator.clipboard.writeText(text)
-    toast({ title: `${label} Copied`, description: "Axiom parameters ready for Godot plugin." })
+    toast({ title: `${label} Copied`, description: "Ready to paste into Godot." })
+  }
+
+  const fetchScript = async (script: typeof SCRIPTS[0]) => {
+    setLoadingScript(true)
+    try {
+      const res = await fetch(script.path)
+      const content = await res.text()
+      setViewingScript({ name: script.name, content })
+    } catch (e) {
+      toast({ variant: "destructive", title: "Error", description: "Could not load script." })
+    } finally {
+      setLoadingScript(false)
+    }
+  }
+
+  const downloadScripts = () => {
+    SCRIPTS.forEach(script => {
+      const link = document.createElement('a')
+      link.href = script.path
+      link.download = script.name
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    })
+    toast({ title: "Downloading", description: "Godot scripts are being downloaded." })
   }
 
   return (
@@ -58,6 +94,16 @@ export default function GodotBridgePage() {
               <CardContent className="space-y-4">
                 <div className="p-4 rounded-xl bg-secondary/20 border border-border space-y-3">
                   <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Project Name</span>
+                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard("Ouroboros", "Project Name")} className="h-6 text-[9px] hover:text-accent">
+                      <Copy className="h-3 w-3 mr-1" /> Copy
+                    </Button>
+                  </div>
+                  <div className="text-xs font-mono text-white bg-black/40 p-2 rounded border border-white/5 truncate">
+                    Ouroboros
+                  </div>
+
+                  <div className="flex justify-between items-center">
                     <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Project ID</span>
                     <Button variant="ghost" size="sm" onClick={() => copyToClipboard(firebaseConfig.projectId, "Project ID")} className="h-6 text-[9px] hover:text-accent">
                       <Copy className="h-3 w-3 mr-1" /> Copy
@@ -66,6 +112,7 @@ export default function GodotBridgePage() {
                   <div className="text-xs font-mono text-white bg-black/40 p-2 rounded border border-white/5 truncate">
                     {firebaseConfig.projectId}
                   </div>
+
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">API Key</span>
                     <Button variant="ghost" size="sm" onClick={() => copyToClipboard(firebaseConfig.apiKey, "API Key")} className="h-6 text-[9px] hover:text-accent">
@@ -78,8 +125,8 @@ export default function GodotBridgePage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button className="w-full h-12 axiom-gradient text-white font-black italic uppercase tracking-widest shadow-xl">
-                  Download Setup Scripts
+                <Button onClick={downloadScripts} className="w-full h-12 axiom-gradient text-white font-black italic uppercase tracking-widest shadow-xl">
+                  <HardDriveDownload className="h-4 w-4 mr-2" /> Download Setup Scripts
                 </Button>
               </CardFooter>
             </Card>
@@ -111,50 +158,64 @@ export default function GodotBridgePage() {
                   </p>
                 </div>
               </CardContent>
-            </Card>
+            </div>
           </div>
 
           <Card className="border-border bg-card">
             <CardHeader className="bg-secondary/10 border-b border-border/50 p-6">
               <CardTitle className="text-sm font-black uppercase tracking-[0.3em] flex items-center gap-2">
-                <HardDriveDownload className="h-4 w-4 text-accent" /> Integration Guide
+                <FileCode className="h-4 w-4 text-accent" /> Connection Scripts
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-8 space-y-6">
-              <div className="space-y-4">
-                <div className="flex gap-4 items-start">
-                  <div className="h-8 w-8 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center text-accent font-black italic text-xs shrink-0 mt-1">01</div>
-                  <div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-white mb-1 italic">Install Firebase Plugin</h4>
-                    <p className="text-[11px] text-muted-foreground">Download the **Godot Firebase Plugin** from the Asset Library. Enable it in your Project Settings.</p>
-                  </div>
-                </div>
-                <div className="flex gap-4 items-start">
-                  <div className="h-8 w-8 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center text-accent font-black italic text-xs shrink-0 mt-1">02</div>
-                  <div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-white mb-1 italic">Configure Autoloads</h4>
-                    <p className="text-[11px] text-muted-foreground">Add `FirebaseConnector.gd` and `WorldSync.gd` as Autoloads. These handle the neural handshake with Axiom Core.</p>
-                  </div>
-                </div>
-                <div className="flex gap-4 items-start">
-                  <div className="h-8 w-8 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center text-accent font-black italic text-xs shrink-0 mt-1">03</div>
-                  <div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-white mb-1 italic">Map Civilization Index</h4>
-                    <p className="text-[11px] text-muted-foreground">Attach `TextureManager.gd` to your 3D MeshInstance nodes. It will listen for CI updates and swap materials real-time.</p>
-                  </div>
-                </div>
+            <CardContent className="p-6">
+              <div className="grid gap-4 md:grid-cols-3">
+                {SCRIPTS.map(script => (
+                  <Button 
+                    key={script.name} 
+                    variant="outline" 
+                    className="justify-start gap-3 h-14 font-black uppercase italic text-xs border-white/10"
+                    onClick={() => fetchScript(script)}
+                  >
+                    <Code className="h-4 w-4 text-accent" />
+                    {script.name}
+                    <Eye className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                ))}
               </div>
             </CardContent>
-            <CardFooter className="bg-secondary/5 border-t border-border/50 p-6 flex justify-between gap-4">
-              <Button variant="outline" className="border-white/10 text-white gap-2 font-black uppercase italic text-[10px] h-12 flex-1">
-                <Code className="h-4 w-4" /> View Sample Scripts
-              </Button>
-              <Button className="axiom-gradient text-white border-0 gap-2 font-black uppercase italic text-[10px] h-12 flex-1">
-                <FileJson className="h-4 w-4" /> Export Master Manifest
-              </Button>
-            </CardFooter>
           </Card>
         </main>
+
+        <Dialog open={!!viewingScript} onOpenChange={() => setViewingScript(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] bg-black border-border overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="text-accent font-headline italic uppercase">{viewingScript?.name}</DialogTitle>
+              <DialogDescription>Preview of the Godot GDScript file.</DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 overflow-auto bg-zinc-900 p-4 rounded-lg border border-white/5">
+              <pre className="text-xs font-mono text-zinc-300 whitespace-pre-wrap">
+                {viewingScript?.content}
+              </pre>
+            </div>
+            <div className="flex justify-end gap-3 mt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setViewingScript(null)}
+                className="font-black uppercase italic text-xs border-white/10"
+              >
+                Close
+              </Button>
+              <Button 
+                className="axiom-gradient text-white border-0 font-black italic uppercase text-xs"
+                onClick={() => {
+                  if (viewingScript) copyToClipboard(viewingScript.content, viewingScript.name)
+                }}
+              >
+                <Copy className="h-3 w-3 mr-2" /> Copy Code
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </SidebarInset>
     </div>
   )

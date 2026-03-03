@@ -959,6 +959,10 @@ h1, h2, h3, h4, h5, h6 {
   max-height: 100vh;
 }
 
+.max-h-\[80vh\] {
+  max-height: 80vh;
+}
+
 .min-h-0 {
   min-height: 0;
 }
@@ -1629,6 +1633,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .whitespace-nowrap {
   white-space: nowrap;
+}
+
+.whitespace-pre-wrap {
+  white-space: pre-wrap;
 }
 
 .break-words {
@@ -2310,6 +2318,11 @@ h1, h2, h3, h4, h5, h6 {
 .bg-yellow-600 {
   --tw-bg-opacity: 1;
   background-color: rgba(202, 138, 4, var(--tw-bg-opacity, 1));
+}
+
+.bg-zinc-900 {
+  --tw-bg-opacity: 1;
+  background-color: rgba(24, 24, 27, var(--tw-bg-opacity, 1));
 }
 
 .bg-\[linear-gradient\(rgba\(18\,16\,16\,0\)_50\%\,rgba\(0\,0\,0\,0\.15\)_50\%\)\] {
@@ -3256,6 +3269,11 @@ h1, h2, h3, h4, h5, h6 {
 .text-yellow-400 {
   --tw-text-opacity: 1;
   color: rgba(250, 204, 21, var(--tw-text-opacity, 1));
+}
+
+.text-zinc-300 {
+  --tw-text-opacity: 1;
+  color: rgba(212, 212, 216, var(--tw-text-opacity, 1));
 }
 
 .underline {
