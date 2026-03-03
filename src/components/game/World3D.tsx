@@ -12,16 +12,18 @@ import { createHumanoidModel, HumanoidModel } from './HumanoidModel';
 import { AnimationController } from './AnimationSystem';
 import { attachEquipment, EquipmentSlots } from './EquipmentRenderer';
 import { WorldBuildingService } from '@/services/WorldBuildingService';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 
-const AgentModel = ({ agent }: { agent: Agent }) => {
+const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolean }) => {
   const groupRef = useRef<THREE.Group>(null);
   const [model, setModel] = useState<HumanoidModel | null>(null);
   const [animController, setAnimController] = useState<AnimationController | null>(null);
 
   useEffect(() => {
     const humanoid = createHumanoidModel({
-      skinTone: agent.thinkingMatrix?.alignment !== undefined && agent.thinkingMatrix.alignment > 0.5 ? '#d1a37c' : '#8d5524',
-      bodyScale: 1.0 + (agent.level * 0.01)
+      skinTone: agent.appearance?.skinTone || '#c68642',
+      bodyScale: (agent.appearance?.bodyScale || 1.0) + (agent.level * 0.01)
     });
     setModel(humanoid);
     
@@ -31,7 +33,7 @@ const AgentModel = ({ agent }: { agent: Agent }) => {
     return () => {
       controller.dispose();
     };
-  }, [agent.id]);
+  }, [agent.id, agent.appearance]);
 
   useEffect(() => {
     if (animController) {
@@ -54,7 +56,7 @@ const AgentModel = ({ agent }: { agent: Agent }) => {
 
   useFrame((state, delta) => {
     if (animController) animController.update(delta);
-    if (groupRef.current) {
+    if (groupRef.current && !isLocal) {
       const targetPos = new THREE.Vector3(agent.position.x, agent.position.y || 0, agent.position.z);
       groupRef.current.position.lerp(targetPos, 0.1);
     }
@@ -63,11 +65,12 @@ const AgentModel = ({ agent }: { agent: Agent }) => {
   if (!model) return null;
 
   return (
-    <group ref={groupRef}>
+    <group ref={groupRef} position={[agent.position.x, agent.position.y || 0, agent.position.z]}>
       <primitive object={model.group} />
       <Html position={[0, 2.5, 0]} center distanceFactor={15}>
         <div className="flex flex-col items-center gap-1 pointer-events-none">
-          <div className="px-2 py-0.5 rounded bg-black/80 border border-accent/50 text-white text-[10px] font-black uppercase tracking-widest whitespace-nowrap shadow-xl">
+          <div className={`px-2 py-0.5 rounded bg-black/80 border ${isLocal ? 'border-accent' : 'border-white/20'} text-white text-[10px] font-black uppercase tracking-widest whitespace-nowrap shadow-xl`}>
+            {isLocal && <span className="text-accent mr-1">YOU //</span>}
             {agent.displayName} <span className="text-accent ml-1">LVL {agent.level}</span>
           </div>
           <div className="w-12 h-1 bg-secondary rounded-full overflow-hidden border border-white/10">
@@ -79,48 +82,132 @@ const AgentModel = ({ agent }: { agent: Agent }) => {
   );
 };
 
+const LocalPlayerController = ({ agent }: { agent: Agent }) => {
+  const { camera } = useThree();
+  const db = useFirestore();
+  const moveSpeed = 0.25;
+  const rotateSpeed = 0.05;
+  const updateInterval = 500; // ms
+  const lastUpdateRef = useRef(0);
+
+  const keys = useRef<{ [key: string]: boolean }>({});
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => (keys.current[e.key.toLowerCase()] = true);
+    const up = (e: KeyboardEvent) => (keys.current[e.key.toLowerCase()] = false);
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+    };
+  }, []);
+
+  useFrame((state, delta) => {
+    let moving = false;
+    const newPos = { ...agent.position };
+
+    if (keys.current['w']) { newPos.z -= moveSpeed; moving = true; }
+    if (keys.current['s']) { newPos.z += moveSpeed; moving = true; }
+    if (keys.current['a']) { newPos.x -= moveSpeed; moving = true; }
+    if (keys.current['d']) { newPos.x += moveSpeed; moving = true; }
+
+    if (moving) {
+      agent.position.x = newPos.x;
+      agent.position.z = newPos.z;
+      agent.state = AgentState.EXPLORING;
+
+      // Update camera to follow
+      camera.position.x = newPos.x + 20;
+      camera.position.z = newPos.z + 20;
+      camera.lookAt(newPos.x, 0, newPos.z);
+
+      // Throttled sync to Firestore
+      const now = Date.now();
+      if (now - lastUpdateRef.current > updateInterval) {
+        lastUpdateRef.current = now;
+        const ref = doc(db, 'players', agent.id);
+        updateDoc(ref, { 
+          position: { x: newPos.x, y: 0, z: newPos.z },
+          state: AgentState.EXPLORING,
+          lastUpdate: serverTimestamp() 
+        });
+      }
+    } else {
+      if (agent.state !== AgentState.IDLE) {
+        agent.state = AgentState.IDLE;
+        const ref = doc(db, 'players', agent.id);
+        updateDoc(ref, { state: AgentState.IDLE });
+      }
+    }
+  });
+
+  return <AgentModel agent={agent} isLocal />;
+};
+
 const POIModel = ({ poi }: { poi: POI }) => {
   const material = useMemo(() => new THREE.MeshStandardMaterial({ 
-    color: poi.type === 'SHRINE' ? '#60D4FF' : poi.type === 'BUILDING' ? '#444' : '#22c55e',
+    color: poi.type === 'SHRINE' ? '#60D4FF' : poi.type === 'BUILDING' ? '#222' : '#22c55e',
     emissive: poi.type === 'SHRINE' ? '#60D4FF' : '#000',
     emissiveIntensity: 0.5,
-    roughness: 0.2,
-    metalness: 0.8
+    roughness: 0.1,
+    metalness: 0.9
   }), [poi.type]);
 
   if (poi.type === 'SHRINE') {
     return (
-      <Float speed={2} rotationIntensity={0.5} floatIntensity={1}>
-        <mesh position={[poi.position[0], 1.5, poi.position[2]]} material={material}>
-          <octahedronGeometry args={[1, 0]} />
-          <mesh position={[0, 0, 0]} rotation={[Math.PI / 4, 0, 0]}>
-            <torusGeometry args={[1.5, 0.05, 16, 100]} />
+      <Float speed={3} rotationIntensity={1} floatIntensity={2}>
+        <group position={[poi.position[0], 2, poi.position[2]]}>
+          <mesh material={material}>
+            <octahedronGeometry args={[1.5, 0]} />
           </mesh>
-        </mesh>
+          <mesh rotation={[Math.PI / 4, 0, 0]}>
+            <torusGeometry args={[2.5, 0.05, 16, 100]} />
+            <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={2} />
+          </mesh>
+          <mesh rotation={[-Math.PI / 4, Math.PI / 2, 0]}>
+            <torusGeometry args={[3.2, 0.03, 16, 100]} />
+            <meshStandardMaterial color="#2E2EB3" emissive="#2E2EB3" emissiveIntensity={1} />
+          </mesh>
+        </group>
       </Float>
+    );
+  }
+
+  if (poi.type === 'BUILDING' || poi.type === 'MARKET_STALL') {
+    return (
+      <group position={[poi.position[0], 0, poi.position[2]]}>
+        <mesh position={[0, 4, 0]} castShadow>
+          <cylinderGeometry args={[2, 3, 8, 6]} />
+          <meshStandardMaterial color="#1a1a1a" metalness={0.8} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 8.5, 0]}>
+          <coneGeometry args={[0.5, 2, 6]} />
+          <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={1} />
+        </mesh>
+        <pointLight position={[0, 5, 0]} intensity={5} color="#60D4FF" distance={15} />
+      </group>
     );
   }
 
   if (poi.type === 'TREE') {
     return (
       <group position={[poi.position[0], 0, poi.position[2]]}>
-        <mesh position={[0, 1, 0]}>
-          <cylinderGeometry args={[0.2, 0.3, 2, 8]} />
-          <meshStandardMaterial color="#4a3728" />
+        <mesh position={[0, 1.5, 0]} castShadow>
+          <cylinderGeometry args={[0.1, 0.4, 3, 5]} />
+          <meshStandardMaterial color="#2a1a0a" />
         </mesh>
-        <mesh position={[0, 2.5, 0]}>
-          <coneGeometry args={[1.2, 3, 8]} />
-          <meshStandardMaterial color="#1a472a" />
-        </mesh>
+        <Float speed={1} floatIntensity={0.5}>
+          <mesh position={[0, 4, 0]} castShadow>
+            <dodecahedronGeometry args={[1.8, 0]} />
+            <meshStandardMaterial color="#0a2a1a" emissive="#0a2a1a" emissiveIntensity={0.2} />
+          </mesh>
+        </Float>
       </group>
     );
   }
 
-  return (
-    <mesh position={[poi.position[0], 1, poi.position[2]]} material={material} castShadow receiveShadow>
-      <boxGeometry args={[3, 2, 3]} />
-    </mesh>
-  );
+  return null;
 };
 
 const MonsterModel = ({ monster }: { monster: Monster }) => {
@@ -129,14 +216,20 @@ const MonsterModel = ({ monster }: { monster: Monster }) => {
   useFrame((state) => {
     if (groupRef.current) {
       groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.2 + 0.5;
+      groupRef.current.rotation.y += 0.01;
     }
   });
 
   return (
     <group ref={groupRef} position={[monster.position[0], 0.5, monster.position[2]]}>
       <mesh castShadow>
-        <sphereGeometry args={[monster.scale, 16, 16]} />
-        <meshStandardMaterial color={monster.color} emissive={monster.color} emissiveIntensity={0.3} />
+        <icosahedronGeometry args={[monster.scale, 0]} />
+        <meshStandardMaterial 
+          color={monster.color} 
+          emissive={monster.color} 
+          emissiveIntensity={0.8} 
+          wireframe
+        />
       </mesh>
       <Html position={[0, 1.5, 0]} center distanceFactor={10}>
         <div className="px-1.5 py-0.5 rounded bg-red-900/80 border border-red-500 text-white text-[8px] font-black uppercase tracking-tighter whitespace-nowrap shadow-xl">
@@ -161,7 +254,7 @@ const DayNightSky = ({ tick }: { tick: number }) => {
     const isNight = sunHeight <= -0.1;
 
     const dayFogColor = new THREE.Color('#8ba4c4');
-    const nightFogColor = new THREE.Color('#0a0e1a');
+    const nightFogColor = new THREE.Color('#05070a');
     const fogColor = nightFogColor.clone().lerp(dayFogColor, dayFactor);
 
     return (
@@ -172,13 +265,13 @@ const DayNightSky = ({ tick }: { tick: number }) => {
                 turbidity={isNight ? 20 : 2}
                 rayleigh={isNight ? 0.1 : 1}
             />
-            <ambientLight intensity={THREE.MathUtils.lerp(0.2, 0.8, dayFactor)} color={fogColor} />
+            <ambientLight intensity={THREE.MathUtils.lerp(0.1, 0.5, dayFactor)} color={fogColor} />
             <directionalLight
                 position={[sunX * 100, Math.max(sunY * 150, 5), sunZ * 100]}
-                intensity={THREE.MathUtils.lerp(0.1, 2.0, dayFactor)}
+                intensity={THREE.MathUtils.lerp(0.05, 1.5, dayFactor)}
                 castShadow
             />
-            <fog attach="fog" args={[fogColor, 120, 500]} />
+            <fog attach="fog" args={[fogColor, 100, 400]} />
         </>
     );
 };
@@ -197,9 +290,9 @@ const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civ
         uIsHovered: { value: false },
         uIsSelected: { value: false },
         uCameraPosition: { value: camera.position },
-        uFogColor: { value: new THREE.Color('#0a0e1a') },
-        uFogNear: { value: 100.0 },
-        uFogFar: { value: 500.0 },
+        uFogColor: { value: new THREE.Color('#05070a') },
+        uFogNear: { value: 80.0 },
+        uFogFar: { value: 400.0 },
         uAgentPositions: { value: new Array(10).fill(new THREE.Vector3()) },
         uAgentVisionRanges: { value: new Array(10).fill(0) },
         uExplorationLevel: { value: 0.5 }
@@ -226,12 +319,14 @@ const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civ
     );
 };
 
-export const World3D: React.FC<{ tick: number; civilizationIndex: number; stability?: number; corruption?: number }> = ({ tick, civilizationIndex, stability, corruption }) => {
+export const World3D: React.FC<{ tick: number; civilizationIndex: number; stability?: number; corruption?: number; localPlayerId?: string | null }> = ({ tick, civilizationIndex, stability, corruption, localPlayerId }) => {
     const agents = useStore(state => state.agents);
     const monsters = useStore(state => state.monsters);
     const chunks = useStore(state => state.loadedChunks);
 
-    // Generate full axiomatic content from loaded chunks
+    const otherAgents = useMemo(() => agents.filter(a => a.id !== localPlayerId), [agents, localPlayerId]);
+    const localAgent = useMemo(() => agents.find(a => a.id === localPlayerId), [agents, localPlayerId]);
+
     const worldContent = useMemo(() => {
       const allPois: POI[] = [];
       const allMonsters: Monster[] = [];
@@ -256,8 +351,11 @@ export const World3D: React.FC<{ tick: number; civilizationIndex: number; stabil
                 
                 <Terrain civilizationIndex={civilizationIndex} stability={stability} corruption={corruption} />
                 
-                {/* Render Agents */}
-                {agents.map(agent => (
+                {/* Render Local Player */}
+                {localAgent && <LocalPlayerController agent={localAgent} />}
+
+                {/* Render Other Agents */}
+                {otherAgents.map(agent => (
                   <AgentModel key={agent.id} agent={agent} />
                 ))}
 
@@ -266,28 +364,28 @@ export const World3D: React.FC<{ tick: number; civilizationIndex: number; stabil
                   <MonsterModel key={monster.id} monster={monster} />
                 ))}
 
-                {/* Render POIs (Buildings, Shrines, Trees) */}
+                {/* Render POIs */}
                 {worldContent.pois.map(poi => (
                   <POIModel key={poi.id} poi={poi} />
                 ))}
 
                 {/* Render Resources */}
                 {worldContent.resources.map(res => (
-                  <mesh key={res.id} position={[res.position[0], 0.2, res.position[2]]}>
-                    <icosahedronGeometry args={[0.5, 0]} />
-                    <meshStandardMaterial color={res.type === 'SILVER_ORE' ? '#C0C0C0' : '#FFD700'} metalness={1} roughness={0.1} />
+                  <mesh key={res.id} position={[res.position[0], 0.2, res.position[2]]} castShadow>
+                    <octahedronGeometry args={[0.4, 0]} />
+                    <meshStandardMaterial color={res.type === 'SILVER_ORE' ? '#C0C0C0' : '#FFD700'} metalness={1} roughness={0.1} emissive={res.type === 'SILVER_ORE' ? '#444' : '#440'} />
                   </mesh>
                 ))}
 
-                <ContactShadows resolution={1024} scale={20} blur={2} opacity={0.35} far={10} color="#000000" />
+                <ContactShadows resolution={1024} scale={50} blur={2} opacity={0.5} far={10} color="#000000" />
                 
                 <OrbitControls 
                     enablePan={true} 
                     maxPolarAngle={Math.PI / 2.1} 
-                    minDistance={5} 
-                    maxDistance={150} 
+                    minDistance={10} 
+                    maxDistance={200} 
                 />
-                <gridHelper args={[1000, 100, '#222', '#111']} position={[0, -0.05, 0]} />
+                <gridHelper args={[1000, 100, '#111', '#050505']} position={[0, -0.05, 0]} />
             </Canvas>
         </div>
     );

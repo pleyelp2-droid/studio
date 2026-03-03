@@ -98,6 +98,7 @@ export interface Agent {
   id: string;
   displayName: string;
   npcClass: string;
+  race?: string;
   level: number;
   hp: number;
   maxHp: number;
@@ -115,6 +116,11 @@ export interface Agent {
   awakened: boolean;
   loreSnippet?: string;
   thinkingMatrix?: ThinkingMatrix;
+  appearance?: {
+    skinTone: string;
+    hairStyle: string;
+    bodyScale: number;
+  };
   lastUpdate?: any;
 }
 
@@ -162,6 +168,7 @@ export interface ComplianceMatrixEntry {
   punctuation: 'PASS' | 'WARN' | 'FAIL';
   recursion: 'PASS' | 'WARN' | 'FAIL' | 'N/A';
   duality: 'PASS' | 'WARN' | 'FAIL';
+  graphics: 'PASS' | 'WARN' | 'FAIL';
   status: 'COMPLIANT' | 'DEGRADED' | 'IDLE' | 'PARTIAL';
 }
 

@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase"
+import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser } from "@/firebase"
 import { doc, collection, query, limit } from "firebase/firestore"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/AppSidebar"
@@ -14,38 +14,40 @@ import {
   Maximize2,
   Minimize2,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Unplug,
+  Gamepad2
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { World3D } from "@/components/game/World3D"
 import { useStore } from "@/store"
 import { WorldBuildingService } from "@/services/WorldBuildingService"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export default function WorldPreviewPage() {
   const db = useFirestore()
+  const { user } = useUser()
   const setAgents = useStore(state => state.setAgents)
   
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
   const { data: worldState, isLoading: isWorldLoading } = useDoc(worldRef)
   
-  // Real-time sync of all players into the 3D view
   const playersQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, "players"), limit(20));
+    return query(collection(db, "players"), limit(50));
   }, [db]);
   const { data: liveAgents, isLoading: isAgentsLoading } = useCollection(playersQuery);
 
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [currentEra, setCurrentEra] = useState("Awaiting Logic Core")
 
-  // Sync Firestore agents to the global store for the renderer
   useEffect(() => {
     if (liveAgents) {
       setAgents(liveAgents as any);
     }
   }, [liveAgents, setAgents]);
 
-  // Generate world content (POIs, monsters) when chunks change
   useEffect(() => {
     if (worldState) {
       const ci = worldState.civilizationIndex || 0
@@ -53,7 +55,6 @@ export default function WorldPreviewPage() {
       else if (ci < 800) setCurrentEra("Industrial Hub")
       else setCurrentEra("Chrome Metropolis")
 
-      // Mock chunk for initial population
       const mockChunk = {
         id: "0_0", x: 0, z: 0, seed: 42, biome: ci < 400 ? 'PLAINS' : ci < 800 ? 'FOREST' : 'CITY',
         entropy: 0.2, stabilityIndex: 0.8, corruptionLevel: 0.1, resourceData: {},
@@ -63,10 +64,24 @@ export default function WorldPreviewPage() {
       
       const content = WorldBuildingService.generateAxiomaticContent(mockChunk as any);
       useStore.getState().setChunks([mockChunk as any]);
-      // Use the store to manage monsters and pois
       useStore.setState({ monsters: content.monsters });
     }
   }, [worldState]);
+
+  if (!user) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background p-12">
+        <Card className="max-w-md w-full border-border bg-card text-center p-12 space-y-6 shadow-2xl">
+          <Unplug className="h-16 w-16 text-destructive mx-auto mb-4 animate-pulse" />
+          <h2 className="text-3xl font-headline font-black uppercase italic tracking-tighter">Neural Link Severed</h2>
+          <p className="text-muted-foreground">You must establish a neural connection to access the live render viewport.</p>
+          <Button asChild className="w-full axiom-gradient text-white h-14 rounded-xl font-black italic uppercase tracking-widest">
+            <Link href="/landing">Initialize Link</Link>
+          </Button>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
@@ -90,6 +105,9 @@ export default function WorldPreviewPage() {
           <div className="grid gap-6 lg:grid-cols-12 h-full">
             <Card className={`lg:col-span-8 border-border bg-card overflow-hidden flex flex-col relative group ${isFullscreen ? 'rounded-none border-0 h-full' : 'aspect-video shadow-2xl shadow-accent/10'}`}>
               <div className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-xl rounded-xl border border-white/10 text-[10px] font-black text-white uppercase italic tracking-widest">
+                  <Gamepad2 className="h-3 w-3 text-accent" /> Use WASD to Navigate
+                </div>
                 <button 
                   onClick={() => setIsFullscreen(!isFullscreen)}
                   className="p-2 bg-black/60 backdrop-blur-xl rounded-xl border border-white/10 hover:bg-black/80 transition-all"
@@ -107,6 +125,7 @@ export default function WorldPreviewPage() {
                   <World3D 
                     tick={(worldState as any)?.tick || 0} 
                     civilizationIndex={(worldState as any)?.civilizationIndex || 0} 
+                    localPlayerId={user.uid}
                   />
                 )}
                 
