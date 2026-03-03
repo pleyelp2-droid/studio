@@ -1,24 +1,15 @@
 "use client"
 
-import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser } from "@/firebase"
-import { doc, collection, query, limit } from "firebase/firestore"
+import { useFirestore, useDoc, useMemoFirebase, useUser } from "@/firebase"
+import { doc } from "firebase/firestore"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/AppSidebar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  RefreshCw,
-  AlertCircle,
-  Unplug,
-  ShieldCheck,
-  Key
-} from "lucide-react"
+import { RefreshCw, Unplug, ShieldCheck, Key } from "lucide-react"
 import { useState, useEffect } from "react"
 import { World3D } from "@/components/game/World3D"
 import { useStore } from "@/store"
-import { WorldBuildingService } from "@/services/WorldBuildingService"
-import { MobileControls } from "@/components/game/MobileControls"
-import { AxiomHandshakeModal } from "@/components/game/AxiomHandshakeModal"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
@@ -26,26 +17,15 @@ export default function WorldPreviewPage() {
   const db = useFirestore()
   const { user, isUserLoading } = useUser()
   
-  const isMobile = useStore(state => state.device.isMobile);
-  const setIsMobile = useStore(state => state.setIsMobile);
-  const isAxiomAuthenticated = useStore(state => state.isAxiomAuthenticated);
-  const userApiKey = useStore(state => state.userApiKey);
-  const setUserApiKey = useStore(state => state.setUserApiKey);
-  const setAgents = useStore(state => state.setAgents);
-  const setUserState = useStore(state => state.setUser);
-  const setChunks = useStore(state => state.setChunks);
+  const isAxiomAuthenticated = useStore(state => state.isAxiomAuthenticated)
+  const userApiKey = useStore(state => state.userApiKey)
+  const setAgents = useStore(state => state.setAgents)
+  const setUserState = useStore(state => state.setUser)
+  const setChunks = useStore(state => state.setChunks)
   
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
   const { data: worldState, isLoading: isWorldLoading } = useDoc(worldRef)
   
-  const playersQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, "players"), limit(50));
-  }, [db]);
-  const { data: liveAgents, isLoading: isAgentsLoading } = useCollection(playersQuery);
-
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [showHandshake, setShowHandshake] = useState(false)
   const [currentEra, setCurrentEra] = useState("Awaiting Logic Core")
 
   useEffect(() => {
@@ -53,36 +33,6 @@ export default function WorldPreviewPage() {
       setUserState({ id: user.uid, name: user.displayName || 'Pilot', email: user.email || '' })
     }
   }, [user, setUserState]);
-
-  useEffect(() => {
-    if (!userApiKey && setUserApiKey) {
-      setUserApiKey("MOCK_OUROBOROS_KEY");
-    }
-  }, [userApiKey, setUserApiKey]);
-
-  useEffect(() => {
-    if (user?.email === 'projectouroboroscollective@gmail.com' && !isAxiomAuthenticated) {
-      setShowHandshake(true);
-    }
-  }, [user?.email, isAxiomAuthenticated]);
-
-  useEffect(() => {
-    const checkDevice = () => {
-      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      if (setIsMobile) {
-        setIsMobile(isTouch || window.innerWidth < 1024);
-      }
-    };
-    checkDevice();
-    window.addEventListener('resize', checkDevice);
-    return () => window.removeEventListener('resize', checkDevice);
-  }, [setIsMobile]);
-
-  useEffect(() => {
-    if (liveAgents && setAgents) {
-      setAgents(liveAgents as any);
-    }
-  }, [liveAgents, setAgents]);
 
   useEffect(() => {
     if (worldState) {
@@ -94,14 +44,11 @@ export default function WorldPreviewPage() {
       const mockChunk = {
         id: "0_0", x: 0, z: 0, seed: 42, 
         biome: 'CITY' as const,
-        cellType: 'SANCTUARY' as const,
         entropy: 0.1, stabilityIndex: 0.9, corruptionLevel: 0.05, resourceData: {},
-        logicField: [[{ vx: 0, vz: 0, magnitude: 0 }]],
-        axiomaticData: [[0]],
+        logicField: [],
         lastUpdate: new Date()
       };
       
-      const content = WorldBuildingService.generateAxiomaticContent(mockChunk);
       if (setChunks) {
         setChunks([mockChunk]);
       }
@@ -135,8 +82,6 @@ export default function WorldPreviewPage() {
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <AppSidebar />
       <SidebarInset className="flex flex-col overflow-auto">
-        {showHandshake && <AxiomHandshakeModal onClose={() => setShowHandshake(false)} />}
-
         <header className="flex h-16 items-center border-b border-border px-6 justify-between shrink-0 bg-background/50 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
@@ -150,65 +95,32 @@ export default function WorldPreviewPage() {
                </Badge>
              )}
              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-[10px] font-black border border-border tracking-widest italic text-white">
-              <RefreshCw className={`h-3 w-3 ${(worldState as any)?.tick ? 'animate-spin text-accent' : 'text-muted-foreground'}`} />
-              <span>{(worldState as any)?.tick ? 'DETERMINISTIC_SYNC_ACTIVE' : 'SYNC_IDLE'}</span>
+              <RefreshCw className={`h-3 w-3 ${worldState?.tick ? 'animate-spin text-accent' : 'text-muted-foreground'}`} />
+              <span>{worldState?.tick ? 'DETERMINISTIC_SYNC_ACTIVE' : 'SYNC_IDLE'}</span>
             </div>
           </div>
         </header>
 
-        <main className={`p-6 space-y-6 max-w-7xl mx-auto w-full h-full`}>
-          <div className="grid gap-6 lg:grid-cols-12 h-[calc(100vh-120px)]">
-            <Card className={`lg:col-span-8 border-border bg-card overflow-hidden flex flex-col relative shadow-2xl shadow-accent/10`}>
+        <main className="p-6 space-y-6 max-w-7xl mx-auto w-full h-full">
+          <div className="grid gap-6 lg:grid-cols-12 h-full">
+            <Card className="lg:col-span-12 border-border bg-card overflow-hidden flex flex-col relative shadow-2xl shadow-accent/10">
               <div className="relative flex-1 bg-black overflow-hidden">
-                {isMobile && <MobileControls />}
-                {(isWorldLoading || isAgentsLoading) ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-30"><RefreshCw className="h-12 w-12 animate-spin text-accent" /></div>
-                ) : (
-                  <World3D tick={(worldState as any)?.tick || 0} civilizationIndex={(worldState as any)?.civilizationIndex || 0} localPlayerId={user.uid} />
-                )}
-                
+                <World3D 
+                  tick={worldState?.tick || 0} 
+                  civilizationIndex={worldState?.civilizationIndex || 0} 
+                  localPlayerId={user.uid} 
+                />
                 <div className="absolute inset-0 pointer-events-none p-10 flex flex-col justify-between">
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
-                      <div className={`h-3 w-3 rounded-full ${(worldState as any)?.tick ? 'bg-accent heartbeat-pulse shadow-[0_0_15px_rgba(96,212,255,1)]' : 'bg-muted-foreground'}`} />
-                      <span className="text-[12px] font-black text-white/90 uppercase tracking-[0.4em] italic drop-shadow-md">Axiom Core Protocol // {(worldState as any)?.tick ? 'ONLINE' : 'BOOT_PENDING'}</span>
+                      <div className={`h-3 w-3 rounded-full ${worldState?.tick ? 'bg-accent heartbeat-pulse shadow-[0_0_15px_rgba(96,212,255,1)]' : 'bg-muted-foreground'}`} />
+                      <span className="text-[12px] font-black text-white/90 uppercase tracking-[0.4em] italic drop-shadow-md">Axiom Core Protocol // {worldState?.tick ? 'ONLINE' : 'BOOT_PENDING'}</span>
                     </div>
                     <h2 className="text-6xl font-headline font-black text-white uppercase italic tracking-tighter drop-shadow-2xl">{currentEra}</h2>
                   </div>
                 </div>
               </div>
             </Card>
-
-            <div className={`lg:col-span-4 space-y-6`}>
-              <Card className="border-border bg-card shadow-lg">
-                <CardHeader className="bg-secondary/10 border-b border-border/50">
-                  <CardTitle className="text-xs font-black uppercase italic tracking-[0.3em] flex items-center gap-3 text-accent text-white">
-                    <ShieldCheck className="h-4 w-4 text-accent" /> Logic Core Event Log
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                   <div className="space-y-0 divide-y divide-border/50">
-                    {(worldState as any)?.tick ? (
-                      <>
-                        <div className="px-6 py-4 text-[10px] font-black uppercase italic tracking-widest flex justify-between items-center hover:bg-accent/5 transition-colors">
-                          <span className="text-accent">Epoch Sync Detected</span>
-                          <span className="text-white font-mono">T-{(worldState as any).tick}</span>
-                        </div>
-                        <div className="px-6 py-4 text-[10px] font-black uppercase italic tracking-widest flex justify-between items-center hover:bg-accent/5 transition-colors">
-                          <span className="text-muted-foreground italic text-white/60">Current Era</span>
-                          <Badge variant="outline" className="text-[9px] border-accent/20 text-accent uppercase tracking-tighter">{currentEra}</Badge>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="p-12 text-center">
-                        <AlertCircle className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
-                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest italic text-white/40">Awaiting Core Signal...</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </div>
         </main>
       </SidebarInset>
