@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Core type definitions for the Ouroboros MMO engine.
  */
@@ -61,4 +62,30 @@ export interface Item {
   name: string;
   type: ItemType;
   rarity: ItemRarity;
+}
+
+export interface PlayerStats {
+  hp: number;
+  maxHp: number;
+  str: number;
+  agi: number;
+  int: number;
+  vit: number;
+}
+
+export interface CombatResult {
+  attackerUid: string;
+  defenderUid: string;
+  defenderType: string;
+  damageDealt: number;
+  damageReceived: number;
+  skillUsed: string;
+  result: string;
+  lootDropped: any[];
+}
+
+export interface CombatLog extends CombatResult {
+  id: string;
+  tickNumber: number;
+  createdAt: any;
 }

@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Player": {
@@ -8,6 +9,12 @@
         "id": { "type": "string" },
         "displayName": { "type": "string" },
         "level": { "type": "number" },
+        "hp": { "type": "number" },
+        "maxHp": { "type": "number" },
+        "str": { "type": "number" },
+        "agi": { "type": "number" },
+        "vit": { "type": "number" },
+        "int": { "type": "number" },
         "position": {
           "type": "object",
           "properties": {
@@ -15,9 +22,10 @@
             "y": { "type": "number" },
             "z": { "type": "number" }
           }
-        }
+        },
+        "inventory": { "type": "array" }
       },
-      "required": ["id", "displayName", "level", "position"]
+      "required": ["id", "displayName", "level", "position", "hp", "maxHp"]
     },
     "WorldState": {
       "title": "WorldState",
@@ -50,6 +58,22 @@
         "resourceData": { "type": "object" }
       },
       "required": ["x", "z", "biome", "entropy"]
+    },
+    "CombatLog": {
+      "title": "CombatLog",
+      "type": "object",
+      "description": "A record of a combat engagement.",
+      "properties": {
+        "attackerUid": { "type": "string" },
+        "defenderUid": { "type": "string" },
+        "defenderType": { "type": "string" },
+        "damageDealt": { "type": "number" },
+        "damageReceived": { "type": "number" },
+        "skillUsed": { "type": "string" },
+        "result": { "type": "string" },
+        "tickNumber": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -67,6 +91,10 @@
     "/chunks/{chunkId}": {
       "schema": { "$ref": "#/entities/Chunk" },
       "description": "World chunk data."
+    },
+    "/combatLogs/{logId}": {
+      "schema": { "$ref": "#/entities/CombatLog" },
+      "description": "Combat history logs."
     }
   }
 }

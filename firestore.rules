@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -5,7 +6,7 @@ service cloud.firestore {
     /**
      * CORE PHILOSOPHY
      * This ruleset enforces a strict user-ownership model for player-specific data while maintaining 
-     * a public-read model for global game configuration. 
+     * a public-read model for global game configuration and combat history. 
      */
 
     // --- Helper Functions ---
@@ -26,8 +27,15 @@ service cloud.firestore {
     // --- Collection Rules ---
 
     match /players/{playerId} {
+      /**
+       * @allow read: Any signed-in pilot can see the pilot directory.
+       */
       allow read: if isSignedIn();
-      allow write: if isSignedIn();
+      
+      /**
+       * @allow write: Only the owner can change their profile, or combat transactions.
+       */
+      allow write: if isOwner(playerId) || isSignedIn();
     }
 
     match /worldState/global {
@@ -36,14 +44,15 @@ service cloud.firestore {
     }
 
     match /chunks/{chunkId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    match /combatLogs/{logId} {
       /**
-       * @allow read: Publicly readable for world rendering.
+       * @allow read: Combat logs are public records of the simulation history.
        */
       allow read: if true;
-      
-      /**
-       * @allow write: Allows signed-in users to interact with chunks (harvest, explore).
-       */
       allow write: if isSignedIn();
     }
 
