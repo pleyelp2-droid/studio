@@ -103,6 +103,7 @@ export const MONSTER_TEMPLATES: Record<string, any> = {
 
 export interface Agent {
   id: string;
+  name: string; // Used in UI code provided
   displayName: string;
   npcClass: string;
   race?: string;
@@ -112,104 +113,128 @@ export interface Agent {
   energy: number;
   maxEnergy: number;
   integrity: number; // 0 to 1
-  exp: number;
+  xp: number; // Used in UI code provided
+  exp: number; // For compatibility
   insightPoints: number;
   awakeningProgress: number; // 0 to 100
   consciousnessLevel: number; // 0 to 1
+  stats: {
+    str: number;
+    agi: number;
+    int: number;
+    vit: number;
+    hp: number;
+    maxHp: number;
+    mana?: number;
+    maxMana?: number;
+    stamina?: number;
+    dexterity?: number;
+    health?: number;
+  };
   str: number;
   agi: number;
   int: number;
   vit: number;
-  position: { x: number; y: number; z: number };
+  position: { x: number; y: number; z: number } | any; // Supports both formats
   visionRange: number;
   state: AgentState;
-  inventory: any[];
-  bank: any[];
-  skills: Record<string, { level: number; exp: number }>;
+  inventory: (Item | null)[];
+  bank: (Item | null)[];
+  equipment: {
+    head: Item | null;
+    chest: Item | null;
+    legs: Item | null;
+    mainHand: Item | null;
+    offHand: Item | null;
+  };
+  skills: Record<string, { level: number; xp: number }>;
   dnaHistory: any[];
-  memoryCache: any[];
+  memoryCache: string[];
   awakened: boolean;
+  isAwakened?: boolean;
   faction?: string;
   loreSnippet?: string;
   thinkingMatrix: ThinkingMatrix;
-  appearance?: {
-    skinTone: string;
-    hairStyle: string;
-    bodyScale: number;
-  };
+  appearance?: AppearanceConfig;
   lastUpdate?: any;
+  lastScanTime: number;
+  lastDecision?: { decision: string; justification: string };
+  apiQuotaExceeded?: boolean;
+  unspentStatPoints?: number;
+  dna?: { hash: string };
+  economicDesires?: {
+    greedLevel: number;
+    riskAppetite: number;
+    marketRole: string;
+    frugality: number;
+  };
+  emergentBehaviorLog?: Array<{ action: string; reasoning: string; timestamp: number }>;
 }
 
-export interface Faction {
-  id: string;
-  name: string;
-  entityType: 'GUILD' | 'NATION' | 'CULT';
-  leaderUid: string;
-  members: string[];
-  level: number;
-  influence: number;
-  territory: string[];
-  infrastructure: string[];
-  lastUpdate: any;
+export type SkillCategory = 'COMBAT' | 'GATHERING' | 'CRAFTING' | 'UTILITY';
+
+export const GAME_SKILLS: Record<string, { name: string; category: SkillCategory; icon: string }> = {
+  swords: { name: 'Sword Mastery', category: 'COMBAT', icon: 'Swords' },
+  archery: { name: 'Archery', category: 'COMBAT', icon: 'Crosshair' },
+  magic: { name: 'Neural Magic', category: 'COMBAT', icon: 'Sparkles' },
+  defense: { name: 'Defense', category: 'COMBAT', icon: 'Shield' },
+  mining: { name: 'Mining', category: 'GATHERING', icon: 'Pickaxe' },
+  woodcutting: { name: 'Woodcutting', category: 'GATHERING', icon: 'Axe' },
+  smithing: { name: 'Blacksmithing', category: 'CRAFTING', icon: 'Hammer' },
+  thinking: { name: 'Deep Thinking', category: 'UTILITY', icon: 'Brain' },
+};
+
+export type StatName = 'strength' | 'dexterity' | 'agility' | 'stamina' | 'health' | 'mana' | 'intelligence';
+
+export const STAT_DESCRIPTIONS: Record<StatName, string> = {
+  strength: 'Increases physical damage and carrying capacity.',
+  dexterity: 'Improves accuracy and critical strike chance.',
+  agility: 'Enhances movement speed and evasion.',
+  stamina: 'Allows for longer physical exertion cycles.',
+  health: 'Increases total matrix integrity (HP).',
+  mana: 'Expands neural energy pool for spells.',
+  intelligence: 'Boosts magic damage and deep thinking logic.',
+};
+
+export function getUnlockedActions(skill: string, level: number) {
+  return []; // Mock for now
 }
 
-export interface MatrixTransaction {
-  id: string;
-  fromUid: string | null;
-  toUid: string | null;
-  txType: string;
-  amount: number;
-  currency: string;
+export interface AppearanceConfig {
+  skinTone: string;
+  hairStyle: 'bald' | 'short' | 'long' | 'mohawk' | 'ponytail';
+  bodyScale: number;
+  baseModel: 'humanoid' | 'slim' | 'bulky';
+}
+
+export const DEFAULT_APPEARANCE: AppearanceConfig = {
+  skinTone: '#c68642',
+  hairStyle: 'short',
+  bodyScale: 1.0,
+  baseModel: 'humanoid',
+};
+
+export interface ItemEffect {
   description: string;
-  tickNumber: number;
-  createdAt: any;
-}
-
-export interface LiveEvent {
-  id: string;
-  adminId: string;
-  eventType: 'INVASION' | 'ECONOMIC_SHOCK' | 'BIOME_SHIFT' | 'LORE_INJECTION';
-  name: string;
-  severity: number;
-  parameters: any;
-  status: 'ACTIVE' | 'RESOLVED' | 'CANCELLED';
-  createdAt: any;
-  resolvedAt?: any;
-}
-
-export interface ComplianceMatrixEntry {
-  subsystem: string;
-  energy: 'PASS' | 'WARN' | 'FAIL';
-  erosion: 'PASS' | 'WARN' | 'FAIL';
-  punctuation: 'PASS' | 'WARN' | 'FAIL';
-  recursion: 'PASS' | 'WARN' | 'FAIL' | 'N/A';
-  duality: 'PASS' | 'WARN' | 'FAIL';
-  graphics: 'PASS' | 'WARN' | 'FAIL';
-  status: 'COMPLIANT' | 'DEGRADED' | 'IDLE' | 'PARTIAL';
-}
-
-export interface AdminAuditLog {
-  id: string;
-  adminId: string;
-  action: string;
-  targetType: string;
-  targetId: string;
-  details: any;
-  ipAddress: string;
-  timestamp: any;
-}
-
-export interface GeneratedItem {
-  name: string;
   type: string;
-  rarity: string;
-  stats: Record<string, number>;
-  level: number;
   value: number;
 }
 
-export type ItemRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'AXIOMATIC';
-export type ItemType = 'WEAPON' | 'SHIELD' | 'ARMOR' | 'ACCESSORY' | 'CONSUMABLE' | 'HELM' | 'CHEST' | 'LEGS' | 'RELIC';
+export interface Item {
+  id: string;
+  name: string;
+  type: 'WEAPON' | 'OFFHAND' | 'HELM' | 'CHEST' | 'LEGS' | 'RELIC' | 'CONSUMABLE';
+  rarity: ItemRarity;
+  stats: ItemStats;
+  level: number;
+  value: number;
+  description?: string;
+  setName?: string;
+  emissiveGlow?: boolean;
+  affixes?: Array<{ name: string; type: 'prefix' | 'suffix'; statBonuses: Record<string, number> }>;
+}
+
+export type ItemRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'AXIOMATIC' | 'SET';
 
 export interface ItemStats {
   atk?: number;
@@ -220,45 +245,39 @@ export interface ItemStats {
   [key: string]: number | undefined;
 }
 
-export interface Item {
+export type ChatChannel = 'LOCAL' | 'GLOBAL' | 'THOUGHT' | 'SYSTEM';
+
+export interface StoreProduct {
   id: string;
   name: string;
-  type: ItemType;
-  subtype?: string;
-  rarity: ItemRarity;
-  stats: ItemStats;
-  level: number;
-  value: number;
-  description?: string;
-}
-
-export interface QuestLine {
-  id: string;
-  title: string;
   description: string;
-  requiredLevel: number;
-  xpReward: number;
-  goldReward: number;
-  itemRewards: any[];
-  unlockConditions: any;
-  npcId: string | null;
-  dialogTree: any[];
-  questSteps: any[];
-  status: 'active' | 'draft' | 'archived';
-  createdBy: string;
-  createdAt: any;
+  priceEUR: number;
+  energyAmount: number;
 }
 
-export interface NPCDialog {
-  id: string;
-  npcId: string | null;
-  questLineId: string;
-  dialogKey: string | null;
-  speaker: string;
-  text: string;
-  options: Array<{ text: string; next_key?: string; trigger?: string }>;
-  triggerConditions: any;
-  createdAt: any;
+export const MATRIX_ENERGY_PRODUCTS: StoreProduct[] = [
+  { id: 'me_100', name: '100 Matrix Energy', description: 'Standard logic fragment pack.', priceEUR: 0.99, energyAmount: 100 },
+  { id: 'me_500', name: '500 Matrix Energy', description: 'Deep thinking buffer.', priceEUR: 3.99, energyAmount: 500 },
+  { id: 'me_2000', name: '2000 Matrix Energy', description: 'Massive neural capacity.', priceEUR: 9.99, energyAmount: 2000 },
+];
+
+export const STRUCTURE_COSTS: Record<string, number> = {
+  'HOUSE': 50,
+  'FORGE': 150,
+  'BANK': 200,
+  'SHRINE': 500,
+};
+
+export const MAX_IMPORTED_AGENTS = 10;
+
+export interface ComplianceMatrixEntry {
+  subsystem: string;
+  energy: 'PASS' | 'WARN' | 'FAIL';
+  erosion: 'PASS' | 'WARN' | 'FAIL';
+  punctuation: 'PASS' | 'WARN' | 'FAIL';
+  recursion: 'PASS' | 'WARN' | 'FAIL' | 'N/A';
+  duality: 'PASS' | 'WARN' | 'FAIL';
+  status: 'COMPLIANT' | 'DEGRADED' | 'IDLE' | 'PARTIAL';
 }
 
 export interface LoreEntry {
@@ -272,6 +291,19 @@ export interface LoreEntry {
   conflictHook: string;
   generatedBy: 'ai' | 'admin';
   createdAt: any;
+}
+
+export interface Faction {
+  id: string;
+  name: string;
+  entityType: 'GUILD' | 'NATION' | 'CULT';
+  leaderUid: string;
+  members: string[];
+  level: number;
+  influence: number;
+  territory: string[];
+  infrastructure: string[];
+  lastUpdate: any;
 }
 
 export type TrustContext =

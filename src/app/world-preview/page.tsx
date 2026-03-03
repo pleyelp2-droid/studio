@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser } from "@/firebase"
@@ -35,15 +34,15 @@ import { Button } from "@/components/ui/button"
 export default function WorldPreviewPage() {
   const db = useFirestore()
   const { user, isUserLoading } = useUser()
-  const { 
-    isMobile, 
-    setIsMobile, 
-    isAxiomAuthenticated,
-    userApiKey,
-    setUserApiKey
-  } = useStore()
-  const setAgents = useStore(state => state.setAgents)
-  const setUser = useStore(state => state.setUser)
+  
+  // Use robust explicit selectors
+  const setIsMobile = useStore(state => state.setIsMobile);
+  const isMobile = useStore(state => state.isMobile);
+  const isAxiomAuthenticated = useStore(state => state.isAxiomAuthenticated);
+  const userApiKey = useStore(state => state.userApiKey);
+  const setUserApiKey = useStore(state => state.setUserApiKey);
+  const setAgents = useStore(state => state.setAgents);
+  const setUser = useStore(state => state.setUser);
   
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
   const { data: worldState, isLoading: isWorldLoading } = useDoc(worldRef)
@@ -64,7 +63,6 @@ export default function WorldPreviewPage() {
     }
   }, [user, setUser]);
 
-  // Ensure an API key exists so AI features aren't blocked, but don't show a full-screen blocker
   useEffect(() => {
     if (!userApiKey) {
       setUserApiKey("MOCK_OUROBOROS_KEY");
@@ -79,7 +77,7 @@ export default function WorldPreviewPage() {
 
   useEffect(() => {
     const checkDevice = () => {
-      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isTouch = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
       setIsMobile(isTouch || window.innerWidth < 1024);
     };
     checkDevice();
@@ -100,13 +98,12 @@ export default function WorldPreviewPage() {
       else if (ci < 800) setCurrentEra("Industrial Hub")
       else setCurrentEra("Chrome Metropolis")
 
-      // Force (0,0) to always be a City/Sanctuary for the hub experience
       const mockChunk = {
         id: "0_0", x: 0, z: 0, seed: 42, 
         biome: 'CITY',
         cellType: 'SANCTUARY',
         entropy: 0.1, stabilityIndex: 0.9, corruptionLevel: 0.05, resourceData: {},
-        logicField: Array(8).fill(0).map(() => Array(8).fill(0).map(() => ({ vx: Math.random() * 0.1, vz: Math.random() * 0.1 }))),
+        logicField: Array(8).fill(0).map(() => Array(8).fill(0).map(() => ({ vx: Math.random() * 0.1, vz: Math.random() * 0.1, magnitude: 0.1 }))),
         axiomaticData: Array(8).fill(0).map(() => Array(8).fill(0).map(() => 0.5 + Math.random() * 0.5))
       };
       

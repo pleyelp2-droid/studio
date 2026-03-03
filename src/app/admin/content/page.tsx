@@ -7,13 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { Label } from "@/components/ui/label"
 import { 
   BrainCircuit, 
   Youtube, 
   ScrollText, 
   Loader2, 
-  CheckCircle2, 
-  AlertTriangle,
   Zap,
   TrendingUp,
   Database

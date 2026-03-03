@@ -1,12 +1,12 @@
 
 'use client';
 
-import { Html, OrbitControls, Sky, PerspectiveCamera, Environment, ContactShadows, Float } from '@react-three/drei';
+import { Html, Sky, PerspectiveCamera, Environment, ContactShadows, Float, Instances, Instance, OrbitControls } from '@react-three/drei';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import React, { useMemo, useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useStore } from '../../store';
-import { POI, Chunk, Monster, Agent, AgentState, ResourceNode } from '../../types';
+import { POI, Agent, AgentState } from '../../types';
 import { axiomFragmentShader, axiomVertexShader } from './AxiomShader';
 import { createHumanoidModel, HumanoidModel } from './HumanoidModel';
 import { AnimationController } from './AnimationSystem';
@@ -23,31 +23,39 @@ const ARL_COLORS = {
   border: "#1e2a4a"
 };
 
-// PRE-MEMOIZED SHARED GEOMETRIES (Massive Performance Win)
-const GEOMETRIES = {
+// Global shared geometries for performance
+const SHARED_GEOS = {
   octahedron: new THREE.OctahedronGeometry(1, 0),
-  torusSmall: new THREE.TorusGeometry(2.8, 0.08, 8, 32),
-  torusLarge: new THREE.TorusGeometry(5.0, 0.1, 8, 32),
+  torusSmall: new THREE.TorusGeometry(2.8, 0.04, 6, 12),
+  torusLarge: new THREE.TorusGeometry(5.0, 0.06, 6, 12),
+  spireBase: new THREE.CylinderGeometry(0.2, 1.2, 12, 6),
+  spireBaseMajor: new THREE.CylinderGeometry(0.4, 2.5, 24, 6),
+  foundation: new THREE.CylinderGeometry(2.5, 3.2, 1.5, 6),
+  foundationMajor: new THREE.CylinderGeometry(5.0, 6.0, 1.5, 6),
   box: new THREE.BoxGeometry(1, 1, 1),
-  spireBase: new THREE.CylinderGeometry(0.3, 1.5, 12, 6),
-  spireBaseMajor: new THREE.CylinderGeometry(0.6, 3.0, 24, 6),
-  foundation: new THREE.CylinderGeometry(3.0, 3.8, 2.0, 6),
-  foundationMajor: new THREE.CylinderGeometry(6.0, 7.0, 2.0, 6),
+  houseGeo: new THREE.BoxGeometry(4, 4, 4),
+  wallGeo: new THREE.BoxGeometry(20, 8, 2.5),
+  gateGeo: new THREE.BoxGeometry(5, 8, 2.5),
+  terrain: new THREE.PlaneGeometry(500, 500, 64, 64)
+};
+
+const SHARED_MATS = {
+  void: new THREE.MeshStandardMaterial({ color: ARL_COLORS.void, metalness: 1, roughness: 0.1 }),
+  border: new THREE.MeshStandardMaterial({ color: ARL_COLORS.border, metalness: 1, roughness: 0.1 }),
+  house: new THREE.MeshStandardMaterial({ color: ARL_COLORS.void, metalness: 0.8, roughness: 0.2 }),
+  wall: new THREE.MeshStandardMaterial({ color: ARL_COLORS.void, metalness: 1, roughness: 0.1, emissive: ARL_COLORS.teal, emissiveIntensity: 0.1 })
 };
 
 const HighScienceSpire = ({ position, rotationY, color, type }: { position: [number, number, number], rotationY: number, color: string, type: string }) => {
   const ring1Ref = useRef<THREE.Group>(null);
-  const ring2Ref = useRef<THREE.Group>(null);
   const coreRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    // Simplified rotations for performance
-    if (ring1Ref.current) ring1Ref.current.rotation.y = t * 0.5;
-    if (ring2Ref.current) ring2Ref.current.rotation.y = -t * 0.8;
+    if (ring1Ref.current) ring1Ref.current.rotation.y = t * 0.3;
     if (coreRef.current) {
-      coreRef.current.position.y = Math.sin(t * 2.0) * 0.3 + 8.5;
-      coreRef.current.rotation.z = t;
+      coreRef.current.position.y = Math.sin(t * 1.2) * 0.1 + 8.5;
+      coreRef.current.rotation.z = t * 0.4;
     }
   });
 
@@ -56,88 +64,68 @@ const HighScienceSpire = ({ position, rotationY, color, type }: { position: [num
 
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
-      {/* Heavy Hexagonal Foundation */}
-      <mesh 
-        geometry={isMajor ? GEOMETRIES.foundationMajor : GEOMETRIES.foundation} 
-        position={[0, 0.6, 0]} 
-        receiveShadow
-      >
-        <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.1} />
+      <mesh geometry={isMajor ? SHARED_GEOS.foundationMajor : SHARED_GEOS.foundation} position={[0, 0.5, 0]} material={SHARED_MATS.void} receiveShadow />
+      <mesh geometry={isMajor ? SHARED_GEOS.spireBaseMajor : SHARED_GEOS.spireBase} position={[0, height / 2, 0]} material={SHARED_MATS.border} />
+      <mesh ref={coreRef} geometry={SHARED_GEOS.octahedron} position={[0, 8.5, 0]} scale={isMajor ? 1.2 : 0.6}>
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={6} />
       </mesh>
-
-      {/* Primary Tapered Spire */}
-      <mesh 
-        geometry={isMajor ? GEOMETRIES.spireBaseMajor : GEOMETRIES.spireBase} 
-        position={[0, height / 2, 0]} 
-        castShadow
-      >
-        <meshStandardMaterial color={ARL_COLORS.border} metalness={1} roughness={0.1} />
-      </mesh>
-
-      {/* Floating Energy Core */}
-      <mesh 
-        ref={coreRef} 
-        geometry={GEOMETRIES.octahedron} 
-        position={[0, 8.5, 0]} 
-        scale={isMajor ? 1.8 : 0.9}
-      >
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={15} />
-      </mesh>
-
-      {/* Multi-Stage Orbital Logic Rings */}
-      <group position={[0, height * 0.85, 0]} ref={ring1Ref}>
-        <mesh geometry={isMajor ? GEOMETRIES.torusLarge : GEOMETRIES.torusSmall} rotation={[Math.PI / 2, 0, 0]}>
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={10} transparent opacity={0.8} />
-        </mesh>
-      </group>
-
-      <group position={[0, height * 0.5, 0]} ref={ring2Ref}>
-        <mesh geometry={isMajor ? GEOMETRIES.torusLarge : GEOMETRIES.torusSmall} rotation={[Math.PI / 2, 0, Math.PI / 4]}>
-          <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={5} transparent opacity={0.6} />
+      <group position={[0, height * 0.8, 0]} ref={ring1Ref}>
+        <mesh geometry={isMajor ? SHARED_GEOS.torusLarge : SHARED_GEOS.torusSmall} rotation={[Math.PI / 2, 0, 0]}>
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={4} transparent opacity={0.6} />
         </mesh>
       </group>
     </group>
   );
 };
 
-const POIModel = ({ poi }: { poi: POI }) => {
-  const rotationY = poi.rotationY || 0;
+const POILayer = ({ pois }: { pois: POI[] }) => {
+  const houses = useMemo(() => pois.filter(p => p.type === 'HOUSE'), [pois]);
+  const walls = useMemo(() => pois.filter(p => p.type === 'WALL'), [pois]);
+  const otherPois = useMemo(() => pois.filter(p => !['HOUSE', 'WALL'].includes(p.type)), [pois]);
 
-  if (poi.type === 'SHRINE') {
-    return (
-      <Float speed={2} rotationIntensity={1} floatIntensity={1}>
-        <group position={[poi.position[0], 3.5, poi.position[2]]}>
-          <mesh geometry={GEOMETRIES.octahedron} scale={2.5} castShadow>
-            <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.1} emissive={ARL_COLORS.teal} emissiveIntensity={10} />
-          </mesh>
-          <mesh geometry={GEOMETRIES.torusSmall} scale={1.5} rotation={[Math.PI / 4, 0, 0]}>
-            <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={12} />
-          </mesh>
-        </group>
-      </Float>
-    );
-  }
+  return (
+    <>
+      <Instances geometry={SHARED_GEOS.houseGeo} material={SHARED_MATS.house}>
+        {houses.map(p => (
+          <Instance key={p.id} position={[p.position[0], 2, p.position[2]]} rotation={[0, p.rotationY || 0, 0]} />
+        ))}
+      </Instances>
 
-  if (['BUILDING', 'HOUSE', 'FORGE', 'BANK_VAULT', 'MARKET_STALL'].includes(poi.type)) {
-    const color = poi.type === 'FORGE' ? ARL_COLORS.blood : 
-                  poi.type === 'BANK_VAULT' ? ARL_COLORS.gold : 
-                  poi.type === 'MARKET_STALL' ? ARL_COLORS.teal : ARL_COLORS.arcane;
-    return <HighScienceSpire position={poi.position} rotationY={rotationY} color={color} type={poi.type} />;
-  }
+      <Instances geometry={SHARED_GEOS.wallGeo} material={SHARED_MATS.wall}>
+        {walls.map(p => (
+          <Instance key={p.id} position={[p.position[0], 4, p.position[2]]} rotation={[0, p.rotationY || 0, 0]} />
+        ))}
+      </Instances>
 
-  if (poi.type === 'WALL' || poi.type === 'GATE') {
-    const isGate = poi.type === 'GATE';
-    return (
-      <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
-        <mesh position={[0, 4.5, 0]} castShadow receiveShadow>
-          <boxGeometry args={[isGate ? 6.0 : 20, 9, 3.2]} />
-          <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.1} emissive={ARL_COLORS.teal} emissiveIntensity={isGate ? 2.0 : 0.5} />
-        </mesh>
-      </group>
-    );
-  }
-
-  return null;
+      {otherPois.map(poi => {
+        if (poi.type === 'SHRINE') {
+          return (
+            <Float key={poi.id} speed={1.2} rotationIntensity={0.4} floatIntensity={0.4}>
+              <group position={[poi.position[0], 3.0, poi.position[2]]}>
+                <mesh geometry={SHARED_GEOS.octahedron} scale={1.8}>
+                  <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.1} emissive={ARL_COLORS.teal} emissiveIntensity={5} />
+                </mesh>
+              </group>
+            </Float>
+          );
+        }
+        if (['BUILDING', 'FORGE', 'BANK_VAULT', 'MARKET_STALL'].includes(poi.type)) {
+          const color = poi.type === 'FORGE' ? ARL_COLORS.blood : 
+                        poi.type === 'BANK_VAULT' ? ARL_COLORS.gold : 
+                        poi.type === 'MARKET_STALL' ? ARL_COLORS.teal : ARL_COLORS.arcane;
+          return <HighScienceSpire key={poi.id} position={poi.position} rotationY={poi.rotationY || 0} color={color} type={poi.type} />;
+        }
+        if (poi.type === 'GATE') {
+          return (
+            <mesh key={poi.id} geometry={SHARED_GEOS.gateGeo} position={[poi.position[0], 4, poi.position[2]]} rotation={[0, poi.rotationY || 0, 0]} receiveShadow>
+              <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.1} emissive={ARL_COLORS.teal} emissiveIntensity={1.2} />
+            </mesh>
+          );
+        }
+        return null;
+      })}
+    </>
+  );
 };
 
 const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolean }) => {
@@ -151,19 +139,13 @@ const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolea
       bodyScale: (agent.appearance?.bodyScale || 1.0) + (agent.level * 0.01)
     });
     setModel(humanoid);
-    
     const controller = new AnimationController(humanoid.mesh, humanoid.bones);
     setAnimController(controller);
-
-    return () => {
-      controller.dispose();
-    };
-  }, [agent.id, agent.appearance, agent.level]);
+    return () => controller.dispose();
+  }, [agent.id, agent.appearance?.skinTone, agent.appearance?.bodyScale, agent.level]);
 
   useEffect(() => {
-    if (animController) {
-      animController.playForState(agent.state || AgentState.IDLE);
-    }
+    if (animController) animController.playForState(agent.state || AgentState.IDLE);
   }, [agent.state, animController]);
 
   useFrame((state, delta) => {
@@ -180,10 +162,8 @@ const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolea
     <group ref={groupRef} position={[agent.position.x, agent.position.y || 0, agent.position.z]}>
       <primitive object={model.group} />
       <Html position={[0, 3.5, 0]} center distanceFactor={15}>
-        <div className="flex flex-col items-center gap-1 pointer-events-none">
-          <div className={`px-2 py-1 rounded bg-black/90 border ${isLocal ? 'border-axiom-cyan shadow-lg' : 'border-white/20'} text-[#e8dfc8] text-[10px] font-black uppercase tracking-widest whitespace-nowrap backdrop-blur-md`}>
-            {agent.displayName}
-          </div>
+        <div className={`px-2 py-0.5 rounded bg-black/80 border ${isLocal ? 'border-axiom-cyan shadow-[0_0_10px_rgba(31,184,184,0.5)]' : 'border-white/10'} text-[#e8dfc8] text-[8px] font-black uppercase tracking-widest whitespace-nowrap backdrop-blur-md`}>
+          {agent.displayName}
         </div>
       </Html>
     </group>
@@ -194,10 +174,9 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
   const { camera } = useThree();
   const db = useFirestore();
   const { virtualInput, controlMode, targetPosition, setTargetPosition } = useStore();
-  const moveSpeed = 0.65;
-  const updateInterval = 500; // Increased interval for network stability
+  const moveSpeed = 0.7;
+  const updateInterval = 800;
   const lastUpdateRef = useRef(0);
-
   const keys = useRef<{ [key: string]: boolean }>({});
 
   useEffect(() => {
@@ -211,7 +190,7 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
     };
   }, []);
 
-  useFrame((state, delta) => {
+  useFrame((state) => {
     let moving = false;
     const newPos = { ...agent.position };
 
@@ -228,16 +207,13 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
       }
     }
 
-    if (moving && targetPosition) {
-      setTargetPosition(null);
-    }
+    if (moving && targetPosition) setTargetPosition(null);
 
     if (!moving && targetPosition && controlMode === 'PUSH_TO_WALK') {
       const dx = targetPosition.x - agent.position.x;
       const dz = targetPosition.z - agent.position.z;
       const dist = Math.hypot(dx, dz);
-
-      if (dist > 0.6) {
+      if (dist > 0.8) {
         newPos.x += (dx / dist) * moveSpeed;
         newPos.z += (dz / dist) * moveSpeed;
         moving = true;
@@ -251,22 +227,22 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
       agent.position.z = newPos.z;
       agent.state = AgentState.EXPLORING;
 
-      camera.position.x = newPos.x + 40;
-      camera.position.z = newPos.z + 40;
-      camera.lookAt(newPos.x, 0, newPos.z);
-
       const now = Date.now();
       if (now - lastUpdateRef.current > updateInterval) {
         lastUpdateRef.current = now;
         const ref = doc(db, 'players', agent.id);
-        updateDoc(ref, { 
-          position: { x: newPos.x, y: 0, z: newPos.z },
-          state: AgentState.EXPLORING,
-          lastUpdate: serverTimestamp() 
-        });
+        updateDoc(ref, { position: { x: newPos.x, y: 0, z: newPos.z }, state: AgentState.EXPLORING, lastUpdate: serverTimestamp() });
       }
     } else if (agent.state === AgentState.EXPLORING) {
       agent.state = AgentState.IDLE;
+    }
+
+    // Follow Logic: Smoothly update the OrbitControls target
+    const controls = (state as any).controls;
+    if (controls) {
+      controls.target.x = THREE.MathUtils.lerp(controls.target.x, agent.position.x, 0.15);
+      controls.target.z = THREE.MathUtils.lerp(controls.target.z, agent.position.z, 0.15);
+      controls.update();
     }
   });
 
@@ -282,13 +258,10 @@ const Terrain = ({ civilizationIndex }: { civilizationIndex: number }) => {
         uTime: { value: 0 },
         uAwakeningDensity: { value: civilizationIndex / 1000 },
         uBiome: { value: civilizationIndex >= 800 ? 0.0 : civilizationIndex < 400 ? 1.0 : 2.0 },
-        uAxiomaticIntensity: { value: 0.5 },
-        uStability: { value: 0.5 },
-        uCorruption: { value: 0.1 },
         uCameraPosition: { value: new THREE.Vector3() },
         uFogColor: { value: new THREE.Color('#060810') },
-        uFogNear: { value: 60.0 },
-        uFogFar: { value: 400.0 }
+        uFogNear: { value: 100.0 },
+        uFogFar: { value: 350.0 }
     }), [civilizationIndex]);
 
     useFrame((state) => {
@@ -298,71 +271,54 @@ const Terrain = ({ civilizationIndex }: { civilizationIndex: number }) => {
         }
     });
 
-    const handlePointerDown = (e: any) => {
-      if (controlMode === 'PUSH_TO_WALK') {
-        const point = e.point;
-        setTargetPosition({ x: point.x, y: 0, z: point.z });
-      }
-    };
-
     return (
-        <mesh 
-          rotation={[-Math.PI / 2, 0, 0]} 
-          position={[0, -0.15, 0]} 
-          receiveShadow
-          onPointerDown={handlePointerDown}
-        >
-            {/* Reduced vertex count from 128 to 64 for 75% faster vertex processing */}
-            <planeGeometry args={[1200, 1200, 64, 64]} />
-            <shaderMaterial 
-              ref={materialRef} 
-              vertexShader={axiomVertexShader} 
-              fragmentShader={axiomFragmentShader} 
-              uniforms={uniforms} 
-              side={THREE.DoubleSide} 
-            />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow onPointerDown={(e) => {
+          if (controlMode === 'PUSH_TO_WALK') setTargetPosition({ x: e.point.x, y: 0, z: e.point.z });
+        }}>
+            <primitive object={SHARED_GEOS.terrain} attach="geometry" />
+            <shaderMaterial ref={materialRef} vertexShader={axiomVertexShader} fragmentShader={axiomFragmentShader} uniforms={uniforms} side={THREE.DoubleSide} />
         </mesh>
     );
 };
 
-export const World3D: React.FC<{ tick: number; civilizationIndex: number; localPlayerId?: string | null }> = ({ tick, civilizationIndex, localPlayerId }) => {
+export const World3D: React.FC<{ tick: number; civilizationIndex: number; localPlayerId?: string | null }> = ({ civilizationIndex, localPlayerId }) => {
     const agents = useStore(state => state.agents);
     const chunks = useStore(state => state.loadedChunks);
-
     const otherAgents = useMemo(() => agents.filter(a => a.id !== localPlayerId), [agents, localPlayerId]);
     const localAgent = useMemo(() => agents.find(a => a.id === localPlayerId), [agents, localPlayerId]);
 
-    const worldContent = useMemo(() => {
-      const allPois: POI[] = [];
-      chunks.forEach(chunk => {
-        const content = WorldBuildingService.generateAxiomaticContent(chunk);
-        allPois.push(...content.pois);
-      });
-      return { pois: allPois };
+    const pois = useMemo(() => {
+      const all: POI[] = [];
+      chunks.forEach(c => all.push(...WorldBuildingService.generateAxiomaticContent(c).pois));
+      return all;
     }, [chunks]);
 
     return (
-        <div className="w-full h-full bg-black">
-            {/* DPR set to 1 to prevent huge performance hit on high-res displays */}
-            <Canvas shadows dpr={1} gl={{ antialias: false, powerPreference: 'high-performance' }}>
+        <div className="w-full h-full bg-black touch-none">
+            <Canvas shadows dpr={[1, 2]} gl={{ antialias: false, powerPreference: 'high-performance' }}>
                 <PerspectiveCamera makeDefault position={[50, 40, 50]} fov={45} />
-                <Sky sunPosition={[100, 15, 100]} turbidity={0.05} rayleigh={0.4} />
+                
+                <OrbitControls 
+                  makeDefault 
+                  enableDamping 
+                  dampingFactor={0.05} 
+                  maxPolarAngle={Math.PI / 2.1} 
+                  minDistance={15} 
+                  maxDistance={150} 
+                  enablePan={false}
+                  rotateSpeed={0.8}
+                />
+
+                <Sky sunPosition={[100, 15, 100]} turbidity={0.02} rayleigh={0.2} />
                 <Environment preset="night" />
                 <ambientLight intensity={0.4} />
-                {/* Single central light source for global technological presence */}
-                <pointLight position={[0, 100, 0]} intensity={2.0} color={ARL_COLORS.teal} />
+                
                 <Terrain civilizationIndex={civilizationIndex} />
                 {localAgent && <LocalPlayerController agent={localAgent} />}
-                {otherAgents.map(agent => <AgentModel key={agent.id} agent={agent} />)}
-                {worldContent.pois.map(poi => <POIModel key={poi.id} poi={poi} />)}
-                <ContactShadows resolution={256} scale={100} blur={2} opacity={0.5} far={20} color="#000000" />
-                <OrbitControls 
-                  enablePan={true} 
-                  maxPolarAngle={Math.PI / 2.1} 
-                  minDistance={20} 
-                  maxDistance={400}
-                  enableDamping={true}
-                />
+                {otherAgents.map(a => <AgentModel key={a.id} agent={a} />)}
+                <POILayer pois={pois} />
+                
+                <ContactShadows frames={1} resolution={512} scale={100} blur={2} opacity={0.35} far={10} color="#000000" />
             </Canvas>
         </div>
     );
