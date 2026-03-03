@@ -28,6 +28,8 @@ export interface ThinkingMatrix {
   languagePreference: string;
   sociability: number;
   aggression: number;
+  curiosity: number;
+  frugality: number;
 }
 
 export interface Chunk {
@@ -48,9 +50,11 @@ export interface Chunk {
   lastUpdate?: any;
 }
 
+export type POIType = 'SHRINE' | 'RUIN' | 'NEST' | 'DUNGEON' | 'MARKET_STALL' | 'TREE' | 'BUILDING' | 'MINE' | 'FOREST' | 'BANK_VAULT' | 'FORGE';
+
 export interface POI {
   id: string;
-  type: 'SHRINE' | 'RUIN' | 'NEST' | 'DUNGEON' | 'MARKET_STALL' | 'TREE' | 'BUILDING';
+  type: POIType;
   position: [number, number, number];
   isDiscovered: boolean;
   discoveryRadius?: number;
@@ -79,6 +83,8 @@ export interface Monster {
     agi: number;
     int: number;
     vit: number;
+    atk: number;
+    def: number;
   };
   xpReward: number;
   state: string;
@@ -88,10 +94,10 @@ export interface Monster {
 }
 
 export const MONSTER_TEMPLATES: Record<string, any> = {
-  'SLIME': { hp: 30, str: 2, agi: 2, int: 1, vit: 5, xp: 10, scale: 0.8 },
-  'GOBLIN': { hp: 50, str: 5, agi: 8, int: 3, vit: 4, xp: 25, scale: 1.0 },
-  'ORC': { hp: 120, str: 15, agi: 5, int: 2, vit: 12, xp: 75, scale: 1.4 },
-  'DRAGON': { hp: 500, str: 40, agi: 12, int: 25, vit: 30, xp: 500, scale: 3.5 }
+  'SLIME': { hp: 30, str: 2, agi: 2, int: 1, vit: 5, xp: 10, scale: 0.8, atk: 5, def: 2 },
+  'GOBLIN': { hp: 50, str: 5, agi: 8, int: 3, vit: 4, xp: 25, scale: 1.0, atk: 8, def: 4 },
+  'ORC': { hp: 120, str: 15, agi: 5, int: 2, vit: 12, xp: 75, scale: 1.4, atk: 15, def: 8 },
+  'DRAGON': { hp: 500, str: 40, agi: 12, int: 25, vit: 30, xp: 500, scale: 3.5, atk: 50, def: 30 }
 };
 
 export interface Agent {
@@ -102,7 +108,13 @@ export interface Agent {
   level: number;
   hp: number;
   maxHp: number;
+  energy: number;
+  maxEnergy: number;
+  integrity: number; // 0 to 1
   exp: number;
+  insightPoints: number;
+  awakeningProgress: number; // 0 to 100
+  consciousnessLevel: number; // 0 to 1
   str: number;
   agi: number;
   int: number;
@@ -111,11 +123,14 @@ export interface Agent {
   visionRange: number;
   state: AgentState;
   inventory: any[];
+  bank: any[];
+  skills: Record<string, { level: number; exp: number }>;
   dnaHistory: any[];
   memoryCache: any[];
   awakened: boolean;
+  faction?: string;
   loreSnippet?: string;
-  thinkingMatrix?: ThinkingMatrix;
+  thinkingMatrix: ThinkingMatrix;
   appearance?: {
     skinTone: string;
     hairStyle: string;
@@ -193,14 +208,25 @@ export interface GeneratedItem {
 }
 
 export type ItemRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'AXIOMATIC';
-export type ItemType = 'WEAPON' | 'SHIELD' | 'ARMOR' | 'ACCESSORY' | 'CONSUMABLE';
+export type ItemType = 'WEAPON' | 'SHIELD' | 'ARMOR' | 'ACCESSORY' | 'CONSUMABLE' | 'HELM' | 'CHEST' | 'LEGS' | 'RELIC';
+
+export interface ItemStats {
+  atk?: number;
+  def?: number;
+  agi?: number;
+  int?: number;
+  vit?: number;
+  [key: string]: number | undefined;
+}
 
 export interface Item {
   id: string;
   name: string;
   type: ItemType;
+  subtype?: string;
   rarity: ItemRarity;
-  stats: Record<string, number>;
+  stats: ItemStats;
   level: number;
   value: number;
+  description?: string;
 }

@@ -1,3 +1,4 @@
+
 'use client';
 /**
  * @fileOverview Ouroboros AI Coordination Service
@@ -9,6 +10,7 @@ import { emergentBehaviorFlow } from '@/ai/flows/emergent-behavior-flow';
 import { importAgentFlow } from '@/ai/flows/import-agent-flow';
 import { projectDiagnosticsFlow } from '@/ai/flows/project-diagnostics-flow';
 import { Agent, AgentState, ResourceNode } from '@/types';
+import { summarizeNeurologicChoice } from '@/lib/axiomatic-engine';
 
 const API_COOLDOWN_MS = 5000;
 let lastApiCallTime = 0;
@@ -25,32 +27,30 @@ function isThrottled(): boolean {
 
 /**
  * Heuristic fallback for when the neural link is offline.
+ * Uses the Axiomatic Utility Engine (AUE) for deterministic logic.
  */
-function getLocalHeuristicDecision(agent: Agent): any {
-  let newState = AgentState.IDLE;
-  if (agent.hp < 30) newState = AgentState.BANKING;
-  else if (agent.inventory.length > 5) newState = AgentState.TRADING;
-  else newState = AgentState.EXPLORING;
-
+function getLocalHeuristicDecision(agent: Agent, nearbyAgents: Agent[], nearbyNodes: ResourceNode[]): any {
+  const local = summarizeNeurologicChoice(agent, nearbyAgents, nearbyNodes, [], []);
+  
   return {
-    justification: "Neural link failure. Local survival heuristics engaged.",
+    justification: local.reason,
     decision: "Local Protocol",
-    newState,
-    message: "Signal lost. Executing base logic."
+    newState: local.choice,
+    message: local.logic
   };
 }
 
 export const AIService = {
   async generateDecision(agent: Agent, nearbyAgents: Agent[], nearbyNodes: ResourceNode[], logs: string[]) {
-    if (isThrottled()) return getLocalHeuristicDecision(agent);
+    if (isThrottled()) return getLocalHeuristicDecision(agent, nearbyAgents, nearbyNodes);
 
     try {
       return await autonomousDecisionFlow({
         agentName: agent.displayName,
         currentState: agent.state,
         hp: agent.hp,
-        consciousnessLevel: 1.0, // Default for prototype
-        awakeningProgress: agent.awakened ? 100 : 0,
+        consciousnessLevel: agent.consciousnessLevel || 1.0,
+        awakeningProgress: agent.awakeningProgress || 0,
         longTermGoal: agent.thinkingMatrix?.currentLongTermGoal || 'Survive',
         personality: agent.thinkingMatrix?.personality || 'Neutral',
         relationships: {},
@@ -60,7 +60,7 @@ export const AIService = {
       });
     } catch (e) {
       console.error('AI Decision Error:', e);
-      return getLocalHeuristicDecision(agent);
+      return getLocalHeuristicDecision(agent, nearbyAgents, nearbyNodes);
     }
   },
 
