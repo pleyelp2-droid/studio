@@ -13,6 +13,10 @@
         "hp": { "type": "number" },
         "maxHp": { "type": "number" },
         "exp": { "type": "number" },
+        "str": { "type": "number" },
+        "agi": { "type": "number" },
+        "int": { "type": "number" },
+        "vit": { "type": "number" },
         "position": {
           "type": "object",
           "properties": {
@@ -99,6 +103,38 @@
         "quantity": { "type": "number" },
         "status": { "type": "string" }
       }
+    },
+    "AgentTrust": {
+      "title": "AgentTrust",
+      "type": "object",
+      "properties": {
+        "agentA": { "type": "string" },
+        "agentB": { "type": "string" },
+        "trustScore": { "type": "number" },
+        "reputationWeight": { "type": "number" },
+        "lastInteractionTick": { "type": "number" }
+      }
+    },
+    "MonsterDna": {
+      "title": "MonsterDna",
+      "type": "object",
+      "properties": {
+        "monsterId": { "type": "string" },
+        "morphology": { "type": "number" },
+        "aggressionGene": { "type": "number" },
+        "speedGene": { "type": "number" },
+        "isElite": { "type": "boolean" }
+      }
+    },
+    "EconomicSummary": {
+      "title": "EconomicSummary",
+      "type": "object",
+      "properties": {
+        "tickNumber": { "type": "number" },
+        "gdp": { "type": "number" },
+        "inflationRate": { "type": "number" },
+        "tradeVolume": { "type": "number" }
+      }
     }
   },
   "auth": {
@@ -128,6 +164,18 @@
     "/marketplace/{listingId}": {
       "schema": { "$ref": "#/entities/MarketListing" },
       "description": "Global trade listings."
+    },
+    "/agentTrust/{trustId}": {
+      "schema": { "$ref": "#/entities/AgentTrust" },
+      "description": "Social reputation between agents."
+    },
+    "/monsterDna/{dnaId}": {
+      "schema": { "$ref": "#/entities/MonsterDna" },
+      "description": "Genetic data for monster spawns."
+    },
+    "/economicSummaries/{summaryId}": {
+      "schema": { "$ref": "#/entities/EconomicSummary" },
+      "description": "Historical snapshots of the global economy."
     }
   }
 }

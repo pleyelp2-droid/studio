@@ -1,7 +1,7 @@
 
 /**
  * @fileOverview Core type definitions for the Ouroboros MMO engine.
- * Unified with SQL schema parameters.
+ * Unified with SQL schema parameters and Firestore blueprints.
  */
 
 export enum AgentState {
@@ -26,6 +26,7 @@ export interface Chunk {
   id: string;
   x: number;
   z: number;
+  seed: number;
   biome: string;
   cellType?: 'SANCTUARY' | 'WILDERNESS' | 'DUNGEON_ENTRANCE';
   entropy: number;
@@ -34,6 +35,7 @@ export interface Chunk {
   resourceData: Record<string, number>;
   logicField?: Array<{ vx: number; vz: number; magnitude: number }>;
   dungeonProbability?: number;
+  lastUpdate?: any;
 }
 
 export interface POI {
@@ -51,6 +53,10 @@ export interface Agent {
   hp: number;
   maxHp: number;
   exp: number;
+  str: number;
+  agi: number;
+  int: number;
+  vit: number;
   position: { x: number; y: number; z: number };
   visionRange: number;
   state: AgentState;
@@ -58,13 +64,29 @@ export interface Agent {
   dnaHistory: any[];
   memoryCache: any[];
   awakened: boolean;
+  lastUpdate?: any;
 }
 
-export interface Monster {
+export interface MonsterDna {
   id: string;
-  type: 'SLIME' | 'GOBLIN' | 'VOID_STALKER';
-  position: [number, number, number];
-  health: number;
+  monsterId: string;
+  morphology: number;
+  aggressionGene: number;
+  speedGene: number;
+  armorGene: number;
+  elementalAffinity: string;
+  isElite: boolean;
+  createdAt: any;
+}
+
+export interface AgentTrust {
+  id: string;
+  agentAId: string;
+  agentBId: string;
+  trustScore: number;
+  reputationWeight: number;
+  lastInteractionTick: number;
+  updatedAt: any;
 }
 
 export type ItemRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'AXIOMATIC';
@@ -91,5 +113,16 @@ export interface CombatResult {
 export interface CombatLog extends CombatResult {
   id: string;
   tickNumber: number;
+  createdAt: any;
+}
+
+export interface EconomicSummary {
+  id: string;
+  tickNumber: number;
+  totalSupply: Record<string, number>;
+  totalDemand: Record<string, number>;
+  gdp: number;
+  inflationRate: number;
+  tradeVolume: number;
   createdAt: any;
 }
