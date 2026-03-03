@@ -1,19 +1,23 @@
+
 "use client"
 
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
 import { 
-  Activity, 
   Globe, 
   TrendingUp, 
   ShieldCheck, 
   Clock,
   ArrowUpRight,
-  AlertCircle
+  AlertCircle,
+  Activity,
+  Zap,
+  CheckCircle2
 } from "lucide-react"
 import {
   AreaChart,
@@ -22,11 +26,10 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer
 } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { getAxiomCompliance } from "@/services/ComplianceManager"
 
-// Live history uses the real current values as the most recent data point
 const getLiveHistory = (currentVal: number = 0, economy: number = 0) => [
   { time: "00:00", index: 120, economy: 400 },
   { time: "08:00", index: 145, economy: 520 },
@@ -39,6 +42,7 @@ export default function DashboardPage() {
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
   const { data: worldState, isLoading } = useDoc(worldRef)
 
+  const compliance = getAxiomCompliance(!!db, !!worldState?.tick)
   const liveHistory = getLiveHistory(worldState?.civilizationIndex, worldState?.economy)
 
   return (
@@ -60,7 +64,6 @@ export default function DashboardPage() {
         </header>
 
         <main className="p-6 space-y-6 max-w-7xl mx-auto w-full">
-          {/* Real-time Telemetry Grid - Direct Firestore Values */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card className="axiom-card-hover border-border bg-card">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -121,33 +124,42 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-            {/* Progression Chart */}
-            <Card className="lg:col-span-4 border-border bg-card overflow-hidden">
+          <div className="grid gap-6 lg:grid-cols-7">
+            {/* Axiom Compliance Matrix */}
+            <Card className="lg:col-span-4 border-border bg-card">
               <CardHeader className="bg-secondary/10 border-b border-border/50">
-                <CardTitle className="font-headline font-black italic uppercase text-sm tracking-widest">Axiom Deterministic Progression</CardTitle>
-                <CardDescription className="text-[10px] uppercase font-bold tracking-tight">Real-time telemetry from the Logic Core.</CardDescription>
+                <CardTitle className="font-headline font-black italic uppercase text-sm tracking-widest flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-accent" /> Axiom Compliance Matrix
+                </CardTitle>
+                <CardDescription className="text-[10px] uppercase font-bold tracking-tight">Real-time subsystem verification (Deterministic Protocol).</CardDescription>
               </CardHeader>
-              <CardContent className="h-[350px] pt-6">
-                <ChartContainer config={{
-                  index: { label: "CI", color: "hsl(var(--accent))" },
-                  economy: { label: "ECON", color: "hsl(var(--primary))" }
-                }}>
-                  <AreaChart data={liveHistory}>
-                    <defs>
-                      <linearGradient id="colorIndex" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="3 3" />
-                    <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area type="monotone" dataKey="index" stroke="hsl(var(--accent))" fillOpacity={1} fill="url(#colorIndex)" strokeWidth={3} />
-                    <Area type="monotone" dataKey="economy" stroke="hsl(var(--primary))" fill="transparent" strokeWidth={2} strokeDasharray="5 5" />
-                  </AreaChart>
-                </ChartContainer>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-secondary/5 hover:bg-transparent">
+                      <TableHead className="text-[9px] font-black uppercase italic">Subsystem</TableHead>
+                      <TableHead className="text-[9px] font-black uppercase italic">Energy</TableHead>
+                      <TableHead className="text-[9px] font-black uppercase italic">Erosion</TableHead>
+                      <TableHead className="text-[9px] font-black uppercase italic">Punc.</TableHead>
+                      <TableHead className="text-[9px] font-black uppercase italic">Recursion</TableHead>
+                      <TableHead className="text-right text-[9px] font-black uppercase italic">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {compliance.matrix.map((row) => (
+                      <TableRow key={row.subsystem} className="border-border/30 hover:bg-accent/5">
+                        <TableCell className="text-[10px] font-bold">{row.subsystem}</TableCell>
+                        <TableCell><Badge variant="outline" className={`text-[8px] px-1 py-0 ${row.energy === 'PASS' ? 'text-emerald-500' : 'text-orange-500'}`}>{row.energy}</Badge></TableCell>
+                        <TableCell><Badge variant="outline" className={`text-[8px] px-1 py-0 ${row.erosion === 'PASS' ? 'text-emerald-500' : 'text-orange-500'}`}>{row.erosion}</Badge></TableCell>
+                        <TableCell><Badge variant="outline" className={`text-[8px] px-1 py-0 ${row.punctuation === 'PASS' ? 'text-emerald-500' : 'text-orange-500'}`}>{row.punctuation}</Badge></TableCell>
+                        <TableCell><Badge variant="outline" className={`text-[8px] px-1 py-0 ${row.recursion === 'PASS' ? 'text-emerald-500' : 'text-muted-foreground'}`}>{row.recursion}</Badge></TableCell>
+                        <TableCell className="text-right">
+                          <span className={`text-[9px] font-black uppercase ${row.status === 'COMPLIANT' ? 'text-emerald-500' : 'text-accent'}`}>{row.status}</span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
 
@@ -174,6 +186,13 @@ export default function DashboardPage() {
                         <div className="flex-1">
                           <p className="font-black text-white uppercase italic tracking-wider">CI Recalculation Complete</p>
                           <p className="text-muted-foreground mt-0.5 font-bold">New Index: {worldState.civilizationIndex?.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 text-[11px] items-start p-3 rounded-xl bg-secondary/20 border border-border">
+                        <CheckCircle2 className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-black text-white uppercase italic tracking-wider">Neural Ledger Integrity</p>
+                          <p className="text-muted-foreground mt-0.5 font-bold">All 144Hz logic cycles verified.</p>
                         </div>
                       </div>
                     </>

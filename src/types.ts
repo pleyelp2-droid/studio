@@ -66,16 +66,6 @@ export interface Agent {
   lastUpdate?: any;
 }
 
-export interface Monster {
-  id: string;
-  type: 'SLIME' | 'GOBLIN' | 'VOID_STALKER';
-  level: number;
-  hp: number;
-  maxHp: number;
-  position: [number, number, number];
-  color: string;
-}
-
 export interface Faction {
   id: string;
   name: string;
@@ -129,4 +119,14 @@ export interface MatrixTransaction {
   description: string;
   tickNumber: number;
   createdAt: any;
+}
+
+export interface ComplianceMatrixEntry {
+  subsystem: string;
+  energy: 'PASS' | 'WARN' | 'FAIL';
+  erosion: 'PASS' | 'WARN' | 'FAIL';
+  punctuation: 'PASS' | 'WARN' | 'FAIL';
+  recursion: 'PASS' | 'WARN' | 'FAIL' | 'N/A';
+  duality: 'PASS' | 'WARN' | 'FAIL';
+  status: 'COMPLIANT' | 'DEGRADED' | 'IDLE' | 'PARTIAL';
 }

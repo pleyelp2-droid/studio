@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Axiom Frontier - Serverless Heartbeat & Game Logic
  * This code is intended for Firebase Cloud Functions v2.
@@ -7,7 +8,9 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
 
-admin.initializeApp();
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 const db = admin.firestore();
 
 /**
@@ -15,6 +18,7 @@ const db = admin.firestore();
  * Updates Civilization Index and deterministic world parameters.
  */
 export const worldHeartbeat = onSchedule("every 1 minutes", async (event) => {
+    const start = Date.now();
     const worldRef = db.collection("worldState").doc("global");
     const snap = await worldRef.get();
     const data = snap.data();
@@ -29,13 +33,24 @@ export const worldHeartbeat = onSchedule("every 1 minutes", async (event) => {
                (0.15 * (data.culture || 0)) - 
                (0.15 * (data.corruption || 0));
 
+    const newTick = (data.tick || 0) + 1;
+
     await worldRef.update({
         civilizationIndex: ci,
-        tick: admin.firestore.FieldValue.increment(1),
+        tick: newTick,
         lastHeartbeat: admin.firestore.Timestamp.now()
     });
 
-    console.log(`Heartbeat processed. CI: ${ci}`);
+    // Record Tick State for auditing (mirroring tick_state table)
+    await db.collection("tickState").add({
+        tickNumber: newTick,
+        durationMs: Date.now() - start,
+        status: "COMMITTED",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        civilizationIndex: ci
+    });
+
+    console.log(`Heartbeat processed. Tick: ${newTick}, CI: ${ci}`);
 });
 
 /**
@@ -48,8 +63,8 @@ export const enforceAxiom = onDocumentUpdated("players/{playerId}", async (event
     if (!newValue || !oldValue) return;
 
     // Prevent impossible level jumps
-    if (newValue.level > oldValue.level + 1) {
+    if (newValue.level > (oldValue.level || 0) + 1) {
         console.warn(`Suspicious level jump detected for player ${event.params.playerId}`);
-        // Revert or flag account logic here
+        // In a production scenario, we might revert the change here
     }
 });

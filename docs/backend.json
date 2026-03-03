@@ -32,29 +32,49 @@
         "lastUpdate": { "type": "string", "format": "date-time" }
       }
     },
-    "LootItem": {
-      "title": "LootItem",
+    "Chunk": {
+      "title": "Chunk",
       "type": "object",
       "properties": {
-        "name": { "type": "string" },
-        "type": { "type": "string" },
-        "rarity": { "type": "string" },
-        "stats": { "type": "object" },
-        "level": { "type": "number" },
-        "value": { "type": "number" },
-        "combatLogId": { "type": "string" },
+        "x": { "type": "number" },
+        "z": { "type": "number" },
+        "seed": { "type": "number" },
+        "biome": { "type": "string" },
+        "entropy": { "type": "number" },
+        "stabilityIndex": { "type": "number" },
+        "corruptionLevel": { "type": "number" },
+        "resourceData": { "type": "object" },
+        "logicField": { "type": "array" },
+        "lastUpdate": { "type": "string", "format": "date-time" }
+      }
+    },
+    "CombatLog": {
+      "title": "CombatLog",
+      "type": "object",
+      "properties": {
+        "attackerUid": { "type": "string" },
+        "defenderUid": { "type": "string" },
+        "defenderType": { "type": "string" },
+        "damageDealt": { "type": "number" },
+        "damageReceived": { "type": "number" },
+        "skillUsed": { "type": "string" },
+        "result": { "type": "string" },
+        "lootDropped": { "type": "array" },
+        "tickNumber": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" }
       }
     },
-    "WorldState": {
-      "title": "WorldState",
+    "MarketListing": {
+      "title": "MarketListing",
       "type": "object",
       "properties": {
-        "civilizationIndex": { "type": "number" },
-        "stabilityIndex": { "type": "number" },
-        "tick": { "type": "number" },
-        "economy": { "type": "number" },
-        "lastPulse": { "type": "string", "format": "date-time" }
+        "sellerUid": { "type": "string" },
+        "itemName": { "type": "string" },
+        "resourceType": { "type": "string" },
+        "quantity": { "type": "number" },
+        "pricePerUnit": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       }
     },
     "MatrixTransaction": {
@@ -70,6 +90,33 @@
         "tickNumber": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" }
       }
+    },
+    "TickState": {
+      "title": "TickState",
+      "type": "object",
+      "properties": {
+        "tickNumber": { "type": "number" },
+        "agentsProcessed": { "type": "number" },
+        "chunksUpdated": { "type": "number" },
+        "combatsResolved": { "type": "number" },
+        "durationMs": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Faction": {
+      "title": "Faction",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "entityType": { "type": "string" },
+        "leaderUid": { "type": "string" },
+        "members": { "type": "array" },
+        "level": { "type": "number" },
+        "influence": { "type": "number" },
+        "infrastructure": { "type": "array" },
+        "lastUpdate": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -78,19 +125,35 @@
   "firestore": {
     "/players/{playerId}": {
       "schema": { "$ref": "#/entities/Agent" },
-      "description": "Pilot and Agent data."
+      "description": "Neural entity data."
     },
-    "/lootTable/{lootId}": {
-      "schema": { "$ref": "#/entities/LootItem" },
-      "description": "Persistent record of generated loot items."
+    "/chunks/{chunkId}": {
+      "schema": { "$ref": "#/entities/Chunk" },
+      "description": "World shard data."
     },
-    "/worldState/global": {
-      "schema": { "$ref": "#/entities/WorldState" },
-      "description": "Global engine state."
+    "/combatLogs/{logId}": {
+      "schema": { "$ref": "#/entities/CombatLog" },
+      "description": "Engagement records."
+    },
+    "/marketplace/{listingId}": {
+      "schema": { "$ref": "#/entities/MarketListing" },
+      "description": "Economy listings."
     },
     "/matrixTransactions/{txId}": {
       "schema": { "$ref": "#/entities/MatrixTransaction" },
-      "description": "Immutable ledger of energy transfers."
+      "description": "Energy ledger."
+    },
+    "/tickState/{tickId}": {
+      "schema": { "$ref": "#/entities/TickState" },
+      "description": "Engine performance log."
+    },
+    "/factions/{factionId}": {
+      "schema": { "$ref": "#/entities/Faction" },
+      "description": "Hierarchy data."
+    },
+    "/worldState/global": {
+      "schema": { "type": "object" },
+      "description": "Core engine state."
     }
   }
 }
