@@ -1,3 +1,4 @@
+
 "use client"
 
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -9,14 +10,13 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, limit, orderBy } from "firebase/firestore"
-import { Users, Search, MoreHorizontal, UserCheck, Shield, Loader2, AlertCircle } from "lucide-react"
+import { Users, Search, MoreHorizontal, UserCheck, Shield, Loader2, AlertCircle, Sparkles } from "lucide-react"
 import { useState } from "react"
 
 export default function PlayersPage() {
   const db = useFirestore()
   const [searchQuery, setSearchQuery] = useState("")
 
-  // LIVE Firestore Collection Reference - No mock data here.
   const playersQuery = useMemoFirebase(() => {
     if (!db) return null;
     return query(
@@ -28,7 +28,6 @@ export default function PlayersPage() {
 
   const { data: livePlayers, isLoading, error } = useCollection(playersQuery);
 
-  // Filter logic (client-side for responsiveness)
   const filteredPlayers = livePlayers?.filter(player => 
     player.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     player.id?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -90,8 +89,9 @@ export default function PlayersPage() {
               <Table>
                 <TableHeader className="bg-secondary/20 border-b border-border">
                   <TableRow className="hover:bg-transparent border-none">
-                    <TableHead className="w-[120px] text-[10px] font-black uppercase tracking-widest italic text-accent">Signature ID</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest italic text-accent">Status</TableHead>
                     <TableHead className="text-[10px] font-black uppercase tracking-widest italic">Pilot Name</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest italic">Class</TableHead>
                     <TableHead className="text-[10px] font-black uppercase tracking-widest italic">Level</TableHead>
                     <TableHead className="text-[10px] font-black uppercase tracking-widest italic">Position</TableHead>
                     <TableHead className="text-right text-[10px] font-black uppercase tracking-widest italic">Control</TableHead>
@@ -100,14 +100,25 @@ export default function PlayersPage() {
                 <TableBody>
                   {filteredPlayers.map((player) => (
                     <TableRow key={player.id} className="border-border/30 axiom-card-hover group">
-                      <TableCell className="font-mono text-[10px] text-muted-foreground uppercase tracking-tighter">
-                        {player.id.substring(0, 8)}...
+                      <TableCell>
+                        {player.awakened ? (
+                          <Badge className="bg-accent/20 text-accent border-accent/40 text-[9px] font-black uppercase tracking-tighter italic">
+                            <Sparkles className="h-2 w-2 mr-1" /> Awakened
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-tighter italic opacity-40">
+                            Dormant
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="h-2 w-2 rounded-full bg-accent heartbeat-pulse" />
                           <span className="font-headline font-bold text-sm tracking-tight">{player.displayName}</span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-[10px] font-mono text-muted-foreground uppercase">{player.npcClass || "PILOT"}</span>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="font-black text-[10px] border-accent/20 text-accent bg-accent/5">

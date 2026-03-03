@@ -1,20 +1,18 @@
 
 {
   "entities": {
-    "Player": {
-      "title": "Player",
+    "Agent": {
+      "title": "Agent",
       "type": "object",
-      "description": "Represents a player in Ouroboros MMO.",
+      "description": "Represents a player or neural NPC in Ouroboros.",
       "properties": {
-        "id": { "type": "string" },
-        "displayName": { "type": "string" },
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "npcClass": { "type": "string", "enum": ["NEURAL_EMERGENT", "PILOT", "SENTINEL"] },
         "level": { "type": "number" },
         "hp": { "type": "number" },
         "maxHp": { "type": "number" },
-        "str": { "type": "number" },
-        "agi": { "type": "number" },
-        "vit": { "type": "number" },
-        "int": { "type": "number" },
+        "exp": { "type": "number" },
         "position": {
           "type": "object",
           "properties": {
@@ -23,9 +21,13 @@
             "z": { "type": "number" }
           }
         },
-        "inventory": { "type": "array" }
+        "inventory": { "type": "array" },
+        "dnaHistory": { "type": "array" },
+        "memoryCache": { "type": "array" },
+        "awakened": { "type": "boolean" },
+        "lastUpdate": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "displayName", "level", "position", "hp", "maxHp"]
+      "required": ["uid", "name", "level", "hp"]
     },
     "WorldState": {
       "title": "WorldState",
@@ -33,13 +35,13 @@
       "description": "Global world parameters.",
       "properties": {
         "civilizationIndex": { "type": "number" },
+        "stabilityIndex": { "type": "number" },
+        "activePlayers": { "type": "number" },
+        "vertexAiStatus": { "type": "string" },
         "economy": { "type": "number" },
         "military": { "type": "number" },
-        "stability": { "type": "number" },
-        "knowledge": { "type": "number" },
-        "culture": { "type": "number" },
-        "corruption": { "type": "number" },
-        "tick": { "type": "number" }
+        "tick": { "type": "number" },
+        "lastPulse": { "type": "string", "format": "date-time" }
       },
       "required": ["civilizationIndex", "tick"]
     },
@@ -48,16 +50,18 @@
       "type": "object",
       "description": "A deterministically generated piece of the world grid.",
       "properties": {
-        "id": { "type": "string" },
+        "chunkId": { "type": "string" },
         "x": { "type": "number" },
         "z": { "type": "number" },
         "biome": { "type": "string" },
         "entropy": { "type": "number" },
         "stabilityIndex": { "type": "number" },
         "corruptionLevel": { "type": "number" },
-        "resourceData": { "type": "object" }
+        "resourceData": { "type": "object" },
+        "logicField": { "type": "array" },
+        "dungeonProbability": { "type": "number" }
       },
-      "required": ["x", "z", "biome", "entropy"]
+      "required": ["x", "z", "biome"]
     },
     "CombatLog": {
       "title": "CombatLog",
@@ -66,13 +70,34 @@
       "properties": {
         "attackerUid": { "type": "string" },
         "defenderUid": { "type": "string" },
-        "defenderType": { "type": "string" },
         "damageDealt": { "type": "number" },
         "damageReceived": { "type": "number" },
         "skillUsed": { "type": "string" },
         "result": { "type": "string" },
         "tickNumber": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "LoreEntry": {
+      "title": "LoreEntry",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "theme": { "type": "string" },
+        "region": { "type": "string" },
+        "content": { "type": "string" },
+        "npcBackground": { "type": "string" }
+      }
+    },
+    "MarketListing": {
+      "title": "MarketListing",
+      "type": "object",
+      "properties": {
+        "sellerUid": { "type": "string" },
+        "itemName": { "type": "string" },
+        "pricePerUnit": { "type": "number" },
+        "quantity": { "type": "number" },
+        "status": { "type": "string" }
       }
     }
   },
@@ -81,8 +106,8 @@
   },
   "firestore": {
     "/players/{playerId}": {
-      "schema": { "$ref": "#/entities/Player" },
-      "description": "Player data."
+      "schema": { "$ref": "#/entities/Agent" },
+      "description": "Pilot and Agent data."
     },
     "/worldState/global": {
       "schema": { "$ref": "#/entities/WorldState" },
@@ -95,6 +120,14 @@
     "/combatLogs/{logId}": {
       "schema": { "$ref": "#/entities/CombatLog" },
       "description": "Combat history logs."
+    },
+    "/lore/{loreId}": {
+      "schema": { "$ref": "#/entities/LoreEntry" },
+      "description": "World history and AI background."
+    },
+    "/marketplace/{listingId}": {
+      "schema": { "$ref": "#/entities/MarketListing" },
+      "description": "Global trade listings."
     }
   }
 }

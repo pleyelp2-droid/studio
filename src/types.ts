@@ -1,6 +1,7 @@
 
 /**
  * @fileOverview Core type definitions for the Ouroboros MMO engine.
+ * Unified with SQL schema parameters.
  */
 
 export enum AgentState {
@@ -25,12 +26,14 @@ export interface Chunk {
   id: string;
   x: number;
   z: number;
-  biome: 'FOREST' | 'DESERT' | 'CITY' | 'WASTELAND' | string;
+  biome: string;
   cellType?: 'SANCTUARY' | 'WILDERNESS' | 'DUNGEON_ENTRANCE';
   entropy: number;
   stabilityIndex: number;
   corruptionLevel: number;
   resourceData: Record<string, number>;
+  logicField?: Array<{ vx: number; vz: number; magnitude: number }>;
+  dungeonProbability?: number;
 }
 
 export interface POI {
@@ -42,9 +45,19 @@ export interface POI {
 
 export interface Agent {
   id: string;
-  position: [number, number, number];
+  displayName: string;
+  npcClass: string;
+  level: number;
+  hp: number;
+  maxHp: number;
+  exp: number;
+  position: { x: number; y: number; z: number };
   visionRange: number;
   state: AgentState;
+  inventory: any[];
+  dnaHistory: any[];
+  memoryCache: any[];
+  awakened: boolean;
 }
 
 export interface Monster {
@@ -62,15 +75,6 @@ export interface Item {
   name: string;
   type: ItemType;
   rarity: ItemRarity;
-}
-
-export interface PlayerStats {
-  hp: number;
-  maxHp: number;
-  str: number;
-  agi: number;
-  int: number;
-  vit: number;
 }
 
 export interface CombatResult {
