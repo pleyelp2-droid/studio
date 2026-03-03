@@ -1976,6 +1976,10 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(255, 255, 255, .03);
 }
 
+.bg-white\/\[0\.02\] {
+  background-color: rgba(255, 255, 255, .02);
+}
+
 .bg-\[linear-gradient\(rgba\(18\,16\,16\,0\)_50\%\,rgba\(0\,0\,0\,0\.15\)_50\%\)\] {
   background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, .15) 50%);
 }
@@ -3628,6 +3632,10 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(255, 255, 255, .07);
 }
 
+.hover\:bg-axiom-cyan:hover {
+  background-color: var(--arl-teal);
+}
+
 .hover\:text-accent:hover {
   color: hsl(var(--accent));
 }
@@ -3842,6 +3850,10 @@ h1, h2, h3, h4, h5, h6 {
 .group:hover .group-hover\:text-black {
   --tw-text-opacity: 1;
   color: rgba(0, 0, 0, var(--tw-text-opacity, 1));
+}
+
+.group:hover .group-hover\:text-axiom-cyan {
+  color: var(--arl-teal);
 }
 
 .group\/menu-item:hover .group-hover\/menu-item\:opacity-100, .group:hover .group-hover\:opacity-100 {

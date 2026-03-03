@@ -1,5 +1,7 @@
 {
+  "/assets/page": "app/assets/page.js",
   "/economy/page": "app/economy/page.js",
+  "/npcs/page": "app/npcs/page.js",
   "/page": "app/page.js",
   "/store/page": "app/store/page.js",
   "/world-preview/page": "app/world-preview/page.js"
