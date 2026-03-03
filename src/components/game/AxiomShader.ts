@@ -220,7 +220,7 @@ void main() {
         baseForest = mix(baseForest, mossGreen, mossMask * 0.35);
         
         float litterMask = smoothstep(0.6, 0.8, snoise(vPosition.xz * 4.0 + 100.0));
-        baseForest = mix(baseGrass, leafLitter, litterMask * 0.3);
+        baseForest = mix(baseForest, leafLitter, litterMask * 0.3);
         
         float slopeDirt = smoothstep(0.3, 0.6, slope);
         baseForest = mix(baseForest, darkSoil, slopeDirt * 0.5);
@@ -336,7 +336,30 @@ void main() {
         }
     }
 
-    float visibility = 1.0;
+    float visibility = 0.0;
+    float instantVis = 0.0;
+
+    for(int i = 0; i < 10; i++) {
+        float dist = distance(vPosition.xz, uAgentPositions[i].xz);
+        float v = smoothstep(uAgentVisionRanges[i], uAgentVisionRanges[i] * 0.3, dist);
+        instantVis = max(instantVis, v);
+    }
+
+    float pulse = (sin(uTime * 3.5 + vPosition.x * 0.3 + vPosition.z * 0.3) * 0.5 + 0.5) * 0.05 * instantVis;
+    
+    float axiomPulse = (sin(uTime * 1.5 + vPosition.x * 2.0 + vPosition.z * 2.0) * 0.5 + 0.5) * uAxiomaticIntensity * 0.1;
+    finalColor += vec3(0.0, 0.7, 1.0) * axiomPulse;
+
+    float cacheNoise = fbm(vPosition.xz * 0.8 + uTime * 0.05);
+    float persistentVis = uExplorationLevel * (0.5 + 0.3 * cacheNoise);
+
+    visibility = max(instantVis + pulse, persistentVis);
+    visibility = max(visibility, 0.15);
+
+    if (abs(uBiome - 0.0) < 0.1) {
+        visibility = 1.0;
+    }
+
     finalColor *= visibility;
 
     float fogFactor = smoothstep(uFogNear, uFogFar, vFogDepth);
