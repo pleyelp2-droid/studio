@@ -21,6 +21,15 @@ export enum AgentState {
   MOUNTED = 'MOUNTED',
 }
 
+export interface ThinkingMatrix {
+  personality: string;
+  currentLongTermGoal: string;
+  alignment: number; // 0 to 1
+  languagePreference: string;
+  sociability: number;
+  aggression: number;
+}
+
 export interface Chunk {
   id: string;
   x: number;
@@ -104,6 +113,8 @@ export interface Agent {
   dnaHistory: any[];
   memoryCache: any[];
   awakened: boolean;
+  loreSnippet?: string;
+  thinkingMatrix?: ThinkingMatrix;
   lastUpdate?: any;
 }
 

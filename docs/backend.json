@@ -7,7 +7,7 @@
       "description": "Represents a player or neural NPC in Ouroboros.",
       "properties": {
         "uid": { "type": "string" },
-        "name": { "type": "string" },
+        "displayName": { "type": "string" },
         "npcClass": { "type": "string" },
         "level": { "type": "number" },
         "hp": { "type": "number" },
@@ -29,6 +29,18 @@
         "dnaHistory": { "type": "array" },
         "memoryCache": { "type": "array" },
         "awakened": { "type": "boolean" },
+        "loreSnippet": { "type": "string" },
+        "thinkingMatrix": {
+          "type": "object",
+          "properties": {
+            "personality": { "type": "string" },
+            "currentLongTermGoal": { "type": "string" },
+            "alignment": { "type": "number" },
+            "languagePreference": { "type": "string" },
+            "sociability": { "type": "number" },
+            "aggression": { "type": "number" }
+          }
+        },
         "lastUpdate": { "type": "string", "format": "date-time" }
       }
     },
@@ -152,6 +164,14 @@
     "/securityLockouts/{lockoutId}": {
       "schema": { "type": "object" },
       "description": "Brute force protection."
+    },
+    "/matrixTransactions/{txId}": {
+      "schema": { "type": "object" },
+      "description": "Financial ledger."
+    },
+    "/factions/{factionId}": {
+      "schema": { "type": "object" },
+      "description": "Organizational structures."
     }
   }
 }
