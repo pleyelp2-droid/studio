@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Html, OrbitControls, Sky, PerspectiveCamera, Environment, ContactShadows, Float } from '@react-three/drei';
@@ -159,7 +160,7 @@ const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolea
 const LocalPlayerController = ({ agent }: { agent: Agent }) => {
   const { camera } = useThree();
   const db = useFirestore();
-  const { virtualInput, controlMode } = useStore();
+  const { virtualInput, controlMode, targetPosition, setTargetPosition } = useStore();
   const moveSpeed = 0.45;
   const updateInterval = 500;
   const lastUpdateRef = useRef(0);
@@ -181,6 +182,7 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
     let moving = false;
     const newPos = { ...agent.position };
 
+    // 1. Keyboard / Joystick Logic
     if (controlMode === 'KEYBOARD') {
       if (keys.current['w']) { newPos.z -= moveSpeed; moving = true; }
       if (keys.current['s']) { newPos.z += moveSpeed; moving = true; }
@@ -191,6 +193,26 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
         newPos.x += virtualInput.x * moveSpeed;
         newPos.z += virtualInput.z * moveSpeed;
         moving = true;
+      }
+    }
+
+    // Interrupt Target-Navigation if direct input is detected
+    if (moving && targetPosition) {
+      setTargetPosition(null);
+    }
+
+    // 2. Push-to-Walk Logic (Autonomous Pathing)
+    if (!moving && targetPosition && controlMode === 'PUSH_TO_WALK') {
+      const dx = targetPosition.x - agent.position.x;
+      const dz = targetPosition.z - agent.position.z;
+      const dist = Math.hypot(dx, dz);
+
+      if (dist > 0.5) {
+        newPos.x += (dx / dist) * moveSpeed;
+        newPos.z += (dz / dist) * moveSpeed;
+        moving = true;
+      } else {
+        setTargetPosition(null);
       }
     }
 
@@ -213,6 +235,8 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
           lastUpdate: serverTimestamp() 
         });
       }
+    } else if (agent.state === AgentState.EXPLORING) {
+      agent.state = AgentState.IDLE;
     }
   });
 
@@ -222,6 +246,8 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
 const Terrain = ({ civilizationIndex }: { civilizationIndex: number }) => {
     const materialRef = useRef<THREE.ShaderMaterial>(null);
     const { camera } = useThree();
+    const setTargetPosition = useStore(state => state.setTargetPosition);
+    const controlMode = useStore(state => state.controlMode);
     
     const uniforms = useMemo(() => ({
         uTime: { value: 0 },
@@ -245,8 +271,20 @@ const Terrain = ({ civilizationIndex }: { civilizationIndex: number }) => {
         }
     });
 
+    const handlePointerDown = (e: any) => {
+      if (controlMode === 'PUSH_TO_WALK') {
+        const point = e.point;
+        setTargetPosition({ x: point.x, y: 0, z: point.z });
+      }
+    };
+
     return (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
+        <mesh 
+          rotation={[-Math.PI / 2, 0, 0]} 
+          position={[0, -0.1, 0]} 
+          receiveShadow
+          onPointerDown={handlePointerDown}
+        >
             <planeGeometry args={[1000, 1000, 256, 256]} />
             <shaderMaterial 
               ref={materialRef} 
@@ -288,7 +326,13 @@ export const World3D: React.FC<{ tick: number; civilizationIndex: number; localP
                 {otherAgents.map(agent => <AgentModel key={agent.id} agent={agent} />)}
                 {worldContent.pois.map(poi => <POIModel key={poi.id} poi={poi} />)}
                 <ContactShadows resolution={1024} scale={50} blur={2} opacity={0.5} far={10} color="#000000" />
-                <OrbitControls enablePan={true} maxPolarAngle={Math.PI / 2.1} minDistance={10} maxDistance={250} />
+                <OrbitControls 
+                  enablePan={true} 
+                  maxPolarAngle={Math.PI / 2.1} 
+                  minDistance={10} 
+                  maxDistance={250}
+                  enableDamping={true}
+                />
             </Canvas>
         </div>
     );

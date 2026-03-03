@@ -4,10 +4,10 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useStore } from '@/store'
 import { Button } from '@/components/ui/button'
-import { Settings2, Move, MousePointer2 } from 'lucide-react'
+import { Settings2, Move, MousePointer2, Smartphone, Monitor } from 'lucide-react'
 
 export const MobileControls = () => {
-  const { controlMode, setControlMode, setVirtualInput } = useStore()
+  const { controlMode, setControlMode, setVirtualInput, isMobile } = useStore()
   const [isTouching, setIsTouching] = useState(false)
   const joystickRef = useRef<HTMLDivElement>(null)
   const knobRef = useRef<HTMLDivElement>(null)
@@ -54,51 +54,61 @@ export const MobileControls = () => {
 
   return (
     <div className="absolute inset-0 pointer-events-none z-50 flex flex-col justify-between p-6">
-      {/* Control Switcher */}
-      <div className="flex justify-end pointer-events-auto">
-        <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-1 flex gap-1">
-          <Button 
-            variant={controlMode === 'JOYSTICK' ? 'default' : 'ghost'} 
-            size="sm" 
-            className="rounded-xl h-10 w-10 p-0"
-            onClick={() => setControlMode('JOYSTICK')}
-          >
-            <Move className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant={controlMode === 'PUSH_TO_WALK' ? 'default' : 'ghost'} 
-            size="sm" 
-            className="rounded-xl h-10 w-10 p-0"
-            onClick={() => setControlMode('PUSH_TO_WALK')}
-          >
-            <MousePointer2 className="h-4 w-4" />
-          </Button>
+      {/* Control Switcher Overlay */}
+      <div className="flex justify-between items-start pointer-events-auto">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10">
+          <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-axiom-cyan mr-4 italic">
+            {isMobile ? <Smartphone className="h-3 w-3" /> : <Monitor className="h-3 w-3" />}
+            <span>System: {isMobile ? 'Android' : 'Desktop'}</span>
+          </div>
+          <div className="flex gap-1">
+            <Button 
+              variant={controlMode === 'JOYSTICK' ? 'default' : 'ghost'} 
+              size="sm" 
+              className={`rounded-xl h-10 w-10 p-0 ${controlMode === 'JOYSTICK' ? 'axiom-gradient border-0' : ''}`}
+              onClick={() => setControlMode('JOYSTICK')}
+              title="Joystick Mode"
+            >
+              <Move className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant={controlMode === 'PUSH_TO_WALK' ? 'default' : 'ghost'} 
+              size="sm" 
+              className={`rounded-xl h-10 w-10 p-0 ${controlMode === 'PUSH_TO_WALK' ? 'axiom-gradient border-0' : ''}`}
+              onClick={() => setControlMode('PUSH_TO_WALK')}
+              title="Push to Walk"
+            >
+              <MousePointer2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Virtual Joystick */}
+      {/* Virtual Joystick UI */}
       {controlMode === 'JOYSTICK' && (
         <div className="flex justify-start items-end p-8 pointer-events-auto">
           <div 
             ref={joystickRef}
-            className="w-32 h-32 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/20 relative flex items-center justify-center touch-none"
+            className="w-32 h-32 rounded-full bg-white/5 backdrop-blur-md border-2 border-white/10 relative flex items-center justify-center touch-none shadow-2xl"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
             <div 
               ref={knobRef}
-              className="w-12 h-12 rounded-full axiom-gradient shadow-2xl shadow-accent/50 border-2 border-white/40 transition-transform duration-75 ease-out"
-            />
+              className="w-14 h-14 rounded-full axiom-gradient shadow-[0_0_30px_rgba(31,184,184,0.6)] border-2 border-white/20 transition-transform duration-75 ease-out flex items-center justify-center"
+            >
+               <div className="w-4 h-4 rounded-full bg-white/20 animate-pulse" />
+            </div>
           </div>
         </div>
       )}
 
-      {/* Push to Walk Hint */}
+      {/* Navigation Hint */}
       {controlMode === 'PUSH_TO_WALK' && (
         <div className="flex justify-center mb-12">
-          <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-[0.3em] text-accent italic animate-pulse">
-            Tap Terrain to Move Neural Shell
+          <div className="bg-black/60 backdrop-blur-2xl px-6 py-3 rounded-full border border-axiom-cyan/30 text-[10px] font-black uppercase tracking-[0.4em] text-axiom-cyan italic animate-pulse shadow-2xl">
+            Tap Terrain to Manifest Destination
           </div>
         </div>
       )}

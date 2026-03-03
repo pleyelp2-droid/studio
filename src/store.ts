@@ -31,7 +31,7 @@ interface GameState {
   isMobile: boolean;
   controlMode: ControlMode;
   virtualInput: { x: number; z: number };
-  targetPosition: { x: number; z: number } | null;
+  targetPosition: { x: number; y: number; z: number } | null;
 
   // Actions
   setUser: (user: { id: string; name: string; email: string } | null) => void;
@@ -42,7 +42,7 @@ interface GameState {
   setIsMobile: (is: boolean) => void;
   setControlMode: (mode: ControlMode) => void;
   setVirtualInput: (input: { x: number; z: number }) => void;
-  setTargetPosition: (pos: { x: number; z: number } | null) => void;
+  setTargetPosition: (pos: { x: number; y: number; z: number } | null) => void;
 
   selectPoi: (id: string | null) => void;
   updateUptime: (time: number) => void;
