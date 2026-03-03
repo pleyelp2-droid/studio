@@ -102,13 +102,22 @@ export interface Faction {
 }
 
 export type ItemRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'AXIOMATIC';
-export type ItemType = 'HELMET' | 'CHEST' | 'LEGS' | 'WEAPON' | 'SHIELD';
+export type ItemType = 'HELMET' | 'CHEST' | 'LEGS' | 'WEAPON' | 'SHIELD' | 'ACCESSORY' | 'CONSUMABLE' | 'ARMOR';
 
 export interface Item {
   id: string;
   name: string;
   type: ItemType;
   rarity: ItemRarity;
+}
+
+export interface GeneratedItem {
+  name: string;
+  type: string;
+  rarity: string;
+  stats: Record<string, number>;
+  level: number;
+  value: number;
 }
 
 export interface CombatResult {
@@ -119,7 +128,7 @@ export interface CombatResult {
   damageReceived: number;
   skillUsed: string;
   result: string;
-  lootDropped: any[];
+  lootDropped: GeneratedItem[];
 }
 
 export interface CombatLog extends CombatResult {

@@ -8,7 +8,7 @@
       "properties": {
         "uid": { "type": "string" },
         "name": { "type": "string" },
-        "npcClass": { "type": "string", "enum": ["NEURAL_EMERGENT", "PILOT", "SENTINEL"] },
+        "npcClass": { "type": "string" },
         "level": { "type": "number" },
         "hp": { "type": "number" },
         "maxHp": { "type": "number" },
@@ -29,89 +29,32 @@
         "dnaHistory": { "type": "array" },
         "memoryCache": { "type": "array" },
         "awakened": { "type": "boolean" },
-        "facialParameters": { "$ref": "#/entities/FacialParameters" },
         "lastUpdate": { "type": "string", "format": "date-time" }
-      },
-      "required": ["uid", "name", "level", "hp"]
+      }
     },
-    "FacialParameters": {
-      "title": "FacialParameters",
+    "LootItem": {
+      "title": "LootItem",
       "type": "object",
       "properties": {
-        "jawWidth": { "type": "number" },
-        "cheekboneHeight": { "type": "number" },
-        "noseLength": { "type": "number" },
-        "eyeSpacing": { "type": "number" },
-        "browDepth": { "type": "number" },
-        "eyeColor": { "type": "string" },
-        "hasBeard": { "type": "boolean" }
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "rarity": { "type": "string" },
+        "stats": { "type": "object" },
+        "level": { "type": "number" },
+        "value": { "type": "number" },
+        "combatLogId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       }
     },
     "WorldState": {
       "title": "WorldState",
       "type": "object",
-      "description": "Global world parameters.",
       "properties": {
         "civilizationIndex": { "type": "number" },
         "stabilityIndex": { "type": "number" },
-        "activePlayers": { "type": "number" },
-        "vertexAiStatus": { "type": "string" },
-        "economy": { "type": "number" },
-        "military": { "type": "number" },
         "tick": { "type": "number" },
+        "economy": { "type": "number" },
         "lastPulse": { "type": "string", "format": "date-time" }
-      },
-      "required": ["civilizationIndex", "tick"]
-    },
-    "Chunk": {
-      "title": "Chunk",
-      "type": "object",
-      "properties": {
-        "chunkId": { "type": "string" },
-        "x": { "type": "number" },
-        "z": { "type": "number" },
-        "biome": { "type": "string" },
-        "entropy": { "type": "number" },
-        "stabilityIndex": { "type": "number" },
-        "corruptionLevel": { "type": "number" },
-        "resourceData": { "type": "object" },
-        "logicField": { "type": "array" }
-      },
-      "required": ["x", "z", "biome"]
-    },
-    "CombatLog": {
-      "title": "CombatLog",
-      "type": "object",
-      "properties": {
-        "attackerUid": { "type": "string" },
-        "defenderUid": { "type": "string" },
-        "damageDealt": { "type": "number" },
-        "damageReceived": { "type": "number" },
-        "result": { "type": "string" },
-        "tickNumber": { "type": "number" }
-      }
-    },
-    "Faction": {
-      "title": "Faction",
-      "type": "object",
-      "description": "Hierarchy entities like guilds or nations.",
-      "properties": {
-        "name": { "type": "string" },
-        "entityType": { "type": "string" },
-        "leaderUid": { "type": "string" },
-        "influence": { "type": "number" },
-        "members": { "type": "array" }
-      }
-    },
-    "MatrixTransaction": {
-      "title": "MatrixTransaction",
-      "type": "object",
-      "properties": {
-        "fromUid": { "type": "string" },
-        "toUid": { "type": "string" },
-        "amount": { "type": "number" },
-        "txType": { "type": "string" },
-        "tickNumber": { "type": "number" }
       }
     }
   },
@@ -123,29 +66,13 @@
       "schema": { "$ref": "#/entities/Agent" },
       "description": "Pilot and Agent data."
     },
+    "/lootTable/{lootId}": {
+      "schema": { "$ref": "#/entities/LootItem" },
+      "description": "Persistent record of generated loot items."
+    },
     "/worldState/global": {
       "schema": { "$ref": "#/entities/WorldState" },
-      "description": "Global world state."
-    },
-    "/chunks/{chunkId}": {
-      "schema": { "$ref": "#/entities/Chunk" },
-      "description": "World chunk data."
-    },
-    "/combatLogs/{logId}": {
-      "schema": { "$ref": "#/entities/CombatLog" },
-      "description": "Combat history logs."
-    },
-    "/factions/{factionId}": {
-      "schema": { "$ref": "#/entities/Faction" },
-      "description": "Hierarchy and territory data."
-    },
-    "/matrixTransactions/{txId}": {
-      "schema": { "$ref": "#/entities/MatrixTransaction" },
-      "description": "Energy flow and ledger."
-    },
-    "/adminLogs/{logId}": {
-      "schema": { "type": "object" },
-      "description": "Audit and event logs for sovereignty."
+      "description": "Global engine state."
     }
   }
 }
