@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser } from "@/firebase"
@@ -8,19 +7,10 @@ import { AppSidebar } from "@/components/layout/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { 
-  Globe, 
-  Shield, 
-  Activity, 
-  Maximize2,
-  Minimize2,
   RefreshCw,
   AlertCircle,
   Unplug,
-  Gamepad2,
-  Monitor,
-  Smartphone,
   ShieldCheck,
-  AlertTriangle,
   Key
 } from "lucide-react"
 import { useState, useEffect } from "react"
@@ -36,7 +26,6 @@ export default function WorldPreviewPage() {
   const db = useFirestore()
   const { user, isUserLoading } = useUser()
   
-  // Selector fixed to ensure correct function mapping
   const isMobile = useStore(state => state.device.isMobile);
   const setIsMobile = useStore(state => state.setIsMobile);
   const isAxiomAuthenticated = useStore(state => state.isAxiomAuthenticated);
@@ -104,18 +93,18 @@ export default function WorldPreviewPage() {
 
       const mockChunk = {
         id: "0_0", x: 0, z: 0, seed: 42, 
-        biome: 'CITY',
-        cellType: 'SANCTUARY',
+        biome: 'CITY' as const,
+        cellType: 'SANCTUARY' as const,
         entropy: 0.1, stabilityIndex: 0.9, corruptionLevel: 0.05, resourceData: {},
-        logicField: Array(8).fill(0).map(() => Array(8).fill(0).map(() => ({ vx: Math.random() * 0.1, vz: Math.random() * 0.1, magnitude: 0.1 }))),
-        axiomaticData: Array(8).fill(0).map(() => Array(8).fill(0).map(() => 0.5 + Math.random() * 0.5))
+        logicField: [[{ vx: 0, vz: 0, magnitude: 0 }]],
+        axiomaticData: [[0]],
+        lastUpdate: new Date()
       };
       
-      const content = WorldBuildingService.generateAxiomaticContent(mockChunk as any);
+      const content = WorldBuildingService.generateAxiomaticContent(mockChunk);
       if (setChunks) {
-        setChunks([mockChunk as any]);
+        setChunks([mockChunk]);
       }
-      useStore.setState({ monsters: content.monsters });
     }
   }, [worldState, setChunks]);
 
@@ -167,15 +156,9 @@ export default function WorldPreviewPage() {
           </div>
         </header>
 
-        <main className={`p-6 space-y-6 max-w-7xl mx-auto w-full h-full ${isFullscreen ? 'fixed inset-0 z-[100] bg-background p-0 m-0 max-w-none' : ''}`}>
+        <main className={`p-6 space-y-6 max-w-7xl mx-auto w-full h-full`}>
           <div className="grid gap-6 lg:grid-cols-12 h-[calc(100vh-120px)]">
-            <Card className={`lg:col-span-8 border-border bg-card overflow-hidden flex flex-col relative ${isFullscreen ? 'rounded-none border-0 h-full' : 'shadow-2xl shadow-accent/10'}`}>
-              <div className="absolute top-4 right-4 z-20 flex gap-2">
-                <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-2 bg-black/60 backdrop-blur-xl rounded-xl border border-white/10 hover:bg-black/80 transition-all">
-                  {isFullscreen ? <Minimize2 className="h-4 w-4 text-white" /> : <Maximize2 className="h-4 w-4 text-white" />}
-                </button>
-              </div>
-
+            <Card className={`lg:col-span-8 border-border bg-card overflow-hidden flex flex-col relative shadow-2xl shadow-accent/10`}>
               <div className="relative flex-1 bg-black overflow-hidden">
                 {isMobile && <MobileControls />}
                 {(isWorldLoading || isAgentsLoading) ? (
@@ -196,11 +179,11 @@ export default function WorldPreviewPage() {
               </div>
             </Card>
 
-            <div className={`lg:col-span-4 space-y-6 ${isFullscreen ? 'hidden' : ''}`}>
+            <div className={`lg:col-span-4 space-y-6`}>
               <Card className="border-border bg-card shadow-lg">
                 <CardHeader className="bg-secondary/10 border-b border-border/50">
                   <CardTitle className="text-xs font-black uppercase italic tracking-[0.3em] flex items-center gap-3 text-accent text-white">
-                    <Shield className="h-4 w-4" /> Logic Core Event Log
+                    <ShieldCheck className="h-4 w-4 text-accent" /> Logic Core Event Log
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">

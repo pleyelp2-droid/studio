@@ -131,23 +131,72 @@ export interface Agent {
   emergentBehaviorLog?: Array<{ action: string; reasoning: string; timestamp: number }>;
 }
 
-export interface StoreProduct {
+export interface Chunk {
   id: string;
-  name: string;
-  description: string;
-  priceEUR: number;
-  energyAmount: number;
+  x: number;
+  z: number;
+  seed: number;
+  biome: 'CITY' | 'FOREST' | 'MOUNTAIN' | 'DESERT' | 'TUNDRA';
+  cellType: 'SANCTUARY' | 'WILDERNESS' | 'DUNGEON';
+  entropy: number;
+  stabilityIndex: number;
+  corruptionLevel: number;
+  resourceData: Record<string, any>;
+  logicField: { vx: number; vz: number; magnitude: number }[][];
+  axiomaticData: number[][];
+  lastUpdate: any;
+  logicString?: string;
 }
 
-export interface AdminAuditLog {
+export interface POI {
   id: string;
-  adminId: string;
-  action: string;
-  targetType: string;
-  targetId: string;
-  details: any;
-  ipAddress: string;
-  timestamp: any;
+  type: 'SHRINE' | 'FORGE' | 'MARKET_STALL' | 'BANK_VAULT' | 'GATE' | 'WALL' | 'HOUSE' | 'TREE' | 'DUNGEON' | 'RUIN' | 'NEST';
+  position: [number, number, number];
+  rotationY?: number;
+  isDiscovered: boolean;
+  discoveryRadius?: number;
+  rewardInsight?: number;
+  loreFragment?: string;
+  threatLevel?: number;
+}
+
+export interface ResourceNode {
+  id: string;
+  type: 'IRON_ORE' | 'SILVER_ORE' | 'GOLD_ORE' | 'WOOD' | 'STONE' | 'SUNLEAF_HERB';
+  position: [number, number, number];
+  amount: number;
+}
+
+export interface Monster {
+  id: string;
+  type: string;
+  name: string;
+  position: [number, number, number];
+  rotationY: number;
+  stats: any;
+  xpReward: number;
+  state: string;
+  color: string;
+  scale: number;
+  targetId: string | null;
+}
+
+export const MONSTER_TEMPLATES: Record<string, any> = {
+  GOBLIN: { hp: 50, atk: 5, def: 2, xp: 100, scale: 0.8 },
+  ORC: { hp: 150, atk: 15, def: 10, xp: 300, scale: 1.2 },
+  DRAGON: { hp: 1000, atk: 50, def: 40, xp: 2000, scale: 5.0 },
+};
+
+export interface QuestLine {
+  id: string;
+  title: string;
+  description: string;
+  requiredLevel: number;
+  xpReward: number;
+  goldReward: number;
+  status: 'active' | 'completed' | 'draft';
+  npc_id: string;
+  quest_steps: { type: string; description: string }[];
 }
 
 export interface LoreEntry {
