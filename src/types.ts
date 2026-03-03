@@ -96,8 +96,10 @@ export interface Faction {
   entityType: 'GUILD' | 'NATION' | 'CULT';
   leaderUid: string;
   members: string[];
+  level: number;
   influence: number;
   territory: string[];
+  infrastructure: string[];
   lastUpdate: any;
 }
 
