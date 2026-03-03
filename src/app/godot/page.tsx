@@ -11,13 +11,11 @@ import {
   Terminal, 
   Wifi, 
   ShieldCheck, 
-  FileJson, 
   Cpu, 
   Copy,
   Code,
-  FileCode,
-  Check,
-  Eye
+  Eye,
+  Zap
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { firebaseConfig } from "@/firebase/config"
@@ -158,13 +156,13 @@ export default function GodotBridgePage() {
                   </p>
                 </div>
               </CardContent>
-            </div>
+            </Card>
           </div>
 
           <Card className="border-border bg-card">
             <CardHeader className="bg-secondary/10 border-b border-border/50 p-6">
               <CardTitle className="text-sm font-black uppercase tracking-[0.3em] flex items-center gap-2">
-                <FileCode className="h-4 w-4 text-accent" /> Connection Scripts
+                <Code className="h-4 w-4 text-accent" /> Connection Scripts
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -187,7 +185,7 @@ export default function GodotBridgePage() {
         </main>
 
         <Dialog open={!!viewingScript} onOpenChange={() => setViewingScript(null)}>
-          <DialogContent className="max-w-4xl max-h-[80vh] bg-black border-border overflow-hidden flex flex-col">
+          <DialogContent className="max-w-4xl max-h-[80vh] bg-black border-border overflow-hidden flex flex-col text-white">
             <DialogHeader>
               <DialogTitle className="text-accent font-headline italic uppercase">{viewingScript?.name}</DialogTitle>
               <DialogDescription>Preview of the Godot GDScript file.</DialogDescription>
