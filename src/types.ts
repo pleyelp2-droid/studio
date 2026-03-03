@@ -1,7 +1,6 @@
 
 /**
  * @fileOverview Core type definitions for the Ouroboros MMO engine.
- * Unified with SQL schema parameters and Firestore blueprints.
  */
 
 export enum AgentState {
@@ -45,18 +44,6 @@ export interface POI {
   isDiscovered: boolean;
 }
 
-export interface FacialParameters {
-  jawWidth: number;
-  cheekboneHeight: number;
-  noseLength: number;
-  eyeSpacing: number;
-  browDepth: number;
-  skinVariation: number;
-  eyeColor: string;
-  hasBeard: boolean;
-  beardLength: number;
-}
-
 export interface Agent {
   id: string;
   displayName: string;
@@ -76,7 +63,6 @@ export interface Agent {
   dnaHistory: any[];
   memoryCache: any[];
   awakened: boolean;
-  facialParameters?: FacialParameters;
   lastUpdate?: any;
 }
 
@@ -133,19 +119,14 @@ export interface CombatResult {
   lootDropped: GeneratedItem[];
 }
 
-export interface CombatLog extends CombatResult {
+export interface MatrixTransaction {
   id: string;
+  fromUid: string | null;
+  toUid: string | null;
+  txType: string;
+  amount: number;
+  currency: string;
+  description: string;
   tickNumber: number;
-  createdAt: any;
-}
-
-export interface EconomicSummary {
-  id: string;
-  tickNumber: number;
-  totalSupply: Record<string, number>;
-  totalDemand: Record<string, number>;
-  gdp: number;
-  inflationRate: number;
-  tradeVolume: number;
   createdAt: any;
 }

@@ -56,6 +56,20 @@
         "economy": { "type": "number" },
         "lastPulse": { "type": "string", "format": "date-time" }
       }
+    },
+    "MatrixTransaction": {
+      "title": "MatrixTransaction",
+      "type": "object",
+      "properties": {
+        "fromUid": { "type": "string" },
+        "toUid": { "type": "string" },
+        "txType": { "type": "string" },
+        "amount": { "type": "number" },
+        "currency": { "type": "string" },
+        "description": { "type": "string" },
+        "tickNumber": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -73,6 +87,10 @@
     "/worldState/global": {
       "schema": { "$ref": "#/entities/WorldState" },
       "description": "Global engine state."
+    },
+    "/matrixTransactions/{txId}": {
+      "schema": { "$ref": "#/entities/MatrixTransaction" },
+      "description": "Immutable ledger of energy transfers."
     }
   }
 }
