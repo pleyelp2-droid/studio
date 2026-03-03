@@ -41,6 +41,24 @@
       "description": "Modular Outpost Blueprint",
       "imageUrl": "https://images.unsplash.com/photo-1581092160562-40aa08e78837?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxibHVlcHJpbnR8ZW58MHx8fHwxNzcyNTAyOTQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "blueprint"
+    },
+    {
+      "id": "world-primitive",
+      "description": "Dusty frontier outpost in the Primitive Era",
+      "imageUrl": "https://images.unsplash.com/photo-1506466010722-395aa2bef877?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkZXNlcnQlMjBvdXRwb3N0fGVufDB8fHx8MTc3MjUwNTAwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "desert outpost"
+    },
+    {
+      "id": "world-industrial",
+      "description": "Metallic industrial city in the Gear Era",
+      "imageUrl": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxpbmR1c3RyaWFsJTIwY2l0eXxlbnwwfHx8fDE3NzI1MDUwMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "industrial city"
+    },
+    {
+      "id": "world-chrome",
+      "description": "Futuristic neon metropolis in the Chrome Era",
+      "imageUrl": "https://images.unsplash.com/photo-1605142859862-978be7eba909?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjeWJlcnB1bmslMjBjaXR5fGVufDB8fHx8MTc3MjUwNTAwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cyberpunk city"
     }
   ]
 }

@@ -1,0 +1,195 @@
+
+"use client"
+
+import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
+import { doc } from "firebase/firestore"
+import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/layout/AppSidebar"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { 
+  Globe, 
+  Zap, 
+  Shield, 
+  Cpu, 
+  Activity, 
+  Maximize2,
+  Minimize2,
+  RefreshCw,
+  Box
+} from "lucide-react"
+import { useState, useEffect } from "react"
+import Image from "next/image"
+import { PlaceHolderImages } from "@/lib/placeholder-images"
+
+export default function WorldPreviewPage() {
+  const db = useFirestore()
+  const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
+  const { data: worldState, isLoading } = useDoc(worldRef)
+  
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [currentEra, setCurrentEra] = useState("Primitive")
+  const [eraImage, setEraImage] = useState(PlaceHolderImages.find(img => img.id === "world-primitive"))
+
+  useEffect(() => {
+    if (worldState) {
+      const ci = worldState.civilizationIndex || 0
+      if (ci < 400) {
+        setCurrentEra("Primitive Outpost")
+        setEraImage(PlaceHolderImages.find(img => img.id === "world-primitive"))
+      } else if (ci < 800) {
+        setCurrentEra("Industrial Hub")
+        setEraImage(PlaceHolderImages.find(img => img.id === "world-industrial"))
+      } else {
+        setCurrentEra("Chrome Metropolis")
+        setEraImage(PlaceHolderImages.find(img => img.id === "world-chrome"))
+      }
+    }
+  }, [worldState])
+
+  return (
+    <div className="flex h-screen w-full bg-background overflow-hidden">
+      <AppSidebar />
+      <SidebarInset className="flex flex-col overflow-auto">
+        <header className="flex h-16 items-center border-b border-border px-6 justify-between shrink-0 bg-background/50 backdrop-blur-md sticky top-0 z-10">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger />
+            <h1 className="text-xl font-headline font-semibold">Live World Preview</h1>
+          </div>
+          <div className="flex items-center gap-4">
+             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-[10px] font-medium border border-border">
+              <RefreshCw className="h-3 w-3 animate-spin text-accent" />
+              <span>STREAMING FROM FIRESTORE</span>
+            </div>
+            <Badge variant="outline" className="text-accent border-accent uppercase tracking-tighter">Render Layer 0</Badge>
+          </div>
+        </header>
+
+        <main className={`p-6 space-y-6 max-w-7xl mx-auto w-full transition-all duration-500 ${isFullscreen ? 'fixed inset-0 z-[100] bg-background p-0 m-0 max-w-none' : ''}`}>
+          <div className="grid gap-6 lg:grid-cols-12 h-full">
+            {/* Viewport Card */}
+            <Card className={`lg:col-span-8 border-border bg-card overflow-hidden flex flex-col relative group ${isFullscreen ? 'rounded-none border-0 h-full' : 'aspect-video'}`}>
+              <div className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button 
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  className="p-2 bg-black/50 backdrop-blur-md rounded-md hover:bg-black/70 transition-colors"
+                >
+                  {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                </button>
+              </div>
+
+              <div className="relative flex-1 bg-black overflow-hidden">
+                {eraImage && (
+                  <Image 
+                    src={eraImage.imageUrl} 
+                    alt={currentEra} 
+                    fill 
+                    className="object-cover opacity-80 transition-all duration-1000 scale-105"
+                    priority
+                    data-ai-hint={eraImage.imageHint}
+                  />
+                )}
+                
+                {/* Overlay UI */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
+                
+                <div className="absolute top-6 left-6 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-accent heartbeat-pulse" />
+                    <span className="text-[10px] font-mono text-white/70 uppercase tracking-widest">Axiom Frontier Core v0.9.4</span>
+                  </div>
+                  <h2 className="text-3xl font-headline font-bold text-white uppercase italic">{currentEra}</h2>
+                </div>
+
+                <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
+                  <div className="space-y-4 max-w-xs">
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[10px] text-white/50 font-mono">
+                        <span>CIVILIZATION INDEX</span>
+                        <span>{worldState?.civilizationIndex?.toFixed(1) || "0.0"}</span>
+                      </div>
+                      <Progress value={((worldState?.civilizationIndex || 0) / 1000) * 100} className="h-1 bg-white/10" />
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-2">
+                        <Activity className="h-4 w-4 text-accent" />
+                        <span className="text-xs font-bold text-white">TICK: {worldState?.tick || 0}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Box className="h-4 w-4 text-emerald-500" />
+                        <span className="text-xs font-bold text-white">RENDER: 60FPS</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-white/50 uppercase tracking-widest mb-1">Status</div>
+                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">DETERMINISTIC SYNC ACTIVE</Badge>
+                  </div>
+                </div>
+                
+                {/* Scanlines / Retro Effect */}
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%] pointer-events-none" />
+              </div>
+            </Card>
+
+            {/* Sidebar Stats */}
+            <div className={`lg:col-span-4 space-y-6 ${isFullscreen ? 'hidden' : ''}`}>
+              <Card className="border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-sm font-headline flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-accent" />
+                    Neural Telemetry
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[
+                    { label: "Stability", value: worldState?.stability || 0, color: "text-blue-400" },
+                    { label: "Corruption", value: worldState?.corruption || 0, color: "text-red-400" },
+                    { label: "Economy", value: worldState?.economy || 0, color: "text-emerald-400" },
+                    { label: "Military", value: worldState?.military || 0, color: "text-rose-400" },
+                  ].map((stat) => (
+                    <div key={stat.label} className="space-y-1">
+                      <div className="flex justify-between text-[10px] uppercase">
+                        <span className="text-muted-foreground">{stat.label}</span>
+                        <span className={stat.color}>{stat.value}</span>
+                      </div>
+                      <Progress value={(stat.value / 1000) * 100} className="h-1" />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card className="border-border bg-card">
+                <CardHeader>
+                  <CardTitle className="text-sm font-headline flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-accent" />
+                    Simulation Log
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                   <div className="space-y-0 divide-y divide-border/50">
+                    {[
+                      { msg: "Epoch sync successful", type: "success" },
+                      { msg: `Era update: ${currentEra}`, type: "info" },
+                      { msg: "Godot connector standby", type: "warning" },
+                      { msg: "Axiom pulse detected", type: "info" },
+                    ].map((log, i) => (
+                      <div key={i} className="px-4 py-2 text-[10px] flex justify-between items-center bg-secondary/10">
+                        <span className="text-muted-foreground">{log.msg}</span>
+                        <div className={`h-1.5 w-1.5 rounded-full ${
+                          log.type === 'success' ? 'bg-emerald-500' : 
+                          log.type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
+                        }`} />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </main>
+      </SidebarInset>
+    </div>
+  )
+}

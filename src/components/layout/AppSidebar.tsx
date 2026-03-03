@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -14,7 +15,8 @@ import {
   Settings,
   Activity,
   Zap,
-  Home
+  Home,
+  MonitorPlay
 } from "lucide-react"
 
 import {
@@ -33,6 +35,7 @@ import {
 
 const mainItems = [
   { title: "Dashboard", icon: LayoutDashboard, url: "/" },
+  { title: "World Preview", icon: MonitorPlay, url: "/world-preview" },
   { title: "Players", icon: Users, url: "/players" },
   { title: "Agent Oversight", icon: ShieldAlert, url: "/agents" },
 ]
