@@ -1,18 +1,82 @@
 'use client';
 
-import { Html, OrbitControls, Sky, PerspectiveCamera } from '@react-three/drei';
+import { Html, OrbitControls, Sky, PerspectiveCamera, Environment, ContactShadows } from '@react-three/drei';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { useStore } from '../../store';
-import { POI, Chunk, Monster, Agent } from '../../types';
+import { POI, Chunk, Monster, Agent, AgentState } from '../../types';
 import { axiomFragmentShader, axiomVertexShader } from './AxiomShader';
+import { createHumanoidModel, HumanoidModel } from './HumanoidModel';
+import { AnimationController } from './AnimationSystem';
+import { attachEquipment, EquipmentSlots } from './EquipmentRenderer';
 
-const isPosInSanctuary = (pos: [number, number, number], chunks: Chunk[]) => {
-    const chunkX = Math.floor((pos[0] + 40) / 80);
-    const chunkZ = Math.floor((pos[2] + 40) / 80);
-    const chunk = chunks.find(c => c.x === chunkX && c.z === chunkZ);
-    return chunk?.biome === 'CITY' || chunk?.cellType === 'SANCTUARY';
+const AgentModel = ({ agent }: { agent: Agent }) => {
+  const groupRef = useRef<THREE.Group>(null);
+  const [model, setModel] = useState<HumanoidModel | null>(null);
+  const [animController, setAnimController] = useState<AnimationController | null>(null);
+
+  useEffect(() => {
+    const humanoid = createHumanoidModel({
+      skinTone: agent.thinkingMatrix?.alignment > 0.5 ? '#d1a37c' : '#8d5524',
+      bodyScale: 1.0 + (agent.level * 0.01)
+    });
+    setModel(humanoid);
+    
+    const controller = new AnimationController(humanoid.mesh, humanoid.bones);
+    setAnimController(controller);
+
+    return () => {
+      controller.dispose();
+    };
+  }, [agent.id]);
+
+  useEffect(() => {
+    if (animController) {
+      animController.playForState(agent.state || AgentState.IDLE);
+    }
+  }, [agent.state, animController]);
+
+  useEffect(() => {
+    if (model) {
+      // Mock equipment based on class for preview
+      const slots: EquipmentSlots = {
+        head: agent.npcClass === 'SOVEREIGN' ? { id: 'h1', name: 'Crown', rarity: 'AXIOMATIC', type: 'ARMOR', stats: {}, level: 1, value: 0 } : null,
+        chest: null,
+        legs: null,
+        mainHand: agent.npcClass === 'PILOT' ? { id: 'w1', name: 'Blade', rarity: 'RARE', type: 'WEAPON', stats: {}, level: 1, value: 0 } : null,
+        offHand: null
+      };
+      attachEquipment(model.group, slots);
+    }
+  }, [model, agent.npcClass]);
+
+  useFrame((state, delta) => {
+    if (animController) animController.update(delta);
+    if (groupRef.current) {
+      // Smooth interpolation to target position
+      const targetPos = new THREE.Vector3(agent.position.x, agent.position.y, agent.position.z);
+      groupRef.current.position.lerp(targetPos, 0.1);
+    }
+  });
+
+  if (!model) return null;
+
+  return (
+    <group ref={groupRef}>
+      <primitive object={model.group} />
+      <Html position={[0, 2.5, 0]} center distanceFactor={15}>
+        <div className="flex flex-col items-center gap-1 pointer-events-none">
+          <div className="px-2 py-0.5 rounded bg-black/80 border border-accent/50 text-white text-[10px] font-black uppercase tracking-widest whitespace-nowrap shadow-xl">
+            {agent.displayName} <span className="text-accent ml-1">LVL {agent.level}</span>
+          </div>
+          <div className="w-12 h-1 bg-secondary rounded-full overflow-hidden border border-white/10">
+            <div className="h-full bg-emerald-500" style={{ width: `${(agent.hp / agent.maxHp) * 100}%` }} />
+          </div>
+        </div>
+      </Html>
+    </group>
+  );
 };
 
 const DayNightSky = ({ tick }: { tick: number }) => {
@@ -47,107 +111,7 @@ const DayNightSky = ({ tick }: { tick: number }) => {
                 castShadow
             />
             <fog attach="fog" args={[fogColor, 120, 500]} />
-            {isNight && <Stars />}
         </>
-    );
-};
-
-const Stars = () => {
-    const starsRef = useRef<THREE.Points>(null);
-    const { positions, count } = useMemo(() => {
-        const count = 1000;
-        const positions = new Float32Array(count * 3);
-        for (let i = 0; i < count; i++) {
-            const theta = Math.random() * Math.PI * 2;
-            const phi = Math.acos(Math.random() * 2 - 1);
-            const r = 400;
-            positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-            positions[i * 3 + 1] = r * Math.cos(phi);
-            positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-        }
-        return { positions, count };
-    }, []);
-
-    useFrame((state) => {
-        if (starsRef.current) {
-            starsRef.current.rotation.y = state.clock.getElapsedTime() * 0.005;
-        }
-    });
-
-    return (
-        <points ref={starsRef}>
-            <bufferGeometry>
-                <bufferAttribute attach="attributes-position" args={[positions, 3]} count={count} />
-            </bufferGeometry>
-            <pointsMaterial color="#ffffff" size={1.5} transparent opacity={0.8} sizeAttenuation={false} />
-        </points>
-    );
-};
-
-const POIMesh: React.FC<{ poi: POI }> = ({ poi }) => {
-    const selectPoi = useStore(state => state.selectPoi);
-    const meshRef = useRef<THREE.Group>(null);
-
-    useFrame((state) => {
-        if (meshRef.current) {
-            const time = state.clock.getElapsedTime();
-            if (poi.type === 'SHRINE') {
-                meshRef.current.position.y = poi.position[1] + Math.sin(time) * 0.2;
-                meshRef.current.rotation.y += 0.01;
-            }
-        }
-    });
-
-    return (
-        <group position={poi.position} ref={meshRef} onClick={(e) => { e.stopPropagation(); selectPoi(poi.id); }}>
-            {poi.type === 'MARKET_STALL' && (
-                <group>
-                    <mesh position={[0, 0.5, 0]} castShadow>
-                        <boxGeometry args={[3.5, 1, 2.5]} />
-                        <meshStandardMaterial color="#8B6914" />
-                    </mesh>
-                    <mesh position={[0, 3.2, 0]} castShadow>
-                        <boxGeometry args={[4, 0.1, 3]} />
-                        <meshStandardMaterial color="#C41E3A" />
-                    </mesh>
-                </group>
-            )}
-            {poi.type === 'TREE' && (
-                <group>
-                    <mesh position={[0, 2, 0]} castShadow>
-                        <cylinderGeometry args={[0.2, 0.4, 4]} />
-                        <meshStandardMaterial color="#3B2507" />
-                    </mesh>
-                    <mesh position={[0, 5, 0]} castShadow>
-                        <sphereGeometry args={[2, 8, 8]} />
-                        <meshStandardMaterial color="#1A5C1A" />
-                    </mesh>
-                </group>
-            )}
-            {poi.type === 'BUILDING' && (
-                <group>
-                    <mesh position={[0, 2, 0]} castShadow>
-                        <boxGeometry args={[4, 4, 4]} />
-                        <meshStandardMaterial color="#64748b" />
-                    </mesh>
-                    <mesh position={[0, 4.5, 0]} castShadow>
-                        <coneGeometry args={[3.5, 2, 4]} />
-                        <meshStandardMaterial color="#475569" />
-                    </mesh>
-                </group>
-            )}
-            {poi.type === 'SHRINE' && (
-                <mesh castShadow>
-                    <octahedronGeometry args={[1.5, 0]} />
-                    <meshStandardMaterial color="#06b6d4" emissive="#06b6d4" emissiveIntensity={2} wireframe />
-                </mesh>
-            )}
-            <Html position={[0, 4, 0]} center distanceFactor={20}>
-                <div className="px-2 py-0.5 rounded bg-black/60 border border-white/20 text-white text-[8px] font-black uppercase tracking-widest">
-                    {poi.type}
-                </div>
-            </Html>
-        </group>
     );
 };
 
@@ -171,7 +135,7 @@ const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civ
         uAgentPositions: { value: new Array(10).fill(new THREE.Vector3()) },
         uAgentVisionRanges: { value: new Array(10).fill(0) },
         uExplorationLevel: { value: 0.5 }
-    }), [civilizationIndex, stability, corruption, camera.position]);
+    }), [civilizationIndex, stability, corruption]);
 
     useFrame((state) => {
         if (materialRef.current) {
@@ -181,7 +145,7 @@ const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civ
     });
 
     return (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]} receiveShadow>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
             <planeGeometry args={[1000, 1000, 128, 128]} />
             <shaderMaterial
                 ref={materialRef}
@@ -195,25 +159,30 @@ const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civ
 };
 
 export const World3D: React.FC<{ tick: number; civilizationIndex: number; stability?: number; corruption?: number }> = ({ tick, civilizationIndex, stability, corruption }) => {
+    const agents = useStore(state => state.agents);
+
     return (
         <div className="w-full h-full bg-black">
             <Canvas shadows dpr={[1, 2]}>
-                <PerspectiveCamera makeDefault position={[50, 30, 50]} fov={50} />
+                <PerspectiveCamera makeDefault position={[30, 20, 30]} fov={50} />
                 <DayNightSky tick={tick} />
+                <Environment preset="night" />
+                
                 <Terrain civilizationIndex={civilizationIndex} stability={stability} corruption={corruption} />
                 
-                <POIMesh poi={{ id: 'origin-shrine', type: 'SHRINE', position: [0, 1, 0], isDiscovered: true }} />
-                {civilizationIndex > 400 && <POIMesh poi={{ id: 'b1', type: 'BUILDING', position: [-20, 0, -10], isDiscovered: true }} />}
-                {civilizationIndex > 600 && <POIMesh poi={{ id: 'm1', type: 'MARKET_STALL', position: [15, 0, 20], isDiscovered: true }} />}
-                {civilizationIndex > 800 && <POIMesh poi={{ id: 't1', type: 'TREE', position: [0, 0, -30], isDiscovered: true }} />}
+                {agents.map(agent => (
+                  <AgentModel key={agent.id} agent={agent} />
+                ))}
+
+                <ContactShadows resolution={1024} scale={20} blur={2} opacity={0.35} far={10} color="#000000" />
                 
                 <OrbitControls 
-                    enablePan={false} 
+                    enablePan={true} 
                     maxPolarAngle={Math.PI / 2.1} 
-                    minDistance={20} 
-                    maxDistance={200} 
+                    minDistance={5} 
+                    maxDistance={150} 
                 />
-                <gridHelper args={[1000, 50, '#222', '#111']} position={[0, -1.9, 0]} />
+                <gridHelper args={[1000, 100, '#222', '#111']} position={[0, -0.05, 0]} />
             </Canvas>
         </div>
     );

@@ -125,30 +125,35 @@ interface BodyPart {
 function createBodyParts(): BodyPart[] {
   const parts: BodyPart[] = [];
 
+  // Spine/Torso
   parts.push({
     geometry: new THREE.BoxGeometry(0.4, 0.45, 0.25),
     boneIndex: 1,
     offset: new THREE.Vector3(0, 0.225, 0),
   });
 
+  // Chest
   parts.push({
     geometry: new THREE.BoxGeometry(0.5, 0.4, 0.3),
     boneIndex: 2,
     offset: new THREE.Vector3(0, 0.2, 0),
   });
 
+  // Neck
   parts.push({
     geometry: new THREE.CylinderGeometry(0.08, 0.08, 0.15, 6),
     boneIndex: 3,
     offset: new THREE.Vector3(0, 0.075, 0),
   });
 
+  // Head
   parts.push({
-    geometry: new THREE.SphereGeometry(0.18, 8, 8),
+    geometry: new THREE.SphereGeometry(0.18, 12, 12),
     boneIndex: 4,
     offset: new THREE.Vector3(0, 0.1, 0),
   });
 
+  // Arms L
   parts.push({
     geometry: new THREE.CylinderGeometry(0.06, 0.07, 0.3, 6),
     boneIndex: 5,
@@ -165,6 +170,7 @@ function createBodyParts(): BodyPart[] {
     offset: new THREE.Vector3(0, -0.03, 0),
   });
 
+  // Arms R
   parts.push({
     geometry: new THREE.CylinderGeometry(0.06, 0.07, 0.3, 6),
     boneIndex: 8,
@@ -181,6 +187,7 @@ function createBodyParts(): BodyPart[] {
     offset: new THREE.Vector3(0, -0.03, 0),
   });
 
+  // Legs L
   parts.push({
     geometry: new THREE.CylinderGeometry(0.08, 0.07, 0.35, 6),
     boneIndex: 11,
@@ -197,6 +204,7 @@ function createBodyParts(): BodyPart[] {
     offset: new THREE.Vector3(0, -0.025, 0.03),
   });
 
+  // Legs R
   parts.push({
     geometry: new THREE.CylinderGeometry(0.08, 0.07, 0.35, 6),
     boneIndex: 14,
@@ -265,65 +273,6 @@ function mergeAndSkin(parts: BodyPart[], boneCount: number): { geometry: THREE.B
   return { geometry };
 }
 
-function createHairMesh(style: HumanoidAppearance['hairStyle'], skinTone: string): THREE.Mesh | null {
-  const hairColor = darkenColor(skinTone, 0.3);
-  const mat = new THREE.MeshStandardMaterial({
-    color: hairColor,
-    roughness: 0.8,
-    metalness: 0.0,
-  });
-
-  let geo: THREE.BufferGeometry;
-
-  switch (style) {
-    case 'bald':
-      return null;
-    case 'short':
-      geo = new THREE.SphereGeometry(0.2, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.55);
-      break;
-    case 'long':
-      geo = new THREE.BoxGeometry(0.38, 0.35, 0.28);
-      break;
-    case 'mohawk':
-      geo = new THREE.BoxGeometry(0.06, 0.18, 0.3);
-      break;
-    case 'ponytail':
-      geo = new THREE.CylinderGeometry(0.04, 0.03, 0.3, 6);
-      break;
-    default:
-      return null;
-  }
-
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.name = 'hair';
-
-  switch (style) {
-    case 'short':
-      mesh.position.set(0, 0.12, 0);
-      break;
-    case 'long':
-      mesh.position.set(0, 0.1, -0.05);
-      break;
-    case 'mohawk':
-      mesh.position.set(0, 0.27, 0);
-      break;
-    case 'ponytail':
-      mesh.position.set(0, 0.0, -0.15);
-      mesh.rotation.x = 0.5;
-      break;
-  }
-
-  return mesh;
-}
-
-function darkenColor(hex: string, factor: number): string {
-  const c = new THREE.Color(hex);
-  c.r = Math.max(0, c.r * (1 - factor));
-  c.g = Math.max(0, c.g * (1 - factor));
-  c.b = Math.max(0, c.b * (1 - factor));
-  return '#' + c.getHexString();
-}
-
 export function createHumanoidModel(config?: Partial<HumanoidAppearance>): HumanoidModel {
   const appearance: HumanoidAppearance = { ...DEFAULT_APPEARANCE, ...config };
   const scale = appearance.bodyScale;
@@ -337,10 +286,11 @@ export function createHumanoidModel(config?: Partial<HumanoidAppearance>): Human
 
   const { geometry } = mergeAndSkin(parts, allBones.length);
 
+  // Production-grade PBR Material
   const material = new THREE.MeshStandardMaterial({
     color: appearance.skinTone,
-    roughness: 0.7,
-    metalness: 0.05,
+    roughness: 0.6,
+    metalness: 0.1,
     side: THREE.DoubleSide,
   });
 
@@ -357,11 +307,6 @@ export function createHumanoidModel(config?: Partial<HumanoidAppearance>): Human
   group.add(skinnedMesh);
 
   group.scale.set(scale, scale, scale);
-
-  const hairMesh = createHairMesh(appearance.hairStyle, appearance.skinTone);
-  if (hairMesh) {
-    bones.head.add(hairMesh);
-  }
 
   group.userData = {
     headBone: bones.head,
