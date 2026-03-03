@@ -13,7 +13,8 @@ import {
   Database, 
   Settings,
   Activity,
-  Zap
+  Zap,
+  Home
 } from "lucide-react"
 
 import {
@@ -118,12 +119,28 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Public Access</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Landing Page">
+                  <Link href="/landing">
+                    <Home />
+                    <span>Public Landing</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarSeparator />
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Settings">
+            <SidebarMenuButton asChild tooltip="Settings" isActive={pathname === '/settings'}>
               <Link href="/settings">
                 <Settings />
                 <span>Global Settings</span>
