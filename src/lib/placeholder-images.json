@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "item-cyber-deck",
+      "description": "High-performance cybernetic interface deck",
+      "imageUrl": "https://images.unsplash.com/photo-1689443111130-6e9c7dfd8f9e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxjeWJlcnB1bmslMjB0ZWNobm9sb2d5fGVufDB8fHx8MTc3MjUwMjQxOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cyberpunk technology"
+    },
+    {
+      "id": "item-plasma-core",
+      "description": "Unstable plasma energy core used for propulsion",
+      "imageUrl": "https://images.unsplash.com/photo-1742868305921-54a7121f24ed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxlbmVyZ3klMjBjb3JlfGVufDB8fHx8MTc3MjUwMjQxOHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "energy core"
+    },
+    {
+      "id": "item-void-armor",
+      "description": "Reinforced armor plated with void-treated alloy",
+      "imageUrl": "https://images.unsplash.com/photo-1718453908957-f5433b9d1be9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzY2ktZmklMjBhcm1vcnxlbnwwfHx8fDE3NzI1MDI0MTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sci-fi armor"
+    },
+    {
+      "id": "region-nebulas-edge",
+      "description": "Distant space station at the edge of a nebula",
+      "imageUrl": "https://images.unsplash.com/photo-1681673819379-a183d9acf860?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxuZWJ1bGElMjBzcGFjZXxlbnwwfHx8fDE3NzI0OTgyNTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "nebula space"
+    }
+  ]
 }
