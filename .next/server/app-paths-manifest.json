@@ -1,0 +1,6 @@
+{
+  "/economy/page": "app/economy/page.js",
+  "/page": "app/page.js",
+  "/store/page": "app/store/page.js",
+  "/world-preview/page": "app/world-preview/page.js"
+}

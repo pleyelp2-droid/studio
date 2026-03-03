@@ -1,0 +1,65 @@
+{
+  "node": {
+    "7f4137a79e9d4c38e6e069e3c8b51b93f036ded650": {
+      "workers": {
+        "app/economy/page": {
+          "moduleId": "[project]/.next-internal/server/app/economy/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/autonomous-decision-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/emergent-behavior-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/import-agent-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/ai/flows/project-diagnostics-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "autonomousDecisionFlow",
+          "filename": "src/ai/flows/autonomous-decision-flow.ts"
+        }
+      },
+      "layer": {
+        "app/economy/page": "action-browser"
+      },
+      "exportedName": "autonomousDecisionFlow",
+      "filename": "src/ai/flows/autonomous-decision-flow.ts"
+    },
+    "7f6d10f4b81744dfdfd62bf481b70dbce1b53b8129": {
+      "workers": {
+        "app/economy/page": {
+          "moduleId": "[project]/.next-internal/server/app/economy/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/autonomous-decision-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/emergent-behavior-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/import-agent-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/ai/flows/project-diagnostics-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "emergentBehaviorFlow",
+          "filename": "src/ai/flows/emergent-behavior-flow.ts"
+        }
+      },
+      "layer": {
+        "app/economy/page": "action-browser"
+      },
+      "exportedName": "emergentBehaviorFlow",
+      "filename": "src/ai/flows/emergent-behavior-flow.ts"
+    },
+    "7f6bc57c215d1b137cc423d6478688bcc47b49ced7": {
+      "workers": {
+        "app/economy/page": {
+          "moduleId": "[project]/.next-internal/server/app/economy/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/autonomous-decision-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/emergent-behavior-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/import-agent-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/ai/flows/project-diagnostics-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "importAgentFlow",
+          "filename": "src/ai/flows/import-agent-flow.ts"
+        }
+      },
+      "layer": {
+        "app/economy/page": "action-browser"
+      },
+      "exportedName": "importAgentFlow",
+      "filename": "src/ai/flows/import-agent-flow.ts"
+    },
+    "7fd38fd13569e7ea905e1f85f89567ebbd598a0fb9": {
+      "workers": {
+        "app/economy/page": {
+          "moduleId": "[project]/.next-internal/server/app/economy/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/autonomous-decision-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/ai/flows/emergent-behavior-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/ai/flows/import-agent-flow.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/ai/flows/project-diagnostics-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "projectDiagnosticsFlow",
+          "filename": "src/ai/flows/project-diagnostics-flow.ts"
+        }
+      },
+      "layer": {
+        "app/economy/page": "action-browser"
+      },
+      "exportedName": "projectDiagnosticsFlow",
+      "filename": "src/ai/flows/project-diagnostics-flow.ts"
+    }
+  },
+  "edge": {}
+}
