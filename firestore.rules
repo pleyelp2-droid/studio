@@ -20,7 +20,6 @@ service cloud.firestore {
 
     function isAdmin() {
       // For the prototype phase, we treat any signed-in user as having broad access
-      // to ensure the engine and directory can be tested without friction.
       return isSignedIn();
     }
 
@@ -28,8 +27,8 @@ service cloud.firestore {
 
     match /players/{playerId} {
       /**
-       * @allow read: Allow any signed-in user to view the pilot directory.
-       * This resolves the 'list' permission error on the Players page.
+       * @allow read: Allow any signed-in user to view (get/list) the pilot directory.
+       * This specifically resolves the 'list' permission error.
        */
       allow read: if isSignedIn();
       

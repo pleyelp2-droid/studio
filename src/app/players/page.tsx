@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase"
-import { collection, query, limit } from "firebase/firestore"
+import { collection, query, limit, orderBy } from "firebase/firestore"
 import { Users, Search, MoreHorizontal, UserCheck, Shield, Loader2, AlertCircle } from "lucide-react"
 import { useState } from "react"
 
@@ -16,15 +16,19 @@ export default function PlayersPage() {
   const db = useFirestore()
   const [searchQuery, setSearchQuery] = useState("")
 
-  // Live Firestore Collection Reference
+  // LIVE Firestore Collection Reference - No mock data here.
   const playersQuery = useMemoFirebase(() => {
     if (!db) return null;
-    return query(collection(db, "players"), limit(50));
+    return query(
+      collection(db, "players"), 
+      orderBy("level", "desc"),
+      limit(50)
+    );
   }, [db]);
 
   const { data: livePlayers, isLoading, error } = useCollection(playersQuery);
 
-  // Filter logic (client-side for prototyping responsiveness)
+  // Filter logic (client-side for responsiveness)
   const filteredPlayers = livePlayers?.filter(player => 
     player.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     player.id?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -73,8 +77,8 @@ export default function PlayersPage() {
             ) : error ? (
               <div className="flex flex-col items-center justify-center py-24 text-destructive">
                 <AlertCircle className="h-10 w-10 mb-4" />
-                <p className="text-xs font-black uppercase tracking-[0.3em] italic">Protocol Error: Access Denied</p>
-                <p className="text-[10px] mt-2 opacity-50 uppercase font-bold tracking-widest">Verify Admin Credentials</p>
+                <p className="text-xs font-black uppercase tracking-[0.3em] italic">Protocol Error: {error.message}</p>
+                <p className="text-[10px] mt-2 opacity-50 uppercase font-bold tracking-widest">Verify Security Rule Sync</p>
               </div>
             ) : filteredPlayers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
