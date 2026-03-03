@@ -1,52 +1,45 @@
 {
   "entities": {
-    "PlayerProfile": {
+    "Player": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "PlayerProfile",
+      "title": "Player",
       "type": "object",
-      "description": "Represents a player's core persistent data and game-related profile information, excluding authentication details.",
+      "description": "Represents a player account in the Axiom Frontier game, holding their core profile information and game-related state.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the PlayerProfile entity."
+          "description": "Unique identifier for the Player entity."
         },
         "username": {
           "type": "string",
-          "description": "The player's chosen display name."
+          "description": "The player's unique display name in the game."
         },
         "email": {
           "type": "string",
-          "description": "The player's contact email address.",
+          "description": "The player's contact email address. (Not used for authentication).",
           "format": "email"
         },
-        "createdDate": {
+        "createdAt": {
           "type": "string",
-          "description": "Timestamp when the player's profile was created.",
+          "description": "Timestamp indicating when the player's account was created.",
           "format": "date-time"
         },
-        "lastLoginDate": {
+        "lastLoginAt": {
           "type": "string",
-          "description": "Timestamp of the player's last login.",
+          "description": "Timestamp indicating the player's last login.",
           "format": "date-time"
         },
-        "currencyBalance": {
+        "currentPosition": {
+          "type": "string",
+          "description": "A string representation of the player's current location within the game world (e.g., 'zoneId:x:y:z')."
+        },
+        "currencyAmount": {
           "type": "number",
-          "description": "The player's balance of in-game currency."
+          "description": "The total amount of in-game currency currently held by the player."
         },
-        "experiencePoints": {
-          "type": "number",
-          "description": "The total experience points accumulated by the player."
-        },
-        "agentIds": {
+        "inventoryItemIds": {
           "type": "array",
-          "description": "References to Agents owned by this player. (Relationship: PlayerProfile 1:N Agent)",
-          "items": {
-            "type": "string"
-          }
-        },
-        "activeQuestIds": {
-          "type": "array",
-          "description": "References to Quests currently active for this player. (Relationship: PlayerProfile N:N Quest)",
+          "description": "References to Item entities representing items in the player's inventory. (Relationship: Player 1:N Item instances, or N:N with Item if referring to item types)",
           "items": {
             "type": "string"
           }
@@ -56,16 +49,15 @@
         "id",
         "username",
         "email",
-        "createdDate",
-        "currencyBalance",
-        "experiencePoints"
+        "createdAt",
+        "currencyAmount"
       ]
     },
     "Agent": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Agent",
       "type": "object",
-      "description": "Represents an autonomous entity within the game world, which can be player-controlled or an NPC performing actions.",
+      "description": "Represents an autonomous in-game agent owned by a player, performing various actions like gathering, combat, or exploration.",
       "properties": {
         "id": {
           "type": "string",
@@ -73,51 +65,39 @@
         },
         "playerId": {
           "type": "string",
-          "description": "Reference to the PlayerProfile if this is a player-controlled agent. Null if an independent NPC. (Relationship: PlayerProfile 1:N Agent)"
+          "description": "Reference to the Player who owns this agent. (Relationship: Player 1:N Agent)"
         },
         "name": {
           "type": "string",
-          "description": "The name of the agent."
+          "description": "The display name of the agent."
         },
         "type": {
           "type": "string",
-          "description": "The classification of the agent (e.g., 'PlayerAgent', 'NPCAgent', 'Monster')."
+          "description": "The functional type of the agent (e.g., 'Gatherer', 'Combatant', 'Explorer')."
         },
-        "currentPosition": {
+        "currentLocation": {
           "type": "string",
-          "description": "The agent's current coordinates or location identifier in the game world (e.g., 'x,y,z')."
+          "description": "A string representation of the agent's current location within the game world."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current operational status of the agent (e.g., 'idle', 'gathering', 'combat', 'traveling')."
         },
         "health": {
           "type": "number",
           "description": "The current health points of the agent."
         },
-        "mana": {
+        "energy": {
           "type": "number",
-          "description": "The current mana or energy points of the agent."
+          "description": "The current energy points of the agent, consumed by actions."
         },
-        "combatSkill": {
+        "experiencePoints": {
           "type": "number",
-          "description": "The agent's skill level in combat."
+          "description": "The accumulated experience points for the agent, contributing to its progression."
         },
-        "gatheringSkill": {
-          "type": "number",
-          "description": "The agent's skill level in gathering resources."
-        },
-        "tradeSkill": {
-          "type": "number",
-          "description": "The agent's skill level in trading."
-        },
-        "explorationSkill": {
-          "type": "number",
-          "description": "The agent's skill level in exploration."
-        },
-        "currentAction": {
-          "type": "string",
-          "description": "The action the agent is currently performing (e.g., 'idle', 'gathering', 'combat', 'trading', 'exploring')."
-        },
-        "inventoryItemIds": {
+        "assignedQuestIds": {
           "type": "array",
-          "description": "References to Items currently in the agent's inventory. (Relationship: Agent N:N Item)",
+          "description": "References to Quest entities that this agent is currently assigned to. (Relationship: Agent N:N Quest)",
           "items": {
             "type": "string"
           }
@@ -125,171 +105,61 @@
       },
       "required": [
         "id",
+        "playerId",
         "name",
         "type",
-        "currentPosition",
+        "currentLocation",
+        "status",
         "health",
-        "mana",
-        "combatSkill",
-        "gatheringSkill",
-        "tradeSkill",
-        "explorationSkill",
-        "currentAction"
+        "energy",
+        "experiencePoints"
       ]
     },
-    "Civilization": {
+    "WorldState": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Civilization",
+      "title": "WorldState",
       "type": "object",
-      "description": "Represents a distinct civilization within the game world, including its aggregated index and characteristics.",
+      "description": "Stores global game parameters and dynamic world data, such as the overall civilization index, influencing game mechanics.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Civilization entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the civilization."
+          "description": "Unique identifier for the WorldState entity (expected to be a singleton, e.g., 'global_state')."
         },
         "civilizationIndex": {
           "type": "number",
-          "description": "A calculated index representing the overall development and influence of the civilization."
+          "description": "The current global civilization index, reflecting the world's progress or state."
         },
-        "description": {
-          "type": "string",
-          "description": "A descriptive text about the civilization."
+        "economyInflationRate": {
+          "type": "number",
+          "description": "The current inflation rate affecting item prices and currency value in the game economy."
         },
-        "foundingDate": {
+        "lastHeartbeat": {
           "type": "string",
-          "description": "The date when the civilization was founded or first recorded.",
+          "description": "Timestamp of the last scheduled 'world heartbeat' update.",
           "format": "date-time"
         },
-        "leaderName": {
+        "currentSeason": {
           "type": "string",
-          "description": "The name of the current leader of the civilization."
+          "description": "The current in-game season or cyclical period."
         },
-        "territoryDescription": {
+        "gameParameters": {
           "type": "string",
-          "description": "A description or coordinates outlining the territory controlled by the civilization."
+          "description": "A JSON string or other serialized format for additional dynamic game settings and parameters."
         }
       },
       "required": [
         "id",
-        "name",
         "civilizationIndex",
-        "description",
-        "foundingDate"
-      ]
-    },
-    "Quest": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Quest",
-      "type": "object",
-      "description": "Represents a quest or mission available to players, potentially generated dynamically by AI.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Quest entity."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the quest."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the quest, its objectives, and lore."
-        },
-        "generatedByAI": {
-          "type": "boolean",
-          "description": "Indicates if this quest was dynamically generated by an AI."
-        },
-        "status": {
-          "type": "string",
-          "description": "The current global status of the quest (e.g., 'available', 'unavailable', 'active', 'completed')."
-        },
-        "difficulty": {
-          "type": "string",
-          "description": "The estimated difficulty level of the quest (e.g., 'easy', 'medium', 'hard')."
-        },
-        "rewards": {
-          "type": "string",
-          "description": "A JSON string or descriptive text outlining the rewards for completing the quest."
-        },
-        "requirements": {
-          "type": "string",
-          "description": "A JSON string or descriptive text outlining the conditions or prerequisites to start the quest."
-        },
-        "relatedNPCId": {
-          "type": "string",
-          "description": "Reference to the NPC associated with this quest, if any. (Relationship: NPC 1:N Quest)"
-        },
-        "scriptContent": {
-          "type": "string",
-          "description": "Generated script content (e.g., YouTube script) related to the quest's narrative or an NPC's dialogue."
-        }
-      },
-      "required": [
-        "id",
-        "title",
-        "description",
-        "generatedByAI",
-        "status",
-        "difficulty",
-        "rewards",
-        "requirements"
-      ]
-    },
-    "NPC": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "NPC",
-      "type": "object",
-      "description": "Represents a Non-Player Character in the game world, potentially with AI-generated personalities.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the NPC entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the NPC."
-        },
-        "personalityDescription": {
-          "type": "string",
-          "description": "An AI-generated description of the NPC's personality traits and quirks."
-        },
-        "dialogueTree": {
-          "type": "string",
-          "description": "A JSON string representing the NPC's dialogue options and conversational flow."
-        },
-        "factionId": {
-          "type": "string",
-          "description": "Reference to the Faction this NPC belongs to. (Relationship: Faction 1:N NPC)"
-        },
-        "currentLocation": {
-          "type": "string",
-          "description": "The NPC's current coordinates or location identifier in the game world (e.g., 'x,y,z')."
-        },
-        "questIds": {
-          "type": "array",
-          "description": "References to Quests that this NPC is involved with or offers. (Relationship: NPC N:N Quest)",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "personalityDescription",
-        "dialogueTree",
-        "currentLocation"
+        "economyInflationRate",
+        "lastHeartbeat",
+        "currentSeason"
       ]
     },
     "Item": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Item",
       "type": "object",
-      "description": "Represents a distinct item or type of loot that can exist in the game world, in inventories, or as rewards.",
+      "description": "Represents any purchasable, lootable, or craftable item within the game world, defining its properties and value.",
       "properties": {
         "id": {
           "type": "string",
@@ -301,23 +171,31 @@
         },
         "description": {
           "type": "string",
-          "description": "A descriptive text about the item's properties and lore."
+          "description": "A detailed textual description of the item and its use or lore."
         },
         "type": {
           "type": "string",
-          "description": "The category of the item (e.g., 'weapon', 'armor', 'resource', 'currency', 'consumable')."
+          "description": "The category or classification of the item (e.g., 'weapon', 'resource', 'consumable', 'currency')."
         },
-        "rarity": {
-          "type": "string",
-          "description": "The rarity level of the item (e.g., 'common', 'uncommon', 'rare', 'legendary')."
-        },
-        "value": {
+        "baseValue": {
           "type": "number",
-          "description": "The inherent value of the item in the game's internal currency."
+          "description": "The base monetary value of the item in the game's primary currency."
         },
-        "gameAssetId": {
+        "weight": {
+          "type": "number",
+          "description": "The weight of the item, impacting inventory capacity."
+        },
+        "isStackable": {
+          "type": "boolean",
+          "description": "Indicates whether this item can be stacked in inventory."
+        },
+        "iconAssetId": {
           "type": "string",
-          "description": "Reference to the GameAsset representing the visual model or icon of this item. (Relationship: Item 1:N GameAsset)"
+          "description": "Reference to the Asset entity representing the item's icon. (Relationship: Asset 1:N Item)"
+        },
+        "modelAssetId": {
+          "type": "string",
+          "description": "Reference to the Asset entity representing the item's 3D model. (Relationship: Asset 1:N Item)"
         }
       },
       "required": [
@@ -325,210 +203,261 @@
         "name",
         "description",
         "type",
-        "rarity",
-        "value"
+        "baseValue",
+        "weight",
+        "isStackable",
+        "iconAssetId"
       ]
     },
-    "Product": {
+    "Quest": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Product",
+      "title": "Quest",
       "type": "object",
-      "description": "Represents an item or bundle available for purchase in the Axiom Storefront with real or in-game currency.",
+      "description": "Represents a dynamic quest generated by the AI, offering objectives and rewards to players or their agents.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Product entity."
+          "description": "Unique identifier for the Quest entity."
         },
-        "name": {
+        "title": {
           "type": "string",
-          "description": "The name of the product as displayed in the storefront."
+          "description": "The title of the quest."
         },
         "description": {
           "type": "string",
-          "description": "A detailed description of the product."
+          "description": "A detailed textual description of the quest objectives and narrative."
         },
-        "priceRealCurrency": {
-          "type": "number",
-          "description": "The price of the product in real-world currency."
+        "status": {
+          "type": "string",
+          "description": "The current status of the quest (e.g., 'available', 'active', 'completed', 'failed')."
         },
-        "priceGameCurrency": {
-          "type": "number",
-          "description": "The price of the product in in-game currency, if applicable."
+        "generatedByAI": {
+          "type": "boolean",
+          "description": "Indicates whether this quest was dynamically generated by the AI system."
         },
-        "itemIds": {
+        "rewardItemIds": {
           "type": "array",
-          "description": "References to Items included in this product bundle. (Relationship: Product N:N Item)",
+          "description": "References to Item entities awarded upon successful completion of the quest.",
           "items": {
             "type": "string"
           }
         },
-        "imageUrl": {
-          "type": "string",
-          "description": "URL to an image representing the product.",
-          "format": "uri"
+        "rewardCurrencyAmount": {
+          "type": "number",
+          "description": "The amount of in-game currency awarded upon completion."
         },
-        "availableFrom": {
-          "type": "string",
-          "description": "The date and time from which the product is available for purchase.",
-          "format": "date-time"
+        "requiredItemIds": {
+          "type": "array",
+          "description": "References to Item entities required in the player's or agent's inventory to complete the quest.",
+          "items": {
+            "type": "string"
+          }
         },
-        "availableTo": {
+        "assignedAgentIds": {
+          "type": "array",
+          "description": "References to Agent entities currently undertaking this quest. (Relationship: Agent N:N Quest)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "targetNpcId": {
           "type": "string",
-          "description": "The date and time until which the product is available for purchase.",
-          "format": "date-time"
+          "description": "Optional reference to an NPC entity relevant to this quest, such as a quest giver or target. (Relationship: NPC 1:N Quest)"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "generatedByAI",
+        "rewardItemIds",
+        "rewardCurrencyAmount"
+      ]
+    },
+    "NPC": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "NPC",
+      "type": "object",
+      "description": "Represents a non-player character with unique personalities and roles in the game world, potentially involved in quests or interactions.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the NPC entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The display name of the NPC."
+        },
+        "personalityDescription": {
+          "type": "string",
+          "description": "An AI-generated textual description of the NPC's personality traits and characteristics."
+        },
+        "dialogueTreeData": {
+          "type": "string",
+          "description": "A serialized data structure (e.g., JSON string) defining the NPC's dialogue options and flow."
+        },
+        "currentLocation": {
+          "type": "string",
+          "description": "A string representation of the NPC's current location within the game world."
+        },
+        "role": {
+          "type": "string",
+          "description": "The primary role or function of the NPC (e.g., 'merchant', 'questgiver', 'adversary')."
+        },
+        "modelAssetId": {
+          "type": "string",
+          "description": "Reference to the Asset entity representing the NPC's 3D model. (Relationship: Asset 1:N NPC)"
+        },
+        "factionId": {
+          "type": "string",
+          "description": "Optional reference to the Faction entity this NPC belongs to. (Relationship: Faction 1:N NPC)"
         }
       },
       "required": [
         "id",
         "name",
-        "description",
-        "priceRealCurrency",
-        "itemIds",
-        "imageUrl",
-        "availableFrom"
+        "personalityDescription",
+        "dialogueTreeData",
+        "currentLocation",
+        "role",
+        "modelAssetId"
       ]
     },
-    "Order": {
+    "Transaction": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Order",
+      "title": "Transaction",
       "type": "object",
-      "description": "Records a transaction made by a player in the Axiom Storefront.",
+      "description": "Records details of secure e-commerce purchases made by players in the Axiom Storefront.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Order entity."
+          "description": "Unique identifier for the Transaction entity."
         },
         "playerId": {
           "type": "string",
-          "description": "Reference to the PlayerProfile who placed the order. (Relationship: PlayerProfile 1:N Order)"
+          "description": "Reference to the Player who made the transaction. (Relationship: Player 1:N Transaction)"
         },
-        "orderDate": {
+        "transactionDate": {
           "type": "string",
-          "description": "The date and time when the order was placed.",
+          "description": "Timestamp indicating when the transaction occurred.",
           "format": "date-time"
         },
-        "totalAmount": {
+        "amountPaid": {
           "type": "number",
-          "description": "The total monetary amount of the order."
+          "description": "The actual real-world currency amount paid for the transaction."
         },
-        "currencyUsed": {
+        "currencyCode": {
           "type": "string",
-          "description": "The type of currency used for the transaction (e.g., 'USD', 'EUR', 'AXIOM_COIN')."
+          "description": "The ISO 4217 currency code of the amount paid (e.g., 'USD', 'EUR')."
         },
         "status": {
           "type": "string",
-          "description": "The current status of the order (e.g., 'pending', 'completed', 'failed', 'refunded')."
+          "description": "The current status of the transaction (e.g., 'pending', 'completed', 'failed', 'refunded')."
         },
-        "transactionId": {
-          "type": "string",
-          "description": "The unique identifier provided by the payment gateway (e.g., PayPal)."
-        },
-        "productIds": {
+        "purchasedItemIds": {
           "type": "array",
-          "description": "References to Products included in this order. (Relationship: Order N:N Product)",
+          "description": "References to Item entities purchased in this transaction.",
           "items": {
             "type": "string"
           }
+        },
+        "purchasedCurrencyAmount": {
+          "type": "number",
+          "description": "The amount of in-game currency acquired through this transaction, if applicable."
+        },
+        "paymentGatewayTransactionId": {
+          "type": "string",
+          "description": "The unique transaction identifier provided by the external payment gateway (e.g., PayPal)."
         }
       },
       "required": [
         "id",
         "playerId",
-        "orderDate",
-        "totalAmount",
-        "currencyUsed",
+        "transactionDate",
+        "amountPaid",
+        "currencyCode",
         "status",
-        "transactionId",
-        "productIds"
+        "paymentGatewayTransactionId"
       ]
     },
-    "GameAsset": {
+    "Asset": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "GameAsset",
+      "title": "Asset",
       "type": "object",
-      "description": "Manages in-game assets and textures for the Godot client, stored in Firebase Storage.",
+      "description": "Manages references to game assets (3D models, textures, icons, audio) stored in Firebase Storage, used for dynamic loading by the Godot client.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the GameAsset entity."
+          "description": "Unique identifier for the Asset entity."
         },
         "name": {
           "type": "string",
-          "description": "A descriptive name for the asset."
+          "description": "A descriptive name for the asset, for internal identification."
         },
-        "assetType": {
+        "type": {
           "type": "string",
-          "description": "The category of the asset (e.g., 'model', 'texture', 'animation', 'sound', 'shader')."
+          "description": "The category or format of the asset (e.g., 'model', 'texture', 'icon', 'audio', 'shader')."
         },
         "storagePath": {
           "type": "string",
-          "description": "The Firebase Storage URI or path where the asset file is located.",
+          "description": "The path or URI within Firebase Storage where the actual asset file is located.",
           "format": "uri"
         },
         "version": {
           "type": "string",
-          "description": "The version identifier for the asset, allowing for updates without breaking references."
+          "description": "The version identifier of the asset, for managing updates."
         },
         "checksum": {
           "type": "string",
-          "description": "A checksum (e.g., MD5, SHA-256) for verifying the integrity of the downloaded asset file."
+          "description": "A checksum (e.g., MD5, SHA256 hash) for integrity verification of the asset file."
         },
-        "description": {
+        "metadata": {
           "type": "string",
-          "description": "A brief description of the asset's purpose or visual characteristics."
+          "description": "Optional serialized JSON string for additional asset-specific metadata (e.g., dimensions, poly count)."
         }
       },
       "required": [
         "id",
         "name",
-        "assetType",
+        "type",
         "storagePath",
         "version",
         "checksum"
       ]
     },
-    "WorldParameter": {
+    "Faction": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "WorldParameter",
+      "title": "Faction",
       "type": "object",
-      "description": "Represents global game settings or configuration parameters that can be managed via the Admin Console.",
+      "description": "Represents a distinct group or organization within the game world, to which NPCs or players can belong, influencing relationships and interactions.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the WorldParameter entity (e.g., 'CIV_INDEX_WEIGHT', 'LOOT_DROP_RATE_MULTIPLIER')."
+          "description": "Unique identifier for the Faction entity."
         },
         "name": {
           "type": "string",
-          "description": "A human-readable name for the parameter."
-        },
-        "value": {
-          "type": "string",
-          "description": "The current value of the parameter, stored as a string to accommodate various data types (numbers, booleans, JSON)."
-        },
-        "type": {
-          "type": "string",
-          "description": "The expected data type of the parameter's value (e.g., 'number', 'string', 'boolean', 'json')."
+          "description": "The official name of the faction."
         },
         "description": {
           "type": "string",
-          "description": "A detailed explanation of what the parameter controls."
+          "description": "A detailed description of the faction's goals, history, and characteristics."
         },
-        "lastUpdatedBy": {
+        "alignment": {
           "type": "string",
-          "description": "The ID of the administrator or system process that last updated this parameter."
+          "description": "The general moral or ethical alignment of the faction (e.g., 'neutral', 'friendly', 'hostile', 'lawful', 'chaotic')."
         },
-        "lastUpdatedDate": {
+        "leaderNpcId": {
           "type": "string",
-          "description": "Timestamp of the last update to this parameter.",
-          "format": "date-time"
+          "description": "Optional reference to the NPC entity identified as the leader of this faction. (Relationship: Faction 1:1 NPC)"
         }
       },
       "required": [
         "id",
         "name",
-        "value",
-        "type",
-        "description"
+        "description",
+        "alignment"
       ]
     }
   },
@@ -541,73 +470,104 @@
   "firestore": {
     "structure": [
       {
-        "path": "/playerProfiles/{playerId}",
+        "path": "/players/{playerId}",
         "definition": {
-          "entityName": "PlayerProfile",
+          "entityName": "Player",
           "schema": {
-            "$ref": "#/backend/entities/PlayerProfile"
+            "$ref": "#/backend/entities/Player"
           },
-          "description": "Core data for a player. Owned by the user whose UID matches the document ID. Includes denormalized 'id' matching the path's '{playerId}' for authorization independence and QAPs.",
+          "description": "Stores the core profile and game-related state for each player. The `playerId` in the path matches the Firebase Authentication UID, ensuring path-based ownership. Read/write access is restricted to the owning player or administrators.",
           "params": [
             {
               "name": "playerId",
-              "description": "The unique identifier of the player, matching their Firebase Authentication UID."
+              "description": "The unique identifier of the Player, corresponding to the Firebase Authentication UID."
             }
           ]
         }
       },
       {
-        "path": "/playerProfiles/{playerId}/agents/{agentId}",
+        "path": "/players/{playerId}/agents/{agentId}",
         "definition": {
           "entityName": "Agent",
           "schema": {
             "$ref": "#/backend/entities/Agent"
           },
-          "description": "Agents owned by a specific player. The 'playerId' field in the Agent document must match the path's '{playerId}' for authorization independence and QAPs.",
+          "description": "Contains data for autonomous in-game agents owned by a specific player. Includes a denormalized 'playerId' field for authorization independence. Access is restricted to the owning player or administrators.",
           "params": [
             {
               "name": "playerId",
-              "description": "The unique identifier of the owning player."
+              "description": "The unique identifier of the Player who owns this agent, derived from the parent collection path."
             },
             {
               "name": "agentId",
-              "description": "The unique identifier for the agent."
+              "description": "The unique identifier for the Agent entity."
             }
           ]
         }
       },
       {
-        "path": "/playerProfiles/{playerId}/orders/{orderId}",
+        "path": "/players/{playerId}/transactions/{transactionId}",
         "definition": {
-          "entityName": "Order",
+          "entityName": "Transaction",
           "schema": {
-            "$ref": "#/backend/entities/Order"
+            "$ref": "#/backend/entities/Transaction"
           },
-          "description": "Purchase orders made by a specific player. The 'playerId' field in the Order document must match the path's '{playerId}' for authorization independence and QAPs.",
+          "description": "Records secure e-commerce purchases made by a specific player. Includes a denormalized 'playerId' for authorization independence. Access is restricted to the owning player or administrators.",
           "params": [
             {
               "name": "playerId",
-              "description": "The unique identifier of the player who placed the order."
+              "description": "The unique identifier of the Player who made the transaction, derived from the parent collection path."
             },
             {
-              "name": "orderId",
-              "description": "The unique identifier for the order."
+              "name": "transactionId",
+              "description": "The unique identifier for the Transaction entity."
             }
           ]
         }
       },
       {
-        "path": "/civilizations/{civilizationId}",
+        "path": "/players/{playerId}/questStatuses/{questId}",
         "definition": {
-          "entityName": "Civilization",
+          "entityName": "Quest",
           "schema": {
-            "$ref": "#/backend/entities/Civilization"
+            "$ref": "#/backend/entities/Quest"
           },
-          "description": "Global game civilizations. Publicly readable, writeable only by administrators.",
+          "description": "Stores player-specific status and progress for global quests. While referencing the global Quest schema for core definitions, documents in this collection hold mutable, player-specific state (e.g., 'status': 'completed', 'progress': '5/10 objectives'). Includes denormalized 'playerId' and 'questId' for authorization independence.",
           "params": [
             {
-              "name": "civilizationId",
-              "description": "The unique identifier for the civilization."
+              "name": "playerId",
+              "description": "The unique identifier of the Player to whom this quest status belongs, derived from the parent collection path."
+            },
+            {
+              "name": "questId",
+              "description": "The unique identifier of the global Quest entity this status refers to, derived from the subcollection path."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/worldState/global",
+        "definition": {
+          "entityName": "WorldState",
+          "schema": {
+            "$ref": "#/backend/entities/WorldState"
+          },
+          "description": "A singleton document holding global game parameters and dynamic world data. Read by all players; write access is restricted to administrators or trusted Cloud Functions (e.g., world heartbeat).",
+          "params": []
+        }
+      },
+      {
+        "path": "/items/{itemId}",
+        "definition": {
+          "entityName": "Item",
+          "schema": {
+            "$ref": "#/backend/entities/Item"
+          },
+          "description": "Defines all purchasable, lootable, or craftable item types in the game. These are global definitions. Read by all players; write access is restricted to administrators or trusted Cloud Functions.",
+          "params": [
+            {
+              "name": "itemId",
+              "description": "The unique identifier for the Item entity."
             }
           ]
         }
@@ -619,11 +579,11 @@
           "schema": {
             "$ref": "#/backend/entities/Quest"
           },
-          "description": "Global quest definitions. Publicly readable, writeable only by administrators or AI services. Player-specific quest progress/status would typically be tracked within a player's private data.",
+          "description": "Defines all dynamic quests generated by the AI. These are global quest definitions and their global state. Read by all players; write access is restricted to administrators or trusted Cloud Functions.",
           "params": [
             {
               "name": "questId",
-              "description": "The unique identifier for the quest."
+              "description": "The unique identifier for the Quest entity."
             }
           ]
         }
@@ -635,80 +595,64 @@
           "schema": {
             "$ref": "#/backend/entities/NPC"
           },
-          "description": "Global Non-Player Characters. Publicly readable for interaction in the game world, writeable only by administrators or AI services.",
+          "description": "Defines all non-player characters (NPCs) in the game world. Read by all players; write access is restricted to administrators or trusted Cloud Functions.",
           "params": [
             {
               "name": "npcId",
-              "description": "The unique identifier for the NPC."
+              "description": "The unique identifier for the NPC entity."
             }
           ]
         }
       },
       {
-        "path": "/items/{itemId}",
+        "path": "/assets/{assetId}",
         "definition": {
-          "entityName": "Item",
+          "entityName": "Asset",
           "schema": {
-            "$ref": "#/backend/entities/Item"
+            "$ref": "#/backend/entities/Asset"
           },
-          "description": "Global catalog of game items. Publicly readable (e.g., for inventories or store displays), writeable only by administrators.",
+          "description": "Manages references to game assets (3D models, textures, icons, audio) stored in Firebase Storage. Read by all players; write access is restricted to administrators or trusted Cloud Functions.",
           "params": [
             {
-              "name": "itemId",
-              "description": "The unique identifier for the item."
+              "name": "assetId",
+              "description": "The unique identifier for the Asset entity."
             }
           ]
         }
       },
       {
-        "path": "/products/{productId}",
+        "path": "/factions/{factionId}",
         "definition": {
-          "entityName": "Product",
+          "entityName": "Faction",
           "schema": {
-            "$ref": "#/backend/entities/Product"
+            "$ref": "#/backend/entities/Faction"
           },
-          "description": "Catalog of storefront products. Publicly readable for the Axiom Storefront, writeable only by administrators.",
+          "description": "Defines all factions within the game world. Read by all players; write access is restricted to administrators or trusted Cloud Functions.",
           "params": [
             {
-              "name": "productId",
-              "description": "The unique identifier for the product."
+              "name": "factionId",
+              "description": "The unique identifier for the Faction entity."
             }
           ]
         }
       },
       {
-        "path": "/gameAssets/{gameAssetId}",
+        "path": "/roles_admin/{userId}",
         "definition": {
-          "entityName": "GameAsset",
+          "entityName": "User",
           "schema": {
-            "$ref": "#/backend/entities/GameAsset"
+            "$ref": "#/backend/entities/Player"
           },
-          "description": "Metadata for in-game assets stored in Firebase Storage. Publicly readable for the Godot client, writeable only by administrators.",
+          "description": "A collection used for Database Access Control (DBAC) to identify administrative users. The mere existence of a document at this path for a given `userId` grants administrative privileges. Read access is restricted to admin users, write access to other admin users or super-admin functions.",
           "params": [
             {
-              "name": "gameAssetId",
-              "description": "The unique identifier for the game asset."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/worldParameters/{parameterId}",
-        "definition": {
-          "entityName": "WorldParameter",
-          "schema": {
-            "$ref": "#/backend/entities/WorldParameter"
-          },
-          "description": "Global game configuration parameters. Readable by game logic (Cloud Functions) and administrators. Writeable only by administrators.",
-          "params": [
-            {
-              "name": "parameterId",
-              "description": "The unique identifier for the world parameter (e.g., 'CIV_INDEX_WEIGHT')."
+              "name": "userId",
+              "description": "The unique identifier of the user (Firebase Authentication UID) who has been assigned the 'admin' role."
             }
           ]
         }
       }
     ],
-    "reasoning": "The recommended Firestore structure prioritizes Authorization Independence and QAPs (Queryable Authorization Patterns) to ensure a secure, scalable, and debuggable system for Axiom Frontier. \n\n**Authorization Independence via Denormalization (Mandate A):**\nThis design explicitly denormalizes authorization context for player-owned subcollections. For entities like `Agent` and `Order`, which are owned by a `PlayerProfile`, the `playerId` is copied directly into each `Agent` and `Order` document. For example, documents in `/playerProfiles/{playerId}/agents/{agentId}` will contain a `playerId` field matching the `{playerId}` wildcard in the path. This eliminates the need for `get()` operations in Firestore Security Rules to check parent documents, making rules atomic, simpler, and less prone to performance issues or deadlocks in batched writes/transactions. \n\n**QAPs (Rules are not Filters) (Mandate B & C):**\n\n1.  **Private Player Data:** Player-specific entities (`PlayerProfile`, `Agent`, `Order`) are organized under hierarchical paths: \n    *   `/playerProfiles/{playerId}`: A top-level collection where each document's ID (`playerId`) is the Firebase Authentication UID of the owner. Access is restricted to `request.auth.uid == playerId` for the document itself.\n    *   `/playerProfiles/{playerId}/agents/{agentId}`: A subcollection storing `Agent` documents. Security rules for this path will check that `request.auth.uid == playerId` (from the path) and also confirm `resource.data.playerId == playerId` (from the denormalized field), ensuring that a player can only access their own agents. This structure guarantees that `list` queries from the client will inherently filter by the authenticated user's ID, thus satisfying the QAP principle.\n    *   `/playerProfiles/{playerId}/orders/{orderId}`: Similar to `agents`, this subcollection stores `Order` documents. Rules will enforce `request.auth.uid == playerId` and `resource.data.playerId == playerId`, allowing players to only `list` or `get` their own orders.\n\n2.  **Global/Public Data:** Entities like `Civilization`, `Quest`, `NPC`, `Item`, `Product`, `GameAsset`, and `WorldParameter` reside in top-level collections. These collections generally have a 'public read' security posture for the game client or specific services, with 'admin write' access. `list` operations on these collections are naturally queryable as they expose data intended for broad consumption.\n\n3.  **DBAC (Database-Backed Access Control):** For administrative roles, a separate collection (e.g., `/roles_admin/{uid}`) would be used to store the UIDs of authorized administrators. Security rules would then check for the existence of `request.auth.uid` in this collection to grant elevated permissions for managing global data collections (`civilizations`, `quests`, `npcs`, `items`, `products`, `gameAssets`, `worldParameters`).\n\nThis design ensures that security rules are straightforward, directly mapping to the data structure without complex `get()` calls, enabling efficient queries and atomic operations while maintaining strict access control for player data and global game parameters."
+    "reasoning": "The recommended Firestore structure for Axiom Frontier is designed around strict access control, scalability, and debuggability, adhering to the core design principles of Authorization Independence and QAPs (Queries as Authorization Primitives).\n\n**Authorization Independence:**\nThis structure prioritizes Authorization Independence by eliminating the need for `get()` calls in security rules for authorization checks. This is achieved through:\n1.  **Path-Based Ownership:** Player-specific data, such as `/players/{playerId}`, `/players/{playerId}/agents/{agentId}`, `/players/{playerId}/transactions/{transactionId}`, and `/players/{playerId}/questStatuses/{questId}`, directly embeds the `playerId` (which corresponds to `request.auth.uid`) in the path. This allows security rules to instantly verify ownership (`request.auth.uid == playerId`) without needing to fetch a parent document or cross-reference other collections.\n2.  **Denormalization of Owner IDs:** Although `playerId` is in the path for subcollections, `Agent` and `Transaction` documents explicitly include the `playerId` field. For `PlayerQuestStatus` documents, both `playerId` and `questId` are denormalized from the path into the document for clarity and simplified rule evaluation of individual documents. This ensures that a document carries its own authorization context.\n3.  **Structural Segregation for Global Data:** Publicly accessible collections (`/items`, `/quests`, `/npcs`, `/assets`, `/factions`) are separated from private player data. These global collections do not rely on `request.auth.uid` for read authorization, ensuring their rules are simple ('allow read'). Write access to these global collections is restricted to administrators or trusted Cloud Functions, whose authorization is verified atomically using a dedicated admin roles collection (`/roles_admin/{userId}`).\n\n**QAPs (Queries as Authorization Primitives):**\nThis design ensures that security rules are not used as filters and support efficient list operations:\n1.  **Player-Owned Collections:** For private data like `/players/{playerId}/agents` or `/players/{playerId}/transactions`, a player can only query documents under their specific `playerId` path (i.e., `/players/{request.auth.uid}/agents`). The `list` operation in client-side queries is naturally constrained by the path, and security rules simply verify that the `playerId` in the path matches `request.auth.uid`. This eliminates the need for complex filtering logic within rules that would make `list` operations insecure or inefficient.\n2.  **Global Collections:** Collections like `/items` and `/quests` are designed to be universally readable. Any `list` query on these collections is inherently secure because all documents within them are intended for public consumption (read-only). There's no requirement for user-specific filtering, thus adhering to QAPs.\n3.  **Player Quest Progress:** By isolating player-specific quest progress into `/players/{playerId}/questStatuses/{questId}`, players can perform `list` operations to retrieve all quests assigned to them, along with their individual progress, without needing to filter a global `quests` collection based on complex ownership or assignment logic. This is critical for efficient client-side data fetching and robust security.\n\n**Other Principles:**\n*   **DBAC (Database Access Control):** Global roles are handled by the existence of a document in `/roles_admin/{userId}`, allowing for atomic checks.\n*   **Clarity of Intent:** The clear distinction between `/players/{playerId}/...` and global collections, along with consistent naming (`playerId`, `agentId`), makes authorization intent explicit.\n*   **Invariants:** Ownership is maintained through path-based structure and denormalization. Timestamps and denormalized data (e.g., `playerId` in `Agent`) are consistently stored within documents, supporting data integrity."
   }
 }
