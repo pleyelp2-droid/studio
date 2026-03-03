@@ -10,11 +10,13 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Space Grotesk', 'sans-serif'],
         display: ['var(--font-display)', 'serif'],
         heading: ['var(--font-heading)', 'serif'],
-        code: ['monospace'],
+        body: ['var(--font-body)', 'serif'],
+        code: ['var(--font-code)', 'monospace'],
+        sans: ['var(--font-body)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-heading)', 'serif'],
+        mono: ['var(--font-code)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       spacing: {
         'arl-xs': 'var(--sp-xs)',
@@ -58,14 +60,11 @@ export default {
         'arl-blood-dim': 'var(--arl-blood-dim)',
         'arl-sage': 'var(--arl-sage)',
         'arl-sage-bright': 'var(--arl-sage-bright)',
-        'arl-text-primary': 'var(--arl-text-primary)',
-        'arl-text-secondary': 'var(--arl-text-secondary)',
-        'arl-text-muted': 'var(--arl-text-muted)',
-        'arl-text-code': 'var(--arl-text-code)',
-        'arl-ok': 'var(--arl-ok)',
-        'arl-warn': 'var(--arl-warn)',
-        'arl-danger': 'var(--arl-danger)',
-        'arl-ghost': 'var(--arl-ghost)',
+        'axiom-dark': 'var(--arl-void)',
+        'axiom-purple': 'var(--arl-arcane)',
+        'axiom-cyan': 'var(--arl-teal)',
+        'axiom-gold': 'var(--arl-gold)',
+        'soul-fire': 'var(--arl-blood)',
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
@@ -97,13 +96,6 @@ export default {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))',
-        },
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',
           foreground: 'hsl(var(--sidebar-foreground))',
@@ -123,28 +115,6 @@ export default {
         'fast': 'var(--t-fast)',
         'mid': 'var(--t-mid)',
         'slow': 'var(--t-slow)',
-      },
-      keyframes: {
-        'accordion-down': {
-          from: {
-            height: '0',
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-        },
-        'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)',
-          },
-          to: {
-            height: '0',
-          },
-        },
-      },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
       },
     },
   },

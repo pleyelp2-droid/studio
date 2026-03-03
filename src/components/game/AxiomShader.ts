@@ -163,42 +163,42 @@ void main() {
     
     // CITY BIOME
     if (abs(uBiome - 0.0) < 0.1) { 
-        vec3 darkConcrete = vec3(0.1, 0.1, 0.12);
-        vec3 techGrey = vec3(0.15, 0.15, 0.18);
+        vec3 darkConcrete = vec3(0.02, 0.03, 0.06); // ARL Void/Deep mix
+        vec3 techGrey = vec3(0.06, 0.08, 0.15);
         finalColor = mix(darkConcrete, techGrey, noiseBase);
         
-        // Tech Grid
+        // Tech Grid (ARL Teal)
         vec2 grid = abs(fract(vPosition.xz * 0.5 - 0.5) - 0.5) / fwidth(vPosition.xz * 0.5);
         float line = min(grid.x, grid.y);
         float gridPattern = 1.0 - min(line, 1.0);
-        finalColor = mix(finalColor, vec3(0.0, 0.4, 0.6), gridPattern * 0.1);
+        finalColor = mix(finalColor, vec3(0.12, 0.72, 0.72), gridPattern * 0.15);
     } 
     // FOREST
     else if (abs(uBiome - 1.0) < 0.1) {
-        vec3 forestGreen = vec3(0.05, 0.12, 0.04);
-        vec3 brightGreen = vec3(0.12, 0.25, 0.06);
+        vec3 forestGreen = vec3(0.02, 0.05, 0.03);
+        vec3 brightGreen = vec3(0.3, 0.48, 0.37); // ARL Sage
         finalColor = mix(forestGreen, brightGreen, noiseBase);
     }
     // MOUNTAIN
     else if (abs(uBiome - 2.0) < 0.1) {
-        vec3 rock = vec3(0.2, 0.2, 0.22);
-        vec3 snow = vec3(0.8, 0.85, 0.9);
+        vec3 rock = vec3(0.12, 0.16, 0.29); // ARL Border
+        vec3 snow = vec3(0.91, 0.87, 0.78); // ARL Text Primary
         finalColor = mix(rock, snow, smoothstep(2.0, 6.0, vPosition.y + noiseBase * 2.0));
     }
     else {
-        finalColor = mix(vec3(0.15, 0.2, 0.1), vec3(0.25, 0.35, 0.15), noiseBase);
+        finalColor = mix(vec3(0.04, 0.05, 0.1), vec3(0.09, 0.13, 0.25), noiseBase);
     }
 
     finalColor *= lighting;
 
-    // Post-Processing Overlay
+    // Post-Processing Overlay (ARL Arcane Glow)
     vec2 hex_uv = vPosition.xz * 0.2;
     vec3 hex_p1 = fract(hex_uv.xyx / vec3(1.0, 0.866, 0.5));
     float hex_d = abs(hex_p1.z - 0.5);
     hex_d = max(hex_d, abs(dot(hex_p1.xy, vec2(0.5, 0.866)) - 0.5));
     hex_d = max(hex_d, abs(dot(hex_p1.xy, vec2(-0.5, 0.866)) - 0.5));
     float hex_grid = smoothstep(0.01, 0.03, hex_d);
-    finalColor = mix(finalColor, vec3(0.0, 0.8, 1.0), (1.0 - hex_grid) * uStability * 0.1);
+    finalColor = mix(finalColor, vec3(0.48, 0.31, 0.83), (1.0 - hex_grid) * uStability * 0.1);
 
     // Fog
     float fogFactor = smoothstep(uFogNear, uFogFar, vFogDepth);

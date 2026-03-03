@@ -9,10 +9,18 @@ import { POI, Chunk, Monster, Agent, AgentState, ResourceNode } from '../../type
 import { axiomFragmentShader, axiomVertexShader } from './AxiomShader';
 import { createHumanoidModel, HumanoidModel } from './HumanoidModel';
 import { AnimationController } from './AnimationSystem';
-import { attachEquipment, EquipmentSlots } from './EquipmentRenderer';
 import { WorldBuildingService } from '@/services/WorldBuildingService';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
+
+const ARL_COLORS = {
+  void: "#060810",
+  arcane: "#7b4fd4",
+  teal: "#1fb8b8",
+  gold: "#c9a227",
+  blood: "#c0392b",
+  border: "#1e2a4a"
+};
 
 const HighTechMaterial = (color: string, emissive: string = "#000", intensity: number = 1) => {
   return new THREE.MeshStandardMaterial({
@@ -33,11 +41,11 @@ const POIModel = ({ poi }: { poi: POI }) => {
         <group position={[poi.position[0], 2, poi.position[2]]}>
           <mesh castShadow>
             <octahedronGeometry args={[1.5, 0]} />
-            <primitive object={HighTechMaterial("#111", "#60D4FF", 2)} attach="material" />
+            <primitive object={HighTechMaterial(ARL_COLORS.void, ARL_COLORS.teal, 3)} attach="material" />
           </mesh>
           <mesh rotation={[Math.PI / 4, 0, 0]}>
             <torusGeometry args={[2.5, 0.05, 16, 100]} />
-            <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={5} />
+            <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={5} />
           </mesh>
         </group>
       </Float>
@@ -47,23 +55,20 @@ const POIModel = ({ poi }: { poi: POI }) => {
   if (poi.type === 'BUILDING' || poi.type === 'HOUSE' || poi.type === 'FORGE' || poi.type === 'BANK_VAULT') {
     const isMajor = poi.type === 'FORGE' || poi.type === 'BANK_VAULT' || poi.type === 'BUILDING';
     const height = isMajor ? 12 : 4;
-    const color = poi.type === 'FORGE' ? "#ff4400" : poi.type === 'BANK_VAULT' ? "#ffcc00" : "#60D4FF";
+    const color = poi.type === 'FORGE' ? ARL_COLORS.blood : poi.type === 'BANK_VAULT' ? ARL_COLORS.gold : ARL_COLORS.arcane;
 
     return (
       <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
-        {/* Base Foundation */}
         <mesh position={[0, 0.5, 0]} receiveShadow>
           <boxGeometry args={[isMajor ? 6 : 3, 1, isMajor ? 6 : 3]} />
-          <primitive object={HighTechMaterial("#050505")} attach="material" />
+          <primitive object={HighTechMaterial(ARL_COLORS.void)} attach="material" />
         </mesh>
         
-        {/* Main Pillar */}
         <mesh position={[0, height / 2, 0]} castShadow>
           <cylinderGeometry args={[isMajor ? 1.5 : 0.8, isMajor ? 2 : 1.2, height, 6]} />
-          <primitive object={HighTechMaterial("#111")} attach="material" />
+          <primitive object={HighTechMaterial(ARL_COLORS.border)} attach="material" />
         </mesh>
 
-        {/* Energy Bands */}
         {[0.3, 0.6, 0.9].map((h, i) => (
           <mesh key={i} position={[0, height * h, 0]}>
             <torusGeometry args={[isMajor ? 1.8 : 1.0, 0.05, 8, 32]} rotation={[Math.PI/2, 0, 0]} />
@@ -71,7 +76,6 @@ const POIModel = ({ poi }: { poi: POI }) => {
           </mesh>
         ))}
 
-        {/* Top Beacon */}
         <mesh position={[0, height + 0.5, 0]}>
           <sphereGeometry args={[0.3, 8, 8]} />
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={10} />
@@ -88,12 +92,11 @@ const POIModel = ({ poi }: { poi: POI }) => {
       <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
         <mesh position={[0, 3, 0]} castShadow receiveShadow>
           <boxGeometry args={[isGate ? 4 : 20, 6, 2]} />
-          <primitive object={HighTechMaterial("#080808", "#60D4FF", isGate ? 0.5 : 0.1)} attach="material" />
+          <primitive object={HighTechMaterial(ARL_COLORS.void, ARL_COLORS.teal, isGate ? 0.8 : 0.2)} attach="material" />
         </mesh>
-        {/* Glowing Top Edge */}
         <mesh position={[0, 6, 0]}>
           <boxGeometry args={[isGate ? 4.2 : 20.2, 0.1, 2.2]} />
-          <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={2} />
+          <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={2} />
         </mesh>
       </group>
     );
@@ -143,9 +146,9 @@ const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolea
       <primitive object={model.group} />
       <Html position={[0, 2.5, 0]} center distanceFactor={15}>
         <div className="flex flex-col items-center gap-1 pointer-events-none">
-          <div className={`px-2 py-0.5 rounded bg-black/80 border ${isLocal ? 'border-accent' : 'border-white/20'} text-white text-[10px] font-black uppercase tracking-widest whitespace-nowrap shadow-xl`}>
-            {isLocal && <span className="text-accent mr-1">YOU //</span>}
-            {agent.displayName} <span className="text-accent ml-1">LVL {agent.level}</span>
+          <div className={`px-2 py-0.5 rounded bg-black/80 border ${isLocal ? 'border-axiom-cyan' : 'border-white/20'} text-[#e8dfc8] text-[10px] font-black uppercase tracking-widest whitespace-nowrap shadow-xl`}>
+            {isLocal && <span className="text-axiom-cyan mr-1">YOU //</span>}
+            {agent.displayName} <span className="text-axiom-cyan ml-1">LVL {agent.level}</span>
           </div>
         </div>
       </Html>
@@ -156,7 +159,7 @@ const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolea
 const LocalPlayerController = ({ agent }: { agent: Agent }) => {
   const { camera } = useThree();
   const db = useFirestore();
-  const { virtualInput, controlMode, targetPosition, setTargetPosition } = useStore();
+  const { virtualInput, controlMode } = useStore();
   const moveSpeed = 0.45;
   const updateInterval = 500;
   const lastUpdateRef = useRef(0);
@@ -230,7 +233,7 @@ const Terrain = ({ civilizationIndex }: { civilizationIndex: number }) => {
         uIsHovered: { value: false },
         uIsSelected: { value: false },
         uCameraPosition: { value: camera.position },
-        uFogColor: { value: new THREE.Color('#05070a') },
+        uFogColor: { value: new THREE.Color('#060810') },
         uFogNear: { value: 50.0 },
         uFogFar: { value: 300.0 }
     }), [civilizationIndex, camera]);
@@ -279,7 +282,7 @@ export const World3D: React.FC<{ tick: number; civilizationIndex: number; localP
                 <Sky sunPosition={[100, 20, 100]} turbidity={0.1} rayleigh={0.5} />
                 <Environment preset="night" />
                 <ambientLight intensity={0.2} />
-                <pointLight position={[0, 50, 0]} intensity={1} color="#60D4FF" />
+                <pointLight position={[0, 50, 0]} intensity={1} color={ARL_COLORS.teal} />
                 <Terrain civilizationIndex={civilizationIndex} />
                 {localAgent && <LocalPlayerController agent={localAgent} />}
                 {otherAgents.map(agent => <AgentModel key={agent.id} agent={agent} />)}
