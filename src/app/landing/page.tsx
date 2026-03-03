@@ -18,7 +18,8 @@ import {
   Sparkles, 
   Network,
   ChevronRight,
-  Monitor
+  Monitor,
+  Bot
 } from "lucide-react"
 import { useAuth } from "@/firebase"
 import { createUserWithEmailAndPassword } from "firebase/auth"
