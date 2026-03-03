@@ -273,3 +273,33 @@ export interface LoreEntry {
   generatedBy: 'ai' | 'admin';
   createdAt: any;
 }
+
+export type TrustContext =
+  | 'COMBAT_ATTACK'
+  | 'COMBAT_KILL'
+  | 'TRADE'
+  | 'QUEST_TOGETHER'
+  | 'GUILD_JOIN'
+  | 'BETRAYAL'
+  | 'HEAL'
+  | 'GIFT';
+
+export interface TrustRecord {
+  id?: string;
+  agentAId: string;
+  agentBId: string;
+  positiveInteractions: number;
+  negativeInteractions: number;
+  lastInteractionTick: number;
+  lastInteractionType: TrustContext | 'NEUTRAL';
+  trustScore: number;
+  reputationWeight: number;
+  updatedAt: any;
+}
+
+export interface TrustEffect {
+  tradePriceModifier: number;
+  combatAggressionModifier: number;
+  questRewardModifier: number;
+  label: string;
+}
