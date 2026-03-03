@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Core type definitions for the Ouroboros MMO engine.
  * Unified with SQL schema parameters and Firestore blueprints.
@@ -65,6 +64,16 @@ export interface Agent {
   memoryCache: any[];
   awakened: boolean;
   lastUpdate?: any;
+}
+
+export interface Monster {
+  id: string;
+  type: 'SLIME' | 'GOBLIN' | 'VOID_STALKER';
+  level: number;
+  hp: number;
+  maxHp: number;
+  position: [number, number, number];
+  color: string;
 }
 
 export interface MonsterDna {
