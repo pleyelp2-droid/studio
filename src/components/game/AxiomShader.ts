@@ -116,18 +116,18 @@ void main() {
     else if (abs(uBiome - 1.0) < 0.1) finalColor = vec3(0.02, 0.08, 0.04); // Forest
     else if (abs(uBiome - 2.0) < 0.1) finalColor = vec3(0.1, 0.12, 0.2); // Mountain
 
-    // ANTI-ARTIFACT GRID TECH - Precision horizon-fade
+    // OPTIMIZED GRID TECH
     float dist = length(vPosition - uCameraPosition);
-    float gridFade = smoothstep(400.0, 100.0, dist); // Graceful fade at distance to prevent streaks
+    float gridFade = 1.0 - smoothstep(100.0, 250.0, dist); 
     
-    vec2 gridUV = vPosition.xz * 0.4;
+    vec2 gridUV = vPosition.xz * 0.25; 
     vec2 derivative = fwidth(gridUV) + 0.0001; 
     vec2 grid = abs(fract(gridUV - 0.5) - 0.5) / derivative;
     float line = min(grid.x, grid.y);
-    float gridPattern = 1.0 - min(line, 1.0);
+    float gridPattern = 1.0 - smoothstep(0.0, 1.0, line);
     
     vec3 gridColor = vec3(0.12, 0.72, 0.72); // Teal Logic
-    finalColor = mix(finalColor, gridColor, gridPattern * 0.25 * gridFade);
+    finalColor = mix(finalColor, gridColor, gridPattern * 0.3 * gridFade);
 
     // PULSING NEURAL VEINS
     float pulse = sin(vPosition.x * 0.1 + vPosition.z * 0.1 + uTime * 2.0) * 0.5 + 0.5;
