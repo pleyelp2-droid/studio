@@ -1,19 +1,34 @@
-import type {Metadata} from 'next';
+
+'use client';
+
 import './globals.css';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
-
-export const metadata: Metadata = {
-  title: 'Axiom Frontier | Admin Console',
-  description: 'Grand Game Management and Player Hub for Axiom Frontier',
-};
+import { SimulationManager } from '@/components/game/SimulationManager';
+import { useEffect } from 'react';
+import { useStore } from '@/store';
+import { AIService } from '@/services/AIService';
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const addLog = useStore(state => state.addLog);
+
+  // Global Error Listener for "Matrix Corruption"
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error("Matrix Corruption Detected:", event.error);
+      addLog(`Corruption: ${event.message}`, 'ERROR');
+      // Trigger deep diagnostics if possible
+      AIService.diagnose('RUNTIME_ERROR', event.error?.stack);
+    };
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, [addLog]);
+
   return (
     <html lang="en" className="dark">
       <head>
@@ -24,6 +39,7 @@ export default function RootLayout({
       <body className="font-body antialiased bg-background text-foreground">
         <FirebaseClientProvider>
           <SidebarProvider>
+            <SimulationManager />
             {children}
           </SidebarProvider>
           <Toaster />

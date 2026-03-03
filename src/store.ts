@@ -20,12 +20,25 @@ interface GameState {
   logs: LogEntry[];
   selectedPoiId: string | null;
   
+  // User & Auth State
+  user: { id: string; name: string; email: string } | null;
+  isAxiomAuthenticated: boolean;
+  userApiKey: string | null;
+  showAdmin: boolean;
+  showDeveloperTools: boolean;
+
   // Control State
   isMobile: boolean;
   controlMode: ControlMode;
   virtualInput: { x: number; z: number };
   targetPosition: { x: number; z: number } | null;
 
+  // Actions
+  setUser: (user: { id: string; name: string; email: string } | null) => void;
+  setAxiomAuthenticated: (is: boolean) => void;
+  setUserApiKey: (key: string | null) => void;
+  toggleAdmin: (show: boolean) => void;
+  toggleDeveloperTools: (show: boolean) => void;
   setIsMobile: (is: boolean) => void;
   setControlMode: (mode: ControlMode) => void;
   setVirtualInput: (input: { x: number; z: number }) => void;
@@ -47,11 +60,22 @@ export const useStore = create<GameState>((set) => ({
   logs: [],
   selectedPoiId: null,
   
+  user: null,
+  isAxiomAuthenticated: false,
+  userApiKey: null,
+  showAdmin: false,
+  showDeveloperTools: false,
+
   isMobile: false,
   controlMode: 'KEYBOARD',
   virtualInput: { x: 0, z: 0 },
   targetPosition: null,
 
+  setUser: (user) => set({ user }),
+  setAxiomAuthenticated: (isAxiomAuthenticated) => set({ isAxiomAuthenticated }),
+  setUserApiKey: (userApiKey) => set({ userApiKey }),
+  toggleAdmin: (showAdmin) => set({ showAdmin }),
+  toggleDeveloperTools: (showDeveloperTools) => set({ showDeveloperTools }),
   setIsMobile: (isMobile) => set({ isMobile, controlMode: isMobile ? 'JOYSTICK' : 'KEYBOARD' }),
   setControlMode: (controlMode) => set({ controlMode }),
   setVirtualInput: (virtualInput) => set({ virtualInput }),
@@ -74,12 +98,3 @@ export const useStore = create<GameState>((set) => ({
   })),
   clearLogs: () => set({ logs: [] }),
 }));
-
-export const skinHashToColors = (hash: string) => {
-  const defaultColors = { skin: '#c68642', eyes: '#223366', hair: '#332211' };
-  if (!hash) return defaultColors;
-  
-  const h = hash.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
-  const color = `hsl(${Math.abs(h) % 360}, 30%, 50%)`;
-  return { ...defaultColors, skin: color };
-};
