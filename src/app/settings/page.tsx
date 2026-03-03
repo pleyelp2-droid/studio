@@ -9,9 +9,9 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { Shield, Save, Power, Loader2 } from "lucide-react"
+import { Shield, Save, Power, Loader2, UserPlus } from "lucide-react"
 import { useFirestore, useDoc, useMemoFirebase, useAuth, useUser } from "@/firebase"
-import { doc, setDoc, serverTimestamp } from "firebase/firestore"
+import { doc, setDoc, serverTimestamp, collection, addDoc } from "firebase/firestore"
 import { signInAnonymously } from "firebase/auth"
 import { useToast } from "@/hooks/use-toast"
 
@@ -25,6 +25,7 @@ export default function SettingsPage() {
 
   const [booting, setBooting] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [seeding, setSeeding] = useState(false)
   const [params, setParams] = useState({
     economy: 500,
     military: 500,
@@ -76,10 +77,7 @@ export default function SettingsPage() {
     setBooting(true)
     const ci = calculateCI()
     try {
-      // Ensure the user is signed in to satisfy Security Rules
       if (!user && auth) await signInAnonymously(auth)
-      
-      // Initialize the world state singleton with starting tick
       await setDoc(worldRef, { 
         ...params, 
         civilizationIndex: ci, 
@@ -95,6 +93,31 @@ export default function SettingsPage() {
     }
   }
 
+  const handleSeedPilots = async () => {
+    if (!db) return
+    setSeeding(true)
+    try {
+      if (!user && auth) await signInAnonymously(auth)
+      const pilots = [
+        { displayName: "Vane_Axiom", level: 42, position: { x: 12.5, y: 0, z: -5.2 } },
+        { displayName: "Silo_Echo", level: 18, position: { x: -8.1, y: 0, z: 15.4 } },
+        { displayName: "Prophet_7", level: 99, position: { x: 0, y: 0, z: 0 } },
+        { displayName: "Ghost_Unit", level: 5, position: { x: 22.1, y: 0, z: -30.0 } },
+      ]
+      for (const pilot of pilots) {
+        await addDoc(collection(db, "players"), {
+          ...pilot,
+          createdAt: new Date().toISOString()
+        })
+      }
+      toast({ title: "Pilots Synced", description: "Live signatures have been recorded in the neural database." })
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Sync Error", description: e.message })
+    } finally {
+      setSeeding(false)
+    }
+  }
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <AppSidebar />
@@ -105,6 +128,15 @@ export default function SettingsPage() {
             <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight">World Configuration</h1>
           </div>
           <div className="flex gap-4">
+            <Button 
+              variant="outline" 
+              onClick={handleSeedPilots} 
+              disabled={seeding}
+              className="border-muted-foreground/20 text-muted-foreground hover:bg-secondary/50 gap-3 font-black text-xs uppercase italic tracking-widest"
+            >
+              {seeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+              Seed Pilots
+            </Button>
             <Button 
               variant="outline" 
               onClick={handleBootEngine} 
