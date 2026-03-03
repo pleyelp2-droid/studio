@@ -32,6 +32,19 @@
         "lastUpdate": { "type": "string", "format": "date-time" }
       }
     },
+    "AgentTrust": {
+      "title": "AgentTrust",
+      "type": "object",
+      "properties": {
+        "agentAId": { "type": "string" },
+        "agentBId": { "type": "string" },
+        "positiveInteractions": { "type": "number" },
+        "negativeInteractions": { "type": "number" },
+        "trustScore": { "type": "number" },
+        "reputationWeight": { "type": "number" },
+        "lastInteractionTick": { "type": "number" }
+      }
+    },
     "Chunk": {
       "title": "Chunk",
       "type": "object",
@@ -117,6 +130,28 @@
         "infrastructure": { "type": "array" },
         "lastUpdate": { "type": "string", "format": "date-time" }
       }
+    },
+    "MonsterDna": {
+      "title": "MonsterDna",
+      "type": "object",
+      "properties": {
+        "monsterId": { "type": "string" },
+        "morphology": { "type": "number" },
+        "aggressionGene": { "type": "number" },
+        "speedGene": { "type": "number" },
+        "mutationFactor": { "type": "number" },
+        "isElite": { "type": "boolean" }
+      }
+    },
+    "RecursionState": {
+      "title": "RecursionState",
+      "type": "object",
+      "properties": {
+        "recursionLevel": { "type": "number" },
+        "biomeShiftModifier": { "type": "number" },
+        "mutationRateModifier": { "type": "number" },
+        "economicVolatilityModifier": { "type": "number" }
+      }
     }
   },
   "auth": {
@@ -126,6 +161,10 @@
     "/players/{playerId}": {
       "schema": { "$ref": "#/entities/Agent" },
       "description": "Neural entity data."
+    },
+    "/agentTrust/{trustId}": {
+      "schema": { "$ref": "#/entities/AgentTrust" },
+      "description": "Inter-agent interaction data."
     },
     "/chunks/{chunkId}": {
       "schema": { "$ref": "#/entities/Chunk" },
@@ -150,6 +189,14 @@
     "/factions/{factionId}": {
       "schema": { "$ref": "#/entities/Faction" },
       "description": "Hierarchy data."
+    },
+    "/monsterDna/{dnaId}": {
+      "schema": { "$ref": "#/entities/MonsterDna" },
+      "description": "Genetic persistence."
+    },
+    "/recursionState/{chunkId}": {
+      "schema": { "$ref": "#/entities/RecursionState" },
+      "description": "Dimensional state."
     },
     "/worldState/global": {
       "schema": { "type": "object" },

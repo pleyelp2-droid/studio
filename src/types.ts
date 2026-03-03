@@ -66,6 +66,17 @@ export interface Agent {
   lastUpdate?: any;
 }
 
+export interface AgentTrust {
+  id: string;
+  agentAId: string;
+  agentBId: string;
+  positiveInteractions: number;
+  negativeInteractions: number;
+  trustScore: number;
+  reputationWeight: number;
+  lastInteractionTick: number;
+}
+
 export interface Faction {
   id: string;
   name: string;
@@ -77,6 +88,16 @@ export interface Faction {
   territory: string[];
   infrastructure: string[];
   lastUpdate: any;
+}
+
+export interface MonsterDna {
+  id: string;
+  monsterId: string;
+  morphology: number;
+  aggressionGene: number;
+  speedGene: number;
+  mutationFactor: number;
+  isElite: boolean;
 }
 
 export type ItemRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'AXIOMATIC';
