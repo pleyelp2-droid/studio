@@ -21,6 +21,8 @@ export enum AgentState {
   MOUNTED = 'MOUNTED',
 }
 
+export type Language = 'EN' | 'DE' | 'RU' | 'TR' | 'FR' | 'ES' | 'ZH' | 'GR' | 'AR';
+
 export interface ThinkingMatrix {
   personality: string;
   currentLongTermGoal: string;
@@ -103,7 +105,7 @@ export const MONSTER_TEMPLATES: Record<string, any> = {
 
 export interface Agent {
   id: string;
-  name: string; // Used in UI code provided
+  name: string; 
   displayName: string;
   npcClass: string;
   race?: string;
@@ -113,7 +115,7 @@ export interface Agent {
   energy: number;
   maxEnergy: number;
   integrity: number; // 0 to 1
-  xp: number; // Used in UI code provided
+  xp: number; 
   exp: number; // For compatibility
   insightPoints: number;
   awakeningProgress: number; // 0 to 100

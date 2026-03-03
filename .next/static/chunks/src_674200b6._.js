@@ -999,7 +999,7 @@ const CROSSFADE_DURATION = 0.3;
 function createIdleClip(bones) {
     const duration = 2.0;
     const fps = 30;
-    const numFrames = duration * fps;
+    const numFrames = Math.floor(duration * fps);
     const times = [];
     for(let i = 0; i <= numFrames; i++){
         times.push(i / numFrames * duration);
@@ -1047,7 +1047,7 @@ function createIdleClip(bones) {
 function createWalkClip(bones) {
     const duration = 1.0;
     const fps = 30;
-    const numFrames = duration * fps;
+    const numFrames = Math.floor(duration * fps);
     const times = [];
     for(let i = 0; i <= numFrames; i++){
         times.push(i / numFrames * duration);
@@ -1114,7 +1114,7 @@ function createWalkClip(bones) {
 function createRunClip(bones) {
     const duration = 0.6;
     const fps = 30;
-    const numFrames = Math.round(duration * fps);
+    const numFrames = Math.floor(duration * fps);
     const times = [];
     for(let i = 0; i <= numFrames; i++){
         times.push(i / numFrames * duration);
@@ -1371,7 +1371,9 @@ class AnimationController {
         if (!nextAction) return;
         nextAction.reset();
         nextAction.play();
-        this.currentAction.crossFadeTo(nextAction, CROSSFADE_DURATION, true);
+        if (this.currentAction) {
+            this.currentAction.crossFadeTo(nextAction, CROSSFADE_DURATION, true);
+        }
         this.currentAction = nextAction;
         this.currentName = name;
     }
@@ -1397,12 +1399,11 @@ class AnimationController {
         this.mixer = new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$three$2f$build$2f$three$2e$core$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AnimationMixer"](mesh);
         this.actions = {};
         for (const [name, clip] of Object.entries(clips)){
+            if (!clip) continue;
             const action = this.mixer.clipAction(clip);
             if (name === 'death') {
                 action.setLoop(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$three$2f$build$2f$three$2e$core$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["LoopOnce"], 1);
                 action.clampWhenFinished = true;
-            } else if (name === 'attack') {
-                action.setLoop(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$three$2f$build$2f$three$2e$core$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["LoopRepeat"], Infinity);
             } else {
                 action.setLoop(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$three$2f$build$2f$three$2e$core$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["LoopRepeat"], Infinity);
             }
@@ -1410,7 +1411,7 @@ class AnimationController {
         }
         this.currentName = 'idle';
         this.currentAction = this.actions.idle;
-        this.currentAction.play();
+        if (this.currentAction) this.currentAction.play();
     }
 }
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
@@ -2138,16 +2139,22 @@ const AgentModel = (param)=>{
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "AgentModel.useEffect": ()=>{
             var _agent_appearance, _agent_appearance1;
+            // Safely create model and animation controller
             const humanoid = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$game$2f$HumanoidModel$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createHumanoidModel"])({
                 skinTone: ((_agent_appearance = agent.appearance) === null || _agent_appearance === void 0 ? void 0 : _agent_appearance.skinTone) || '#c68642',
                 bodyScale: (((_agent_appearance1 = agent.appearance) === null || _agent_appearance1 === void 0 ? void 0 : _agent_appearance1.bodyScale) || 1.0) + agent.level * 0.01
             });
-            setModel(humanoid);
-            const controller = new __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$game$2f$AnimationSystem$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AnimationController"](humanoid.mesh, humanoid.bones);
-            setAnimController(controller);
-            return ({
-                "AgentModel.useEffect": ()=>controller.dispose()
-            })["AgentModel.useEffect"];
+            if (humanoid && humanoid.mesh) {
+                setModel(humanoid);
+                const clips = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$game$2f$AnimationSystem$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createAnimationClips"])(humanoid.bones);
+                const controller = new __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$game$2f$AnimationSystem$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AnimationController"](humanoid.mesh, clips);
+                setAnimController(controller);
+                return ({
+                    "AgentModel.useEffect": ()=>{
+                        controller.dispose();
+                    }
+                })["AgentModel.useEffect"];
+            }
         }
     }["AgentModel.useEffect"], [
         agent.id,
@@ -2157,7 +2164,9 @@ const AgentModel = (param)=>{
     ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "AgentModel.useEffect": ()=>{
-            if (animController) animController.playForState(agent.state || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AgentState"].IDLE);
+            if (animController) {
+                animController.playForState(agent.state || __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AgentState"].IDLE);
+            }
         }
     }["AgentModel.useEffect"], [
         agent.state,
@@ -2185,7 +2194,7 @@ const AgentModel = (param)=>{
                 object: model.group
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 163,
+                lineNumber: 173,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$web$2f$Html$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Html"], {
@@ -2201,18 +2210,18 @@ const AgentModel = (param)=>{
                     children: agent.displayName
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 165,
+                    lineNumber: 175,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0))
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 164,
+                lineNumber: 174,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 162,
+        lineNumber: 172,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -2300,16 +2309,18 @@ const LocalPlayerController = (param)=>{
                 const now = Date.now();
                 if (now - lastUpdateRef.current > updateInterval) {
                     lastUpdateRef.current = now;
-                    const ref = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(db, 'players', agent.id);
-                    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["updateDoc"])(ref, {
-                        position: {
-                            x: newPos.x,
-                            y: 0,
-                            z: newPos.z
-                        },
-                        state: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AgentState"].EXPLORING,
-                        lastUpdate: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["serverTimestamp"])()
-                    });
+                    if (db) {
+                        const ref = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(db, 'players', agent.id);
+                        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["updateDoc"])(ref, {
+                            position: {
+                                x: newPos.x,
+                                y: 0,
+                                z: newPos.z
+                            },
+                            state: __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AgentState"].EXPLORING,
+                            lastUpdate: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["serverTimestamp"])()
+                        });
+                    }
                 }
             } else if (agent.state === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AgentState"].EXPLORING) {
                 agent.state = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AgentState"].IDLE;
@@ -2328,7 +2339,7 @@ const LocalPlayerController = (param)=>{
         isLocal: true
     }, void 0, false, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 249,
+        lineNumber: 261,
         columnNumber: 10
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -2411,7 +2422,7 @@ const Terrain = (param)=>{
                 attach: "geometry"
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 278,
+                lineNumber: 290,
                 columnNumber: 13
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("shaderMaterial", {
@@ -2422,13 +2433,13 @@ const Terrain = (param)=>{
                 side: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$three$2f$build$2f$three$2e$core$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DoubleSide"]
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 279,
+                lineNumber: 291,
                 columnNumber: 13
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 275,
+        lineNumber: 287,
         columnNumber: 9
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -2499,7 +2510,7 @@ const World3D = (param)=>{
                     fov: 45
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 299,
+                    lineNumber: 311,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$OrbitControls$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["OrbitControls"], {
@@ -2513,7 +2524,7 @@ const World3D = (param)=>{
                     rotateSpeed: 0.8
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 301,
+                    lineNumber: 313,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$Sky$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Sky"], {
@@ -2526,49 +2537,49 @@ const World3D = (param)=>{
                     rayleigh: 0.2
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 312,
+                    lineNumber: 324,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$Environment$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Environment"], {
                     preset: "night"
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 313,
+                    lineNumber: 325,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ambientLight", {
                     intensity: 0.4
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 314,
+                    lineNumber: 326,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(Terrain, {
                     civilizationIndex: civilizationIndex
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 316,
+                    lineNumber: 328,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 localAgent && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(LocalPlayerController, {
                     agent: localAgent
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 317,
+                    lineNumber: 329,
                     columnNumber: 32
                 }, ("TURBOPACK compile-time value", void 0)),
                 otherAgents.map((a)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AgentModel, {
                         agent: a
                     }, a.id, false, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 318,
+                        lineNumber: 330,
                         columnNumber: 39
                     }, ("TURBOPACK compile-time value", void 0))),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(POILayer, {
                     pois: pois
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 319,
+                    lineNumber: 331,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$ContactShadows$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ContactShadows"], {
@@ -2581,18 +2592,18 @@ const World3D = (param)=>{
                     color: "#000000"
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 321,
+                    lineNumber: 333,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0))
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 298,
+            lineNumber: 310,
             columnNumber: 13
         }, ("TURBOPACK compile-time value", void 0))
     }, void 0, false, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 297,
+        lineNumber: 309,
         columnNumber: 9
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -3112,13 +3123,13 @@ function WorldPreviewPage() {
     _s();
     const db = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useFirestore"])();
     const { user, isUserLoading } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useUser"])();
-    // Use robust explicit selectors
+    // Selector fixed to ensure correct function mapping
+    const isMobile = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])({
+        "WorldPreviewPage.useStore[isMobile]": (state)=>state.device.isMobile
+    }["WorldPreviewPage.useStore[isMobile]"]);
     const setIsMobile = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])({
         "WorldPreviewPage.useStore[setIsMobile]": (state)=>state.setIsMobile
     }["WorldPreviewPage.useStore[setIsMobile]"]);
-    const isMobile = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])({
-        "WorldPreviewPage.useStore[isMobile]": (state)=>state.isMobile
-    }["WorldPreviewPage.useStore[isMobile]"]);
     const isAxiomAuthenticated = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])({
         "WorldPreviewPage.useStore[isAxiomAuthenticated]": (state)=>state.isAxiomAuthenticated
     }["WorldPreviewPage.useStore[isAxiomAuthenticated]"]);
@@ -3131,9 +3142,12 @@ function WorldPreviewPage() {
     const setAgents = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])({
         "WorldPreviewPage.useStore[setAgents]": (state)=>state.setAgents
     }["WorldPreviewPage.useStore[setAgents]"]);
-    const setUser = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])({
-        "WorldPreviewPage.useStore[setUser]": (state)=>state.setUser
-    }["WorldPreviewPage.useStore[setUser]"]);
+    const setUserState = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])({
+        "WorldPreviewPage.useStore[setUserState]": (state)=>state.setUser
+    }["WorldPreviewPage.useStore[setUserState]"]);
+    const setChunks = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])({
+        "WorldPreviewPage.useStore[setChunks]": (state)=>state.setChunks
+    }["WorldPreviewPage.useStore[setChunks]"]);
     const worldRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemoFirebase"])({
         "WorldPreviewPage.useMemoFirebase[worldRef]": ()=>db ? (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(db, "worldState", "global") : null
     }["WorldPreviewPage.useMemoFirebase[worldRef]"], [
@@ -3154,8 +3168,8 @@ function WorldPreviewPage() {
     const [currentEra, setCurrentEra] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("Awaiting Logic Core");
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "WorldPreviewPage.useEffect": ()=>{
-            if (user) {
-                setUser({
+            if (user && setUserState) {
+                setUserState({
                     id: user.uid,
                     name: user.displayName || 'Pilot',
                     email: user.email || ''
@@ -3164,11 +3178,11 @@ function WorldPreviewPage() {
         }
     }["WorldPreviewPage.useEffect"], [
         user,
-        setUser
+        setUserState
     ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "WorldPreviewPage.useEffect": ()=>{
-            if (!userApiKey) {
+            if (!userApiKey && setUserApiKey) {
                 setUserApiKey("MOCK_OUROBOROS_KEY");
             }
         }
@@ -3190,8 +3204,10 @@ function WorldPreviewPage() {
         "WorldPreviewPage.useEffect": ()=>{
             const checkDevice = {
                 "WorldPreviewPage.useEffect.checkDevice": ()=>{
-                    const isTouch = "object" !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-                    setIsMobile(isTouch || window.innerWidth < 1024);
+                    const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                    if (setIsMobile) {
+                        setIsMobile(isTouch || window.innerWidth < 1024);
+                    }
                 }
             }["WorldPreviewPage.useEffect.checkDevice"];
             checkDevice();
@@ -3205,7 +3221,7 @@ function WorldPreviewPage() {
     ]);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "WorldPreviewPage.useEffect": ()=>{
-            if (liveAgents) {
+            if (liveAgents && setAgents) {
                 setAgents(liveAgents);
             }
         }
@@ -3247,16 +3263,19 @@ function WorldPreviewPage() {
                     }["WorldPreviewPage.useEffect"])
                 };
                 const content = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$services$2f$WorldBuildingService$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["WorldBuildingService"].generateAxiomaticContent(mockChunk);
-                __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].getState().setChunks([
-                    mockChunk
-                ]);
+                if (setChunks) {
+                    setChunks([
+                        mockChunk
+                    ]);
+                }
                 __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
                     monsters: content.monsters
                 });
             }
         }
     }["WorldPreviewPage.useEffect"], [
-        worldState
+        worldState,
+        setChunks
     ]);
     if (isUserLoading) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3265,12 +3284,12 @@ function WorldPreviewPage() {
                 className: "h-12 w-12 animate-spin text-accent"
             }, void 0, false, {
                 fileName: "[project]/src/app/world-preview/page.tsx",
-                lineNumber: 119,
+                lineNumber: 125,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/world-preview/page.tsx",
-            lineNumber: 118,
+            lineNumber: 124,
             columnNumber: 7
         }, this);
     }
@@ -3284,7 +3303,7 @@ function WorldPreviewPage() {
                         className: "h-16 w-16 text-destructive mx-auto mb-4 animate-pulse"
                     }, void 0, false, {
                         fileName: "[project]/src/app/world-preview/page.tsx",
-                        lineNumber: 128,
+                        lineNumber: 134,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -3292,7 +3311,7 @@ function WorldPreviewPage() {
                         children: "Neural Link Severed"
                     }, void 0, false, {
                         fileName: "[project]/src/app/world-preview/page.tsx",
-                        lineNumber: 129,
+                        lineNumber: 135,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3300,34 +3319,34 @@ function WorldPreviewPage() {
                         children: "You must establish a neural connection to access the live render viewport."
                     }, void 0, false, {
                         fileName: "[project]/src/app/world-preview/page.tsx",
-                        lineNumber: 130,
+                        lineNumber: 136,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
                         asChild: true,
                         className: "w-full axiom-gradient text-white h-14 rounded-xl font-black italic uppercase tracking-widest",
                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                            href: "/landing",
+                            href: "/",
                             children: "Initialize Link"
                         }, void 0, false, {
                             fileName: "[project]/src/app/world-preview/page.tsx",
-                            lineNumber: 132,
+                            lineNumber: 138,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/world-preview/page.tsx",
-                        lineNumber: 131,
+                        lineNumber: 137,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/world-preview/page.tsx",
-                lineNumber: 127,
+                lineNumber: 133,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/world-preview/page.tsx",
-            lineNumber: 126,
+            lineNumber: 132,
             columnNumber: 7
         }, this);
     }
@@ -3336,7 +3355,7 @@ function WorldPreviewPage() {
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$layout$2f$AppSidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AppSidebar"], {}, void 0, false, {
                 fileName: "[project]/src/app/world-preview/page.tsx",
-                lineNumber: 141,
+                lineNumber: 147,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SidebarInset"], {
@@ -3346,7 +3365,7 @@ function WorldPreviewPage() {
                         onClose: ()=>setShowHandshake(false)
                     }, void 0, false, {
                         fileName: "[project]/src/app/world-preview/page.tsx",
-                        lineNumber: 143,
+                        lineNumber: 149,
                         columnNumber: 27
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("header", {
@@ -3357,7 +3376,7 @@ function WorldPreviewPage() {
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$sidebar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SidebarTrigger"], {}, void 0, false, {
                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                        lineNumber: 147,
+                                        lineNumber: 153,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -3365,13 +3384,13 @@ function WorldPreviewPage() {
                                         children: "Live Render Viewport"
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                        lineNumber: 148,
+                                        lineNumber: 154,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                lineNumber: 146,
+                                lineNumber: 152,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3384,14 +3403,14 @@ function WorldPreviewPage() {
                                                 className: "h-3 w-3"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                lineNumber: 151,
+                                                lineNumber: 157,
                                                 columnNumber: 121
                                             }, this),
                                             " OVERSEER_ACTIVE"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                        lineNumber: 151,
+                                        lineNumber: 157,
                                         columnNumber: 39
                                     }, this),
                                     !isAxiomAuthenticated && userApiKey === "MOCK_OUROBOROS_KEY" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Badge"], {
@@ -3402,14 +3421,14 @@ function WorldPreviewPage() {
                                                 className: "h-3 w-3"
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                lineNumber: 154,
+                                                lineNumber: 160,
                                                 columnNumber: 18
                                             }, this),
                                             " MOCK_AI_MODE"
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                        lineNumber: 153,
+                                        lineNumber: 159,
                                         columnNumber: 16
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3419,32 +3438,32 @@ function WorldPreviewPage() {
                                                 className: "h-3 w-3 ".concat(((_this = worldState) === null || _this === void 0 ? void 0 : _this.tick) ? 'animate-spin text-accent' : 'text-muted-foreground')
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                lineNumber: 158,
+                                                lineNumber: 164,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                 children: ((_this1 = worldState) === null || _this1 === void 0 ? void 0 : _this1.tick) ? 'DETERMINISTIC_SYNC_ACTIVE' : 'SYNC_IDLE'
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                lineNumber: 159,
+                                                lineNumber: 165,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                        lineNumber: 157,
+                                        lineNumber: 163,
                                         columnNumber: 14
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                lineNumber: 150,
+                                lineNumber: 156,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/world-preview/page.tsx",
-                        lineNumber: 145,
+                        lineNumber: 151,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -3464,23 +3483,23 @@ function WorldPreviewPage() {
                                                     className: "h-4 w-4 text-white"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/world-preview/page.tsx",
-                                                    lineNumber: 169,
+                                                    lineNumber: 175,
                                                     columnNumber: 35
                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$maximize$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Maximize2$3e$__["Maximize2"], {
                                                     className: "h-4 w-4 text-white"
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/world-preview/page.tsx",
-                                                    lineNumber: 169,
+                                                    lineNumber: 175,
                                                     columnNumber: 82
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                lineNumber: 168,
+                                                lineNumber: 174,
                                                 columnNumber: 17
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/src/app/world-preview/page.tsx",
-                                            lineNumber: 167,
+                                            lineNumber: 173,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3488,7 +3507,7 @@ function WorldPreviewPage() {
                                             children: [
                                                 isMobile && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$game$2f$MobileControls$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["MobileControls"], {}, void 0, false, {
                                                     fileName: "[project]/src/app/world-preview/page.tsx",
-                                                    lineNumber: 174,
+                                                    lineNumber: 180,
                                                     columnNumber: 30
                                                 }, this),
                                                 isWorldLoading || isAgentsLoading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3497,12 +3516,12 @@ function WorldPreviewPage() {
                                                         className: "h-12 w-12 animate-spin text-accent"
                                                     }, void 0, false, {
                                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                                        lineNumber: 176,
+                                                        lineNumber: 182,
                                                         columnNumber: 103
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/world-preview/page.tsx",
-                                                    lineNumber: 176,
+                                                    lineNumber: 182,
                                                     columnNumber: 19
                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$game$2f$World3D$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["World3D"], {
                                                     tick: ((_this2 = worldState) === null || _this2 === void 0 ? void 0 : _this2.tick) || 0,
@@ -3510,7 +3529,7 @@ function WorldPreviewPage() {
                                                     localPlayerId: user.uid
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/world-preview/page.tsx",
-                                                    lineNumber: 178,
+                                                    lineNumber: 184,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3525,7 +3544,7 @@ function WorldPreviewPage() {
                                                                         className: "h-3 w-3 rounded-full ".concat(((_this4 = worldState) === null || _this4 === void 0 ? void 0 : _this4.tick) ? 'bg-accent heartbeat-pulse shadow-[0_0_15px_rgba(96,212,255,1)]' : 'bg-muted-foreground')
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                                                        lineNumber: 184,
+                                                                        lineNumber: 190,
                                                                         columnNumber: 23
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3536,13 +3555,13 @@ function WorldPreviewPage() {
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                                                        lineNumber: 185,
+                                                                        lineNumber: 191,
                                                                         columnNumber: 23
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                                lineNumber: 183,
+                                                                lineNumber: 189,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
@@ -3550,30 +3569,30 @@ function WorldPreviewPage() {
                                                                 children: currentEra
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                                lineNumber: 187,
+                                                                lineNumber: 193,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                                        lineNumber: 182,
+                                                        lineNumber: 188,
                                                         columnNumber: 19
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/world-preview/page.tsx",
-                                                    lineNumber: 181,
+                                                    lineNumber: 187,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/world-preview/page.tsx",
-                                            lineNumber: 173,
+                                            lineNumber: 179,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/world-preview/page.tsx",
-                                    lineNumber: 166,
+                                    lineNumber: 172,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3590,19 +3609,19 @@ function WorldPreviewPage() {
                                                             className: "h-4 w-4"
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/world-preview/page.tsx",
-                                                            lineNumber: 197,
+                                                            lineNumber: 203,
                                                             columnNumber: 21
                                                         }, this),
                                                         " Logic Core Event Log"
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/world-preview/page.tsx",
-                                                    lineNumber: 196,
+                                                    lineNumber: 202,
                                                     columnNumber: 19
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                lineNumber: 195,
+                                                lineNumber: 201,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -3619,7 +3638,7 @@ function WorldPreviewPage() {
                                                                         children: "Epoch Sync Detected"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                                                        lineNumber: 205,
+                                                                        lineNumber: 211,
                                                                         columnNumber: 27
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3630,13 +3649,13 @@ function WorldPreviewPage() {
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                                                        lineNumber: 206,
+                                                                        lineNumber: 212,
                                                                         columnNumber: 27
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                                lineNumber: 204,
+                                                                lineNumber: 210,
                                                                 columnNumber: 25
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3647,7 +3666,7 @@ function WorldPreviewPage() {
                                                                         children: "Current Era"
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                                                        lineNumber: 209,
+                                                                        lineNumber: 215,
                                                                         columnNumber: 27
                                                                     }, this),
                                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Badge"], {
@@ -3656,13 +3675,13 @@ function WorldPreviewPage() {
                                                                         children: currentEra
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                                                        lineNumber: 210,
+                                                                        lineNumber: 216,
                                                                         columnNumber: 27
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                                lineNumber: 208,
+                                                                lineNumber: 214,
                                                                 columnNumber: 25
                                                             }, this)
                                                         ]
@@ -3673,7 +3692,7 @@ function WorldPreviewPage() {
                                                                 className: "h-8 w-8 text-muted-foreground/20 mx-auto mb-2"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                                lineNumber: 215,
+                                                                lineNumber: 221,
                                                                 columnNumber: 25
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3681,64 +3700,65 @@ function WorldPreviewPage() {
                                                                 children: "Awaiting Core Signal..."
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                                lineNumber: 216,
+                                                                lineNumber: 222,
                                                                 columnNumber: 25
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                                        lineNumber: 214,
+                                                        lineNumber: 220,
                                                         columnNumber: 23
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/src/app/world-preview/page.tsx",
-                                                    lineNumber: 201,
+                                                    lineNumber: 207,
                                                     columnNumber: 20
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/src/app/world-preview/page.tsx",
-                                                lineNumber: 200,
+                                                lineNumber: 206,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/src/app/world-preview/page.tsx",
-                                        lineNumber: 194,
+                                        lineNumber: 200,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/src/app/world-preview/page.tsx",
-                                    lineNumber: 193,
+                                    lineNumber: 199,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/world-preview/page.tsx",
-                            lineNumber: 165,
+                            lineNumber: 171,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/src/app/world-preview/page.tsx",
-                        lineNumber: 164,
+                        lineNumber: 170,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/world-preview/page.tsx",
-                lineNumber: 142,
+                lineNumber: 148,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/world-preview/page.tsx",
-        lineNumber: 140,
+        lineNumber: 146,
         columnNumber: 5
     }, this);
 }
-_s(WorldPreviewPage, "sFsVWf/BKO3YEclrmWaPOQqp8SA=", false, function() {
+_s(WorldPreviewPage, "UP/9QPg0kNobtnvAMOkOxPMwYA8=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useFirestore"],
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useUser"],
+        __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"],
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"],
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"],
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"],

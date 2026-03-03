@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -140,7 +141,7 @@ export default function ContentBrainAdminPage() {
                   <CardContent className="p-8 space-y-8">
                     <section className="space-y-3">
                       <Label className="text-[10px] font-black uppercase text-accent tracking-[0.3em] italic">Quest Briefing</Label>
-                      <p className="text-xs text-white/80 leading-relaxed italic border-l-2 border-accent pl-4">{lastResult.quest.narrative_hook}</p>
+                      <p className="text-xs text-white/80 border-l-2 border-accent pl-4">{lastResult.quest.narrative_hook}</p>
                       <div className="grid grid-cols-2 gap-4 mt-4">
                         <div className="p-3 rounded-lg bg-secondary/20 border border-border">
                           <div className="text-[8px] font-black text-muted-foreground uppercase mb-1">XP Reward</div>
@@ -148,7 +149,7 @@ export default function ContentBrainAdminPage() {
                         </div>
                         <div className="p-3 rounded-lg bg-secondary/20 border border-border">
                           <div className="text-[8px] font-black text-muted-foreground uppercase mb-1">Gold Reward</div>
-                          <div className="text-sm font-headline font-bold text-axiom-gold">+{lastResult.quest.rewards.gold} AXM</div>
+                          <div className="text-sm font-headline font-bold text-axiom-gold">+10 AXM</div>
                         </div>
                       </div>
                     </section>

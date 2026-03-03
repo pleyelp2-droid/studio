@@ -9,7 +9,7 @@ import { useStore } from '../../store';
 import { POI, Agent, AgentState } from '../../types';
 import { axiomFragmentShader, axiomVertexShader } from './AxiomShader';
 import { createHumanoidModel, HumanoidModel } from './HumanoidModel';
-import { AnimationController } from './AnimationSystem';
+import { AnimationController, createAnimationClips } from './AnimationSystem';
 import { WorldBuildingService } from '@/services/WorldBuildingService';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
@@ -134,18 +134,28 @@ const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolea
   const [animController, setAnimController] = useState<AnimationController | null>(null);
 
   useEffect(() => {
+    // Safely create model and animation controller
     const humanoid = createHumanoidModel({
       skinTone: agent.appearance?.skinTone || '#c68642',
       bodyScale: (agent.appearance?.bodyScale || 1.0) + (agent.level * 0.01)
     });
-    setModel(humanoid);
-    const controller = new AnimationController(humanoid.mesh, humanoid.bones);
-    setAnimController(controller);
-    return () => controller.dispose();
+    
+    if (humanoid && humanoid.mesh) {
+      setModel(humanoid);
+      const clips = createAnimationClips(humanoid.bones);
+      const controller = new AnimationController(humanoid.mesh, clips);
+      setAnimController(controller);
+      
+      return () => {
+        controller.dispose();
+      };
+    }
   }, [agent.id, agent.appearance?.skinTone, agent.appearance?.bodyScale, agent.level]);
 
   useEffect(() => {
-    if (animController) animController.playForState(agent.state || AgentState.IDLE);
+    if (animController) {
+      animController.playForState(agent.state || AgentState.IDLE);
+    }
   }, [agent.state, animController]);
 
   useFrame((state, delta) => {
@@ -230,8 +240,10 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
       const now = Date.now();
       if (now - lastUpdateRef.current > updateInterval) {
         lastUpdateRef.current = now;
-        const ref = doc(db, 'players', agent.id);
-        updateDoc(ref, { position: { x: newPos.x, y: 0, z: newPos.z }, state: AgentState.EXPLORING, lastUpdate: serverTimestamp() });
+        if (db) {
+          const ref = doc(db, 'players', agent.id);
+          updateDoc(ref, { position: { x: newPos.x, y: 0, z: newPos.z }, state: AgentState.EXPLORING, lastUpdate: serverTimestamp() });
+        }
       }
     } else if (agent.state === AgentState.EXPLORING) {
       agent.state = AgentState.IDLE;

@@ -971,6 +971,10 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 400px;
 }
 
+.min-h-\[500px\] {
+  min-height: 500px;
+}
+
 .min-h-\[80px\] {
   min-height: 80px;
 }
@@ -981,10 +985,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .min-h-svh {
   min-height: 100svh;
-}
-
-.min-h-\[500px\] {
-  min-height: 500px;
 }
 
 .w-0 {
@@ -1111,6 +1111,10 @@ h1, h2, h3, h4, h5, h6 {
   width: 1px;
 }
 
+.w-\[240px\] {
+  width: 240px;
+}
+
 .w-\[450px\] {
   width: 450px;
 }
@@ -1129,6 +1133,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .w-full {
   width: 100%;
+}
+
+.w-48 {
+  width: 12rem;
 }
 
 .min-w-0 {
@@ -1876,10 +1884,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .border-input {
   border-color: hsl(var(--input));
-}
-
-.border-muted-foreground\/20 {
-  border-color: hsl(var(--muted-foreground) / .2);
 }
 
 .border-orange-500\/30 {
@@ -3232,6 +3236,10 @@ h1, h2, h3, h4, h5, h6 {
   color: rgba(255, 255, 255, .6);
 }
 
+.text-white\/70 {
+  color: rgba(255, 255, 255, .7);
+}
+
 .text-white\/80 {
   color: rgba(255, 255, 255, .8);
 }
@@ -3248,10 +3256,6 @@ h1, h2, h3, h4, h5, h6 {
 .text-yellow-400 {
   --tw-text-opacity: 1;
   color: rgba(250, 204, 21, var(--tw-text-opacity, 1));
-}
-
-.text-white\/70 {
-  color: rgba(255, 255, 255, .7);
 }
 
 .underline {
@@ -4176,6 +4180,10 @@ h1, h2, h3, h4, h5, h6 {
   background-color: hsl(var(--accent) / .1);
 }
 
+.hover\:bg-accent\/20:hover {
+  background-color: hsl(var(--accent) / .2);
+}
+
 .hover\:bg-accent\/5:hover {
   background-color: hsl(var(--accent) / .05);
 }
@@ -4256,10 +4264,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .hover\:bg-secondary\/20:hover {
   background-color: hsl(var(--secondary) / .2);
-}
-
-.hover\:bg-secondary\/50:hover {
-  background-color: hsl(var(--secondary) / .5);
 }
 
 .hover\:bg-secondary\/80:hover {
@@ -4564,7 +4568,15 @@ h1, h2, h3, h4, h5, h6 {
   color: rgba(110, 231, 183, var(--tw-text-opacity, 1));
 }
 
-.group\/menu-item:hover .group-hover\/menu-item\:opacity-100, .group:hover .group-hover\:opacity-100 {
+.group\/menu-item:hover .group-hover\/menu-item\:opacity-100 {
+  opacity: 1;
+}
+
+.group:hover .group-hover\:opacity-10 {
+  opacity: .1;
+}
+
+.group:hover .group-hover\:opacity-100 {
   opacity: 1;
 }
 
@@ -5058,6 +5070,10 @@ h1, h2, h3, h4, h5, h6 {
 
   .sm\:max-w-sm {
     max-width: 24rem;
+  }
+
+  .sm\:max-w-\[425px\] {
+    max-width: 425px;
   }
 
   .sm\:grid-cols-2 {

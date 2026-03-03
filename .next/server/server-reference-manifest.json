@@ -1,21 +1,5 @@
 {
-  "node": {
-    "40bef604de77fbd71c790e954b869e293ec1d5d6fc": {
-      "workers": {
-        "app/quests/page": {
-          "moduleId": "[project]/.next-internal/server/app/quests/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/generate-dynamic-quest.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "generateDynamicQuest",
-          "filename": "src/ai/flows/generate-dynamic-quest.ts"
-        }
-      },
-      "layer": {
-        "app/quests/page": "action-browser"
-      },
-      "filename": "src/ai/flows/generate-dynamic-quest.ts",
-      "exportedName": "generateDynamicQuest"
-    }
-  },
+  "node": {},
   "edge": {},
   "encryptionKey": "O90o5a8k2QGzjNt/xxAlmBdb4yEIBpoExQycO8qxgIc="
 }

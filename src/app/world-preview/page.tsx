@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser } from "@/firebase"
@@ -35,14 +36,15 @@ export default function WorldPreviewPage() {
   const db = useFirestore()
   const { user, isUserLoading } = useUser()
   
-  // Use robust explicit selectors
+  // Selector fixed to ensure correct function mapping
+  const isMobile = useStore(state => state.device.isMobile);
   const setIsMobile = useStore(state => state.setIsMobile);
-  const isMobile = useStore(state => state.isMobile);
   const isAxiomAuthenticated = useStore(state => state.isAxiomAuthenticated);
   const userApiKey = useStore(state => state.userApiKey);
   const setUserApiKey = useStore(state => state.setUserApiKey);
   const setAgents = useStore(state => state.setAgents);
-  const setUser = useStore(state => state.setUser);
+  const setUserState = useStore(state => state.setUser);
+  const setChunks = useStore(state => state.setChunks);
   
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
   const { data: worldState, isLoading: isWorldLoading } = useDoc(worldRef)
@@ -58,13 +60,13 @@ export default function WorldPreviewPage() {
   const [currentEra, setCurrentEra] = useState("Awaiting Logic Core")
 
   useEffect(() => {
-    if (user) {
-      setUser({ id: user.uid, name: user.displayName || 'Pilot', email: user.email || '' })
+    if (user && setUserState) {
+      setUserState({ id: user.uid, name: user.displayName || 'Pilot', email: user.email || '' })
     }
-  }, [user, setUser]);
+  }, [user, setUserState]);
 
   useEffect(() => {
-    if (!userApiKey) {
+    if (!userApiKey && setUserApiKey) {
       setUserApiKey("MOCK_OUROBOROS_KEY");
     }
   }, [userApiKey, setUserApiKey]);
@@ -77,8 +79,10 @@ export default function WorldPreviewPage() {
 
   useEffect(() => {
     const checkDevice = () => {
-      const isTouch = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
-      setIsMobile(isTouch || window.innerWidth < 1024);
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      if (setIsMobile) {
+        setIsMobile(isTouch || window.innerWidth < 1024);
+      }
     };
     checkDevice();
     window.addEventListener('resize', checkDevice);
@@ -86,7 +90,7 @@ export default function WorldPreviewPage() {
   }, [setIsMobile]);
 
   useEffect(() => {
-    if (liveAgents) {
+    if (liveAgents && setAgents) {
       setAgents(liveAgents as any);
     }
   }, [liveAgents, setAgents]);
@@ -108,10 +112,12 @@ export default function WorldPreviewPage() {
       };
       
       const content = WorldBuildingService.generateAxiomaticContent(mockChunk as any);
-      useStore.getState().setChunks([mockChunk as any]);
+      if (setChunks) {
+        setChunks([mockChunk as any]);
+      }
       useStore.setState({ monsters: content.monsters });
     }
-  }, [worldState]);
+  }, [worldState, setChunks]);
 
   if (isUserLoading) {
     return (
@@ -129,7 +135,7 @@ export default function WorldPreviewPage() {
           <h2 className="text-3xl font-headline font-black uppercase italic tracking-tighter">Neural Link Severed</h2>
           <p className="text-muted-foreground">You must establish a neural connection to access the live render viewport.</p>
           <Button asChild className="w-full axiom-gradient text-white h-14 rounded-xl font-black italic uppercase tracking-widest">
-            <Link href="/landing">Initialize Link</Link>
+            <Link href="/">Initialize Link</Link>
           </Button>
         </Card>
       </div>

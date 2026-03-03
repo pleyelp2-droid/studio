@@ -1,19 +1,19 @@
+
 import { create } from 'zustand';
 import { 
   Agent, 
-  POI, 
   Chunk, 
   Monster, 
   ChatChannel, 
   StoreProduct, 
   AppearanceConfig,
   StatName,
-  ThinkingMatrix,
-  AgentState
+  AgentState,
+  Language
 } from './types';
 
 export type LogType = 'SYSTEM' | 'ERROR' | 'COMBAT' | 'ECONOMY';
-export type ControlMode = 'KEYBOARD' | 'JOYSTICK' | 'PUSH_TO_WALK';
+export type ControlMode = 'JOYSTICK' | 'PUSH_TO_WALK' | 'KEYBOARD';
 
 interface LogEntry {
   id: string;
@@ -46,18 +46,16 @@ interface GameState {
   selectedAgentId: string | null;
   selectedPoiId: string | null;
   
-  // User & Auth State
   user: { id: string; name: string; email: string } | null;
   isAxiomAuthenticated: boolean;
   userApiKey: string | null;
   showAdmin: boolean;
   showDeveloperTools: boolean;
   globalApiCooldown: number;
+  language: Language;
 
-  // Window Management
   windowStates: Record<string, WindowState>;
 
-  // Emergence & AI
   emergenceSettings: {
     isEmergenceEnabled: boolean;
     useHeuristicsOnly: boolean;
@@ -67,19 +65,14 @@ interface GameState {
   };
   importedAgents: Array<{ agentId: string; sourceUrl: string; skinHash: string }>;
   
-  // Simulation Debugger
   showDebugger: boolean;
   isScanning: boolean;
   diagnosticReport: any | null;
 
-  // Economy & Shop
   matrixEnergy: number;
   auctionHouse: any[];
   graphicPacks: string[];
 
-  // Control State
-  isMobile: boolean;
-  setIsMobile: (is: boolean) => void;
   device: {
     isMobile: boolean;
     isTablet: boolean;
@@ -93,52 +86,52 @@ interface GameState {
   targetPosition: { x: number; y: number; z: number } | null;
   controlledAgentId: string | null;
 
-  // Actions
   setUser: (user: { id: string; name: string; email: string } | null) => void;
-  setAxiomAuthenticated: (is: boolean) => void;
-  setUserApiKey: (key: string | null) => void;
-  toggleAdmin: (show: boolean) => void;
-  toggleDeveloperTools: (show: boolean) => void;
-  toggleDebugger: (show: boolean) => void;
+  setAxiomAuthenticated: (isAuth: boolean) => void;
+  setUserApiKey: (apiKey: string | null) => void;
+  toggleAdmin: (visible: boolean) => void;
+  toggleDeveloperTools: (visible: boolean) => void;
+  toggleDebugger: (visible: boolean) => void;
+  setLanguage: (lang: Language) => void;
   
-  toggleWindow: (id: string, isOpen: boolean) => void;
-  minimizeWindow: (id: string) => void;
+  toggleWindow: (winId: string, openState: boolean) => void;
+  minimizeWindow: (winId: string) => void;
   
-  setEmergenceSetting: (key: string, val: any) => void;
-  addChatMessage: (content: string, channel: ChatChannel, senderId: string, senderName: string) => void;
+  setEmergenceSetting: (settingKey: string, settingVal: any) => void;
+  addChatMessage: (msgContent: string, msgChannel: ChatChannel, senderId: string, senderName: string) => void;
   clearChat: () => void;
 
-  setDevice: (device: Partial<GameState['device']>) => void;
+  setDevice: (deviceData: Partial<GameState['device']>) => void;
   setControlMode: (mode: ControlMode) => void;
   setVirtualInput: (input: { x: number; z: number }) => void;
   setTargetPosition: (pos: { x: number; y: number; z: number } | null) => void;
-  setIsMobile: (is: boolean) => void;
-  takeControl: (agentId: string) => void;
+  setIsMobile: (isMob: boolean) => void;
+  takeControl: (targetAgentId: string) => void;
   releaseControl: () => void;
 
-  selectAgent: (id: string | null) => void;
-  selectPoi: (id: string | null) => void;
-  updateUptime: (time: number) => void;
-  setAgents: (agents: Agent[]) => void;
-  setChunks: (chunks: Chunk[]) => void;
-  stabilizeChunk: (id: string) => void;
-  addLog: (message: string, type: LogType) => void;
+  selectAgent: (agentId: string | null) => void;
+  selectPoi: (poiId: string | null) => void;
+  updateUptime: (timeVal: number) => void;
+  setAgents: (agentList: Agent[]) => void;
+  setChunks: (chunkList: Chunk[]) => void;
+  stabilizeChunk: (chunkId: string) => void;
+  addLog: (logMsg: string, logType: LogType) => void;
   clearLogs: () => void;
 
-  importAgent: (source: string, type: 'URL' | 'JSON') => Promise<void>;
-  removeImportedAgent: (id: string) => void;
-  createPlayerAgent: (name: string, appearance: AppearanceConfig) => void;
+  importAgent: (agentSource: string, importType: 'URL' | 'JSON') => Promise<void>;
+  removeImportedAgent: (agentId: string) => void;
+  createPlayerAgent: (playerName: string, playerAppearance: AppearanceConfig) => void;
   
-  equipItem: (agentId: string, item: any, index: number) => void;
-  unequipItem: (agentId: string, slot: string) => void;
-  moveInventoryItem: (agentId: string, from: number, to: number) => void;
-  allocateStatPoint: (agentId: string, stat: StatName) => void;
-  reflectOnMemory: (agentId: string) => Promise<void>;
+  equipItem: (targetAgentId: string, itemData: any, invIndex: number) => void;
+  unequipItem: (targetAgentId: string, slotName: string) => void;
+  moveInventoryItem: (targetAgentId: string, fromIdx: number, toIdx: number) => void;
+  allocateStatPoint: (targetAgentId: string, statName: StatName) => void;
+  reflectOnMemory: (targetAgentId: string) => Promise<void>;
   
   runDiagnostics: (errorLog: string) => Promise<void>;
-  purchaseEnergy: (product: StoreProduct) => void;
-  bidOnAuction: (auctionId: string, agentId: string, amount: number) => void;
-  uploadGraphicPack: (name: string) => void;
+  purchaseEnergy: (storeProduct: StoreProduct) => void;
+  bidOnAuction: (auctionId: string, bidderId: string, bidAmount: number) => void;
+  uploadGraphicPack: (packName: string) => void;
 }
 
 export const useStore = create<GameState>((set, get) => ({
@@ -157,6 +150,7 @@ export const useStore = create<GameState>((set, get) => ({
   showAdmin: false,
   showDeveloperTools: false,
   globalApiCooldown: 0,
+  language: 'EN',
 
   windowStates: {
     CHARACTER: { isOpen: false, isMinimized: false },
@@ -185,7 +179,6 @@ export const useStore = create<GameState>((set, get) => ({
   auctionHouse: [],
   graphicPacks: ['CORE_V1', 'NEON_DISTRICT'],
 
-  isMobile: false,
   device: {
     isMobile: false,
     isTablet: false,
@@ -205,30 +198,31 @@ export const useStore = create<GameState>((set, get) => ({
   toggleAdmin: (showAdmin) => set({ showAdmin }),
   toggleDeveloperTools: (showDeveloperTools) => set({ showDeveloperTools }),
   toggleDebugger: (showDebugger) => set({ showDebugger }),
+  setLanguage: (language) => set({ language }),
 
-  toggleWindow: (id, isOpen) => set((state) => ({
+  toggleWindow: (winId, openState) => set((state) => ({
     windowStates: {
       ...state.windowStates,
-      [id]: { ...state.windowStates[id], isOpen }
+      [winId]: { ...state.windowStates[winId], isOpen: openState }
     }
   })),
-  minimizeWindow: (id) => set((state) => ({
+  minimizeWindow: (winId) => set((state) => ({
     windowStates: {
       ...state.windowStates,
-      [id]: { ...state.windowStates[id], isMinimized: !state.windowStates[id]?.isMinimized }
+      [winId]: { ...state.windowStates[winId], isMinimized: !state.windowStates[winId]?.isMinimized }
     }
   })),
 
-  setEmergenceSetting: (key, val) => set((state) => ({
-    emergenceSettings: { ...state.emergenceSettings, [key]: val }
+  setEmergenceSetting: (settingKey, settingVal) => set((state) => ({
+    emergenceSettings: { ...state.emergenceSettings, [settingKey]: settingVal }
   })),
 
-  addChatMessage: (content, channel, senderId, senderName) => set((state) => ({
+  addChatMessage: (msgContent, msgChannel, senderId, senderName) => set((state) => ({
     chatMessages: [
       {
         id: Math.random().toString(36).substring(7),
-        content,
-        channel,
+        content: msgContent,
+        channel: msgChannel,
         senderId,
         senderName,
         timestamp: Date.now(),
@@ -238,30 +232,30 @@ export const useStore = create<GameState>((set, get) => ({
   })),
   clearChat: () => set({ chatMessages: [] }),
 
-  setDevice: (device) => set((state) => ({
-    device: { ...state.device, ...device }
+  setDevice: (deviceData) => set((state) => ({
+    device: { ...state.device, ...deviceData }
   })),
   setControlMode: (controlMode) => set({ controlMode }),
   setVirtualInput: (virtualInput) => set({ virtualInput }),
   setTargetPosition: (targetPosition) => set({ targetPosition }),
-  setIsMobile: (isMobile) => set({ isMobile }),
-  takeControl: (agentId) => set({ controlledAgentId: agentId, controlMode: get().device.isMobile ? 'JOYSTICK' : 'KEYBOARD' }),
+  setIsMobile: (isMob) => set((state) => ({ device: { ...state.device, isMobile: isMob } })),
+  takeControl: (targetAgentId) => set({ controlledAgentId: targetAgentId, controlMode: get().device.isMobile ? 'JOYSTICK' : 'KEYBOARD' }),
   releaseControl: () => set({ controlledAgentId: null }),
 
-  selectAgent: (id) => set({ selectedAgentId: id }),
-  selectPoi: (id) => set({ selectedPoiId: id }),
-  updateUptime: (time) => set((state) => ({ serverStats: { ...state.serverStats, uptime: time } })),
-  setAgents: (agents) => set({ agents }),
-  setChunks: (chunks) => set({ loadedChunks: chunks }),
-  stabilizeChunk: (id) => set((state) => ({
-    loadedChunks: state.loadedChunks.map(c => c.id === id ? { ...c, entropy: 0, corruptionLevel: 0 } : c)
+  selectAgent: (agentId) => set({ selectedAgentId: agentId }),
+  selectPoi: (poiId) => set({ selectedPoiId: poiId }),
+  updateUptime: (timeVal) => set((state) => ({ serverStats: { ...state.serverStats, uptime: timeVal } })),
+  setAgents: (agentList) => set({ agents: agentList }),
+  setChunks: (chunkList) => set({ loadedChunks: chunkList }),
+  stabilizeChunk: (chunkId) => set((state) => ({
+    loadedChunks: state.loadedChunks.map(c => c.id === chunkId ? { ...c, entropy: 0, corruptionLevel: 0 } : c)
   })),
-  addLog: (message, type) => set((state) => ({
+  addLog: (logMsg, logType) => set((state) => ({
     logs: [
       {
         id: Math.random().toString(36).substring(7),
-        message,
-        type,
+        message: logMsg,
+        type: logType,
         timestamp: new Date().toISOString(),
       },
       ...state.logs
@@ -269,7 +263,7 @@ export const useStore = create<GameState>((set, get) => ({
   })),
   clearLogs: () => set({ logs: [] }),
 
-  importAgent: async (source, type) => {
+  importAgent: async (agentSource, importType) => {
     const newId = `imported-${Date.now()}`;
     const newAgent: Agent = {
       id: newId,
@@ -305,19 +299,19 @@ export const useStore = create<GameState>((set, get) => ({
     };
     set(state => ({
       agents: [...state.agents, newAgent],
-      importedAgents: [...state.importedAgents, { agentId: newId, sourceUrl: source, skinHash: Math.random().toString(16) }]
+      importedAgents: [...state.importedAgents, { agentId: newId, sourceUrl: agentSource, skinHash: Math.random().toString(16) }]
     }));
   },
-  removeImportedAgent: (id) => set(state => ({
-    agents: state.agents.filter(a => a.id !== id),
-    importedAgents: state.importedAgents.filter(ia => ia.agentId !== id)
+  removeImportedAgent: (agentId) => set(state => ({
+    agents: state.agents.filter(a => a.id !== agentId),
+    importedAgents: state.importedAgents.filter(ia => ia.agentId !== agentId)
   })),
-  createPlayerAgent: (name, appearance) => {
+  createPlayerAgent: (playerName, playerAppearance) => {
     const newId = `player-${Date.now()}`;
     const newAgent: Agent = {
       id: newId,
-      name,
-      displayName: name,
+      name: playerName,
+      displayName: playerName,
       npcClass: "PLAYER",
       level: 1,
       hp: 100, maxHp: 100, energy: 100, maxEnergy: 100, integrity: 1, exp: 0, xp: 0,
@@ -335,7 +329,7 @@ export const useStore = create<GameState>((set, get) => ({
       memoryCache: [],
       awakened: false,
       lastScanTime: Date.now(),
-      appearance,
+      appearance: playerAppearance,
       thinkingMatrix: {
         personality: "Player Core",
         currentLongTermGoal: "World Domination",
@@ -345,11 +339,31 @@ export const useStore = create<GameState>((set, get) => ({
     set(state => ({ agents: [...state.agents, newAgent] }));
   },
 
-  equipItem: (agentId, item, index) => {},
-  unequipItem: (agentId, slot) => {},
-  moveInventoryItem: (agentId, from, to) => {},
-  allocateStatPoint: (agentId, stat) => {},
-  reflectOnMemory: async (agentId) => {},
+  equipItem: (targetAgentId, itemData, invIndex) => {
+    set(state => ({
+      agents: state.agents.map(a => {
+        if (a.id !== targetAgentId) return a;
+        const newInv = [...a.inventory];
+        newInv[invIndex] = null;
+        return { ...a, inventory: newInv };
+      })
+    }));
+  },
+  unequipItem: (targetAgentId, slotName) => {},
+  moveInventoryItem: (targetAgentId, fromIdx, toIdx) => {
+    set(state => ({
+      agents: state.agents.map(a => {
+        if (a.id !== targetAgentId) return a;
+        const newInv = [...a.inventory];
+        const temp = newInv[fromIdx];
+        newInv[fromIdx] = newInv[toIdx];
+        newInv[toIdx] = temp;
+        return { ...a, inventory: newInv };
+      })
+    }));
+  },
+  allocateStatPoint: (targetAgentId, statName) => {},
+  reflectOnMemory: async (targetAgentId) => {},
   
   runDiagnostics: async (errorLog) => {
     set({ isScanning: true });
@@ -364,9 +378,9 @@ export const useStore = create<GameState>((set, get) => ({
       }
     });
   },
-  purchaseEnergy: (product) => set(state => ({ matrixEnergy: state.matrixEnergy + product.energyAmount })),
-  bidOnAuction: (auctionId, agentId, amount) => {},
-  uploadGraphicPack: (name) => set(state => ({ graphicPacks: [...state.graphicPacks, name] })),
+  purchaseEnergy: (storeProduct) => set(state => ({ matrixEnergy: state.matrixEnergy + storeProduct.energyAmount })),
+  bidOnAuction: (auctionId, bidderId, bidAmount) => {},
+  uploadGraphicPack: (packName) => set(state => ({ graphicPacks: [...state.graphicPacks, packName] })),
 }));
 
 export const skinHashToColors = (hash: string) => {

@@ -1,7 +1,8 @@
+
 'use client';
 /**
  * @fileOverview Axiom Frontier - Quest Management Service
- * Handles CRUD for quest lines and NPC dialog trees in Firestore.
+ * Handles persistence for quest lines and NPC dialog trees in Firestore.
  */
 
 import { 
@@ -27,26 +28,28 @@ const { firestore: db } = initializeFirebase();
 
 export const QuestManager = {
   /**
-   * Creates a new quest line (Non-blocking).
+   * Creates a new quest line.
    */
   async createQuest(data: Partial<QuestLine>, adminId: string): Promise<void> {
     if (!db) throw new Error('Database disconnected');
     const questRef = collection(db, 'questLines');
     
-    // NON-BLOCKING: Use the .catch() pattern for permission errors
-    addDoc(questRef, {
-      ...data,
-      createdBy: adminId,
-      createdAt: serverTimestamp(),
-      status: data.status || 'draft'
-    }).catch(async (serverError) => {
+    try {
+      await addDoc(questRef, {
+        ...data,
+        createdBy: adminId,
+        createdAt: serverTimestamp(),
+        status: data.status || 'draft'
+      });
+    } catch (serverError: any) {
       const permissionError = new FirestorePermissionError({
         path: 'questLines',
         operation: 'create',
         requestResourceData: data,
       } satisfies SecurityRuleContext);
       errorEmitter.emit('permission-error', permissionError);
-    });
+      throw serverError;
+    }
   },
 
   /**
@@ -68,15 +71,17 @@ export const QuestManager = {
   async updateQuest(id: string, data: Partial<QuestLine>): Promise<void> {
     if (!db) return;
     const docRef = doc(db, 'questLines', id);
-    updateDoc(docRef, { ...data, lastUpdate: serverTimestamp() })
-      .catch(async (serverError) => {
-        const permissionError = new FirestorePermissionError({
-          path: docRef.path,
-          operation: 'update',
-          requestResourceData: data,
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
-      });
+    try {
+      await updateDoc(docRef, { ...data, lastUpdate: serverTimestamp() });
+    } catch (serverError: any) {
+      const permissionError = new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'update',
+        requestResourceData: data,
+      } satisfies SecurityRuleContext);
+      errorEmitter.emit('permission-error', permissionError);
+      throw serverError;
+    }
   },
 
   /**
@@ -85,13 +90,16 @@ export const QuestManager = {
   async deleteQuest(id: string): Promise<void> {
     if (!db) return;
     const docRef = doc(db, 'questLines', id);
-    deleteDoc(docRef).catch(async (serverError) => {
+    try {
+      await deleteDoc(docRef);
+    } catch (serverError: any) {
       const permissionError = new FirestorePermissionError({
         path: docRef.path,
         operation: 'delete',
       } satisfies SecurityRuleContext);
       errorEmitter.emit('permission-error', permissionError);
-    });
+      throw serverError;
+    }
   },
 
   /**
@@ -100,18 +108,21 @@ export const QuestManager = {
   async createDialog(questId: string, data: Partial<NPCDialog>): Promise<void> {
     if (!db) throw new Error('Database disconnected');
     const dialogRef = collection(db, 'npcDialogs');
-    addDoc(dialogRef, {
-      ...data,
-      questLineId: questId,
-      createdAt: serverTimestamp()
-    }).catch(async (serverError) => {
+    try {
+      await addDoc(dialogRef, {
+        ...data,
+        questLineId: questId,
+        createdAt: serverTimestamp()
+      });
+    } catch (serverError: any) {
       const permissionError = new FirestorePermissionError({
         path: 'npcDialogs',
         operation: 'create',
         requestResourceData: data,
       } satisfies SecurityRuleContext);
       errorEmitter.emit('permission-error', permissionError);
-    });
+      throw serverError;
+    }
   },
 
   /**

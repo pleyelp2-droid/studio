@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Sparkles, Loader2, ScrollText, Code, Copy, Check, Database } from "lucide-react"
 import { generateDynamicQuest, type GenerateDynamicQuestOutput } from "@/ai/flows/generate-dynamic-quest"
 import { QuestManager } from "@/services/QuestManager"
@@ -22,23 +21,26 @@ export default function QuestsPage() {
   const [committing, setCommitting] = useState(false)
   const [quest, setQuest] = useState<GenerateDynamicQuestOutput | null>(null)
   const [copied, setCopied] = useState(false)
+  const [questType, setQuestType] = useState("exploration")
   const { toast } = useToast()
 
   const handleGenerateQuest = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     const formData = new FormData(e.currentTarget)
+    const levelVal = parseInt(formData.get("level") as string) || 10;
     
     try {
       const result = await generateDynamicQuest({
         civilizationIndex: 1842,
-        playerLevel: parseInt(formData.get("level") as string) || 10,
-        availableRegions: ["Nebula Edge", "Iron Reach", "Void Sanctum", "Chrome Citadel"],
-        availableNpcs: ["Elder Thorne", "Silo-X", "Commander Vane", "Axiom Prophet"],
-        questType: formData.get("type") as string,
-        currentGameLore: "The civilization has reached the Chrome Era. Resources are scarce, and the Axiom is expanding into the Outer Nebula.",
+        playerLevel: levelVal,
+        availableRegions: ["Nebula Edge", "Iron Reach", "Void Sanctum", "Chrome Citadel", "The Glass Desert", "Neural Peak"],
+        availableNpcs: ["Elder Thorne", "Silo-X", "Commander Vane", "Axiom Prophet", "Oracle-7", "Matrix Watcher"],
+        questType: questType,
+        currentGameLore: "The simulation has stabilized at Phase 0.9.4. Collective yield is at peak capacity.",
       })
       setQuest(result)
+      toast({ title: "Synthesis Complete", description: `Manifested "${result.title}" for Level ${levelVal}.` })
     } catch (error) {
       toast({
         variant: "destructive",
@@ -51,18 +53,21 @@ export default function QuestsPage() {
   }
 
   const handleCommitQuest = async () => {
-    if (!quest || !user) return
+    if (!quest || !user) {
+      toast({ variant: "destructive", title: "Authentication Required", description: "You must establish a neural link to commit data." })
+      return
+    }
     setCommitting(true)
     try {
       await QuestManager.createQuest({
         title: quest.title,
         description: quest.description,
-        requiredLevel: quest.difficulty === 'easy' ? 1 : quest.difficulty === 'medium' ? 10 : 25,
-        xpReward: 500,
-        goldReward: 50,
+        requiredLevel: quest.difficulty === 'easy' ? 1 : quest.difficulty === 'medium' ? 10 : quest.difficulty === 'hard' ? 25 : 50,
+        xpReward: parseInt(quest.rewards[0]) || 500,
+        goldReward: parseInt(quest.rewards[1]) || 50,
         status: 'active',
         npc_id: quest.giverNpc.toLowerCase().replace(/\s+/g, '_'),
-        quest_steps: quest.objectives.map(obj => ({ type: 'explore', description: obj }))
+        quest_steps: quest.objectives.map(obj => ({ type: 'task', description: obj }))
       }, user.uid)
       
       toast({
@@ -122,13 +127,13 @@ export default function QuestsPage() {
                   <Sparkles className="h-4 w-4" />
                   Quest Synthesis
                 </CardTitle>
-                <CardDescription className="text-[10px] uppercase font-bold tracking-tight mt-1">Leverage Gemini LLM to generate dynamic story content.</CardDescription>
+                <CardDescription className="text-[10px] uppercase font-bold tracking-tight mt-1">Configure parameters to manifest dynamic simulation objectives.</CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
                 <form onSubmit={handleGenerateQuest} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="type" className="text-[10px] uppercase font-black text-muted-foreground">Quest Archetype</Label>
-                    <Select name="type" defaultValue="exploration">
+                    <Select value={questType} onValueChange={setQuestType}>
                       <SelectTrigger className="bg-secondary/20 border-border italic text-xs">
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
@@ -168,10 +173,12 @@ export default function QuestsPage() {
                       <Badge className="mb-2 bg-accent/20 text-accent border-accent/40 uppercase text-[9px] font-black tracking-widest italic">{quest.difficulty} QUEST</Badge>
                       <CardTitle className="text-2xl font-headline font-black uppercase italic tracking-tighter text-white">{quest.title}</CardTitle>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={copyToGodot} className="gap-2 text-[10px] font-black uppercase tracking-widest text-axiom-cyan hover:bg-axiom-cyan/10">
-                      {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Code className="h-4 w-4" />}
-                      Export to Godot
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={copyToGodot} className="gap-2 text-[10px] font-black uppercase tracking-widest text-axiom-cyan hover:bg-axiom-cyan/10">
+                        {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Code className="h-4 w-4" />}
+                        Export to Godot
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-8 space-y-8">

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -75,7 +76,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#020202] text-foreground selection:bg-accent selection:text-accent-foreground font-body overflow-x-hidden">
       <nav className="flex items-center justify-between px-12 py-8 border-b border-white/5 bg-black/40 backdrop-blur-3xl fixed top-0 w-full z-[100]">
         <div className="flex items-center gap-6 group cursor-pointer">
-          <div className="h-14 w-14 axiom-gradient rounded-[1.25rem] flex items-center justify-center shadow-[0_0_40px_rgba(96,212,255,0.4)] transition-transform group-hover:scale-110 duration-700">
+          <div className="h-14 w-14 axiom-gradient rounded-[1.25rem] flex items-center justify-center shadow-[0_0_40px_rgba(96,212,255,0.4)] transition-transform group-hover:scale-110 duration-[700ms]">
             <Infinity className="h-8 w-8 text-white" />
           </div>
           <div className="flex flex-col">
@@ -86,7 +87,7 @@ export default function LandingPage() {
         
         <div className="hidden lg:flex items-center gap-14">
           {["WORLD_CORE", "DETERMINISM", "SINGULARITY", "NEURAL_LINK"].map((item) => (
-            <Link key={item} href={`#${item.toLowerCase()}`} className="text-[11px] font-black tracking-[0.3em] text-white/40 hover:text-accent transition-all duration-300 uppercase italic">
+            <Link key={item} href={`#${item.toLowerCase()}`} className="text-[11px] font-black tracking-[0.3em] text-white/40 hover:text-accent transition-all duration-[300ms] uppercase italic">
               {item}
             </Link>
           ))}
@@ -109,7 +110,7 @@ export default function LandingPage() {
               src={getImg('world-chrome')?.imageUrl || ""} 
               alt="Ouroboros Metropolis" 
               fill 
-              className="object-cover opacity-60 scale-105 transition-transform duration-[40s] hover:scale-115"
+              className="object-cover opacity-60 scale-105 transition-transform duration-[40000ms] hover:scale-115"
               priority
               data-ai-hint="cyberpunk city"
             />
@@ -135,10 +136,10 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-wrap justify-center gap-14 pt-20">
-              <Button size="lg" className="h-32 px-24 text-5xl font-black axiom-gradient text-white rounded-[2.5rem] shadow-[0_40px_80px_rgba(46,46,179,0.5)] hover:scale-105 hover:shadow-[0_40px_100px_rgba(46,46,179,0.7)] transition-all duration-1000 gap-8 uppercase tracking-tighter italic" asChild>
+              <Button size="lg" className="h-32 px-24 text-5xl font-black axiom-gradient text-white rounded-[2.5rem] shadow-[0_40px_80px_rgba(46,46,179,0.5)] hover:scale-105 hover:shadow-[0_40px_100px_rgba(46,46,179,0.7)] transition-all duration-[1000ms] gap-8 uppercase tracking-tighter italic" asChild>
                 <Link href="/dashboard"><Download className="h-16 w-16" /> Enter Collective</Link>
               </Button>
-              <Button size="lg" variant="outline" className="h-32 px-24 text-5xl font-black border-white/10 bg-white/5 backdrop-blur-3xl text-white hover:bg-white/10 rounded-[2.5rem] transition-all duration-1000 uppercase tracking-tighter italic shadow-2xl">
+              <Button size="lg" variant="outline" className="h-32 px-24 text-5xl font-black border-white/10 bg-white/5 backdrop-blur-3xl text-white hover:bg-white/10 rounded-[2.5rem] transition-all duration-[1000ms] uppercase tracking-tighter italic shadow-2xl">
                 Lore_Archive
               </Button>
             </div>
@@ -149,17 +150,17 @@ export default function LandingPage() {
       <footer className="py-72 border-t border-white/5 bg-black relative">
         <div className="max-w-7xl mx-auto px-10 flex flex-col md:flex-row justify-between items-center gap-40">
           <div className="flex items-center gap-10 group cursor-pointer">
-            <div className="h-20 w-20 axiom-gradient rounded-3xl flex items-center justify-center group-hover:rotate-180 transition-transform duration-[2s] shadow-3xl">
+            <div className="h-20 w-20 axiom-gradient rounded-3xl flex items-center justify-center group-hover:rotate-180 transition-transform duration-[2000ms] shadow-3xl">
               <Infinity className="h-12 w-12 text-white" />
             </div>
             <span className="font-headline font-black text-6xl tracking-tighter text-white uppercase italic">Ouroboros</span>
           </div>
           
           <div className="flex flex-wrap justify-center gap-24 text-[16px] font-black tracking-[0.8em] text-white/30 uppercase italic">
-            <Link href="#" className="hover:text-accent transition-colors duration-700">Discord</Link>
-            <Link href="#" className="hover:text-accent transition-colors duration-700">Neural_Security</Link>
-            <Link href="#" className="hover:text-accent transition-colors duration-700">Engine_Specs</Link>
-            <Link href="#" className="hover:text-accent transition-colors duration-700">Terms_Collective</Link>
+            <Link href="#" className="hover:text-accent transition-colors duration-[700ms]">Discord</Link>
+            <Link href="#" className="hover:text-accent transition-colors duration-[700ms]">Neural_Security</Link>
+            <Link href="#" className="hover:text-accent transition-colors duration-[700ms]">Engine_Specs</Link>
+            <Link href="#" className="hover:text-accent transition-colors duration-[700ms]">Terms_Collective</Link>
           </div>
 
           <div className="text-[14px] font-black text-white/10 tracking-[0.5em] uppercase italic">
