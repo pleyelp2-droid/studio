@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Html, OrbitControls, Sky, PerspectiveCamera, Environment, ContactShadows, Float } from '@react-three/drei';
@@ -86,7 +85,7 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
   const { camera } = useThree();
   const db = useFirestore();
   const { virtualInput, controlMode, targetPosition, setTargetPosition } = useStore();
-  const moveSpeed = 0.25;
+  const moveSpeed = 0.35;
   const updateInterval = 500;
   const lastUpdateRef = useRef(0);
 
@@ -107,7 +106,6 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
     let moving = false;
     const newPos = { ...agent.position };
 
-    // Unified input processing
     if (controlMode === 'KEYBOARD') {
       if (keys.current['w']) { newPos.z -= moveSpeed; moving = true; }
       if (keys.current['s']) { newPos.z += moveSpeed; moving = true; }
@@ -138,8 +136,8 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
       agent.position.z = newPos.z;
       agent.state = AgentState.EXPLORING;
 
-      camera.position.x = newPos.x + 20;
-      camera.position.z = newPos.z + 20;
+      camera.position.x = newPos.x + 30;
+      camera.position.z = newPos.z + 30;
       camera.lookAt(newPos.x, 0, newPos.z);
 
       const now = Date.now();
@@ -152,12 +150,10 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
           lastUpdate: serverTimestamp() 
         });
       }
-    } else {
-      if (agent.state !== AgentState.IDLE) {
-        agent.state = AgentState.IDLE;
-        const ref = doc(db, 'players', agent.id);
-        updateDoc(ref, { state: AgentState.IDLE });
-      }
+    } else if (agent.state !== AgentState.IDLE) {
+      agent.state = AgentState.IDLE;
+      const ref = doc(db, 'players', agent.id);
+      updateDoc(ref, { state: AgentState.IDLE });
     }
   });
 
@@ -184,7 +180,8 @@ const POIModel = ({ poi }: { poi: POI }) => {
     );
   }
 
-  if (poi.type === 'BUILDING' || poi.type === 'BANK_VAULT' || poi.type === 'FORGE') {
+  if (poi.type === 'FORGE' || poi.type === 'BANK_VAULT' || poi.type === 'MARKET_STALL') {
+    const color = poi.type === 'BANK_VAULT' ? '#FBBF24' : poi.type === 'FORGE' ? '#EF4444' : '#60D4FF';
     return (
       <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
         <mesh position={[0, 5, 0]} castShadow>
@@ -193,8 +190,14 @@ const POIModel = ({ poi }: { poi: POI }) => {
         </mesh>
         <mesh position={[0, 10.5, 0]}>
           <coneGeometry args={[0.4, 2, 6]} />
-          <meshStandardMaterial color={poi.type === 'BANK_VAULT' ? '#FBBF24' : poi.type === 'FORGE' ? '#EF4444' : '#60D4FF'} emissive={poi.type === 'BANK_VAULT' ? '#FBBF24' : poi.type === 'FORGE' ? '#EF4444' : '#60D4FF'} emissiveIntensity={2} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={2} />
         </mesh>
+        {poi.type === 'MARKET_STALL' && (
+          <mesh position={[0, 2, 0]}>
+            <torusGeometry args={[4, 0.1, 16, 32]} rotation={[Math.PI/2, 0, 0]} />
+            <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" />
+          </mesh>
+        )}
       </group>
     );
   }
@@ -210,10 +213,6 @@ const POIModel = ({ poi }: { poi: POI }) => {
           <coneGeometry args={[3.2, 2, 4]} />
           <meshStandardMaterial color="#333" />
         </mesh>
-        <mesh position={[0, 1.5, 2.01]}>
-          <boxGeometry args={[1, 2, 0.1]} />
-          <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={0.5} />
-        </mesh>
       </group>
     );
   }
@@ -225,13 +224,6 @@ const POIModel = ({ poi }: { poi: POI }) => {
           <boxGeometry args={[20, 8, 3]} />
           <meshStandardMaterial color="#111" metalness={0.5} roughness={0.5} />
         </mesh>
-        {/* Battlements */}
-        {[-8, -4, 0, 4, 8].map(x => (
-          <mesh key={x} position={[x, 8.5, 0]}>
-            <boxGeometry args={[2, 1, 3]} />
-            <meshStandardMaterial color="#111" />
-          </mesh>
-        ))}
       </group>
     );
   }
@@ -239,18 +231,9 @@ const POIModel = ({ poi }: { poi: POI }) => {
   if (poi.type === 'GATE') {
     return (
       <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
-        <mesh position={[-6, 6, 0]} castShadow>
-          <boxGeometry args={[4, 12, 4]} />
-          <meshStandardMaterial color="#111" />
-        </mesh>
-        <mesh position={[6, 6, 0]} castShadow>
-          <boxGeometry args={[4, 12, 4]} />
-          <meshStandardMaterial color="#111" />
-        </mesh>
-        <mesh position={[0, 10, 0]}>
-          <boxGeometry args={[16, 4, 4]} />
-          <meshStandardMaterial color="#111" />
-        </mesh>
+        <mesh position={[-6, 6, 0]} castShadow><boxGeometry args={[4, 12, 4]} /><meshStandardMaterial color="#111" /></mesh>
+        <mesh position={[6, 6, 0]} castShadow><boxGeometry args={[4, 12, 4]} /><meshStandardMaterial color="#111" /></mesh>
+        <mesh position={[0, 10, 0]}><boxGeometry args={[16, 4, 4]} /><meshStandardMaterial color="#111" /></mesh>
         <mesh position={[0, 4, 0]}>
           <planeGeometry args={[8, 8]} />
           <meshStandardMaterial color="#60D4FF" transparent opacity={0.3} emissive="#60D4FF" emissiveIntensity={1} side={THREE.DoubleSide} />
@@ -262,10 +245,7 @@ const POIModel = ({ poi }: { poi: POI }) => {
   if (poi.type === 'DUNGEON') {
     return (
       <group position={[poi.position[0], -0.4, poi.position[2]]}>
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[4, 32]} />
-          <meshStandardMaterial color="#000" emissive="#60D4FF" emissiveIntensity={2} />
-        </mesh>
+        <mesh rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[4, 32]} /><meshStandardMaterial color="#000" emissive="#60D4FF" emissiveIntensity={2} /></mesh>
         <pointLight position={[0, 2, 0]} intensity={20} color="#60D4FF" distance={30} />
       </group>
     );
@@ -277,8 +257,7 @@ const POIModel = ({ poi }: { poi: POI }) => {
         {[0, 1, 2].map(i => (
           <Float key={i} speed={1 + i} floatIntensity={1} position={[Math.sin(i) * 3, 2 + i * 2, Math.cos(i) * 3]}>
             <mesh castShadow rotation={[Math.random(), Math.random(), 0]}>
-              <boxGeometry args={[1, 4, 1]} />
-              <meshStandardMaterial color="#444" roughness={0.8} />
+              <boxGeometry args={[1, 4, 1]} /><meshStandardMaterial color="#444" roughness={0.8} />
             </mesh>
           </Float>
         ))}
@@ -289,15 +268,9 @@ const POIModel = ({ poi }: { poi: POI }) => {
   if (poi.type === 'TREE') {
     return (
       <group position={[poi.position[0], 0, poi.position[2]]}>
-        <mesh position={[0, 1.5, 0]} castShadow>
-          <cylinderGeometry args={[0.1, 0.4, 3, 5]} />
-          <meshStandardMaterial color="#2a1a0a" />
-        </mesh>
+        <mesh position={[0, 1.5, 0]} castShadow><cylinderGeometry args={[0.1, 0.4, 3, 5]} /><meshStandardMaterial color="#2a1a0a" /></mesh>
         <Float speed={1} floatIntensity={0.5}>
-          <mesh position={[0, 4, 0]} castShadow>
-            <dodecahedronGeometry args={[1.8, 0]} />
-            <meshStandardMaterial color="#0a2a1a" emissive="#0a2a1a" emissiveIntensity={0.2} />
-          </mesh>
+          <mesh position={[0, 4, 0]} castShadow><dodecahedronGeometry args={[1.8, 0]} /><meshStandardMaterial color="#0a2a1a" emissive="#0a2a1a" emissiveIntensity={0.2} /></mesh>
         </Float>
       </group>
     );
@@ -308,29 +281,17 @@ const POIModel = ({ poi }: { poi: POI }) => {
 
 const MonsterModel = ({ monster }: { monster: Monster }) => {
   const groupRef = useRef<THREE.Group>(null);
-  
   useFrame((state) => {
     if (groupRef.current) {
       groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.2 + 0.5;
       groupRef.current.rotation.y += 0.01;
     }
   });
-
   return (
     <group ref={groupRef} position={[monster.position[0], 0.5, monster.position[2]]}>
-      <mesh castShadow>
-        <icosahedronGeometry args={[monster.scale, 0]} />
-        <meshStandardMaterial 
-          color={monster.color} 
-          emissive={monster.color} 
-          emissiveIntensity={0.8} 
-          wireframe
-        />
-      </mesh>
+      <mesh castShadow><icosahedronGeometry args={[monster.scale, 0]} /><meshStandardMaterial color={monster.color} emissive={monster.color} emissiveIntensity={0.8} wireframe /></mesh>
       <Html position={[0, 1.5, 0]} center distanceFactor={10}>
-        <div className="px-1.5 py-0.5 rounded bg-red-900/80 border border-red-500 text-white text-[8px] font-black uppercase tracking-tighter whitespace-nowrap shadow-xl">
-          {monster.name}
-        </div>
+        <div className="px-1.5 py-0.5 rounded bg-red-900/80 border border-red-500 text-white text-[8px] font-black uppercase tracking-tighter whitespace-nowrap shadow-xl">{monster.name}</div>
       </Html>
     </group>
   );
@@ -339,40 +300,23 @@ const MonsterModel = ({ monster }: { monster: Monster }) => {
 const DayNightSky = ({ tick }: { tick: number }) => {
     const dayLength = 1440; 
     const cycle = (tick % dayLength) / dayLength;
-
     const sunAngle = cycle * Math.PI * 2 - Math.PI * 0.5;
     const sunHeight = Math.sin(sunAngle);
     const sunX = Math.cos(sunAngle) * 0.8;
     const sunY = Math.max(sunHeight, -0.3);
-    const sunZ = 0.3;
-
     const dayFactor = THREE.MathUtils.clamp((sunHeight + 0.1) / 0.3, 0, 1);
-    const isNight = sunHeight <= -0.1;
-
-    const dayFogColor = new THREE.Color('#8ba4c4');
-    const nightFogColor = new THREE.Color('#05070a');
-    const fogColor = nightFogColor.clone().lerp(dayFogColor, dayFactor);
-
+    const fogColor = new THREE.Color('#05070a').lerp(new THREE.Color('#8ba4c4'), dayFactor);
     return (
         <>
-            <Sky
-                distance={450000}
-                sunPosition={[sunX * 100, sunY * 100, sunZ * 100]}
-                turbidity={isNight ? 20 : 2}
-                rayleigh={isNight ? 0.1 : 1}
-            />
+            <Sky sunPosition={[sunX * 100, sunY * 100, 30]} turbidity={sunHeight <= -0.1 ? 20 : 2} />
             <ambientLight intensity={THREE.MathUtils.lerp(0.1, 0.5, dayFactor)} color={fogColor} />
-            <directionalLight
-                position={[sunX * 100, Math.max(sunY * 150, 5), sunZ * 100]}
-                intensity={THREE.MathUtils.lerp(0.05, 1.5, dayFactor)}
-                castShadow
-            />
+            <directionalLight position={[sunX * 100, Math.max(sunY * 150, 5), 30]} intensity={THREE.MathUtils.lerp(0.05, 1.5, dayFactor)} castShadow />
             <fog attach="fog" args={[fogColor, 100, 400]} />
         </>
     );
 };
 
-const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civilizationIndex: number, stability?: number, corruption?: number }) => {
+const Terrain = ({ civilizationIndex, agents }: { civilizationIndex: number, agents: Agent[] }) => {
     const materialRef = useRef<THREE.ShaderMaterial>(null);
     const { setTargetPosition, controlMode } = useStore();
     const { camera } = useThree();
@@ -380,10 +324,10 @@ const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civ
     const uniforms = useMemo(() => ({
         uTime: { value: 0 },
         uAwakeningDensity: { value: civilizationIndex / 1000 },
-        uBiome: { value: civilizationIndex < 400 ? 1.0 : civilizationIndex < 800 ? 0.0 : 2.0 },
+        uBiome: { value: civilizationIndex >= 800 ? 0.0 : civilizationIndex < 400 ? 1.0 : 2.0 },
         uAxiomaticIntensity: { value: 0.5 },
-        uStability: { value: stability / 1000 },
-        uCorruption: { value: corruption / 1000 },
+        uStability: { value: 0.5 },
+        uCorruption: { value: 0.1 },
         uIsHovered: { value: false },
         uIsSelected: { value: false },
         uCameraPosition: { value: camera.position },
@@ -393,41 +337,32 @@ const Terrain = ({ civilizationIndex, stability = 500, corruption = 100 }: { civ
         uAgentPositions: { value: new Array(10).fill(new THREE.Vector3()) },
         uAgentVisionRanges: { value: new Array(10).fill(0) },
         uExplorationLevel: { value: 0.5 }
-    }), [civilizationIndex, stability, corruption]);
+    }), [civilizationIndex, camera]);
 
     useFrame((state) => {
         if (materialRef.current) {
             materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
             materialRef.current.uniforms.uCameraPosition.value.copy(state.camera.position);
+            
+            // Real-time visibility uniform updates
+            const positions = materialRef.current.uniforms.uAgentPositions.value;
+            const ranges = materialRef.current.uniforms.uAgentVisionRanges.value;
+            agents.slice(0, 10).forEach((agent, i) => {
+              positions[i].set(agent.position.x, 0, agent.position.z);
+              ranges[i] = agent.visionRange || 50;
+            });
         }
     });
 
-    const handlePointerDown = (e: any) => {
-      if (controlMode === 'PUSH_TO_WALK') {
-        setTargetPosition({ x: e.point.x, z: e.point.z });
-      }
-    };
-
     return (
-        <mesh 
-          rotation={[-Math.PI / 2, 0, 0]} 
-          position={[0, -0.1, 0]} 
-          receiveShadow
-          onPointerDown={handlePointerDown}
-        >
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow onPointerDown={(e: any) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, z: e.point.z })}>
             <planeGeometry args={[1000, 1000, 128, 128]} />
-            <shaderMaterial
-                ref={materialRef}
-                vertexShader={axiomVertexShader}
-                fragmentShader={axiomFragmentShader}
-                uniforms={uniforms}
-                side={THREE.DoubleSide}
-            />
+            <shaderMaterial ref={materialRef} vertexShader={axiomVertexShader} fragmentShader={axiomFragmentShader} uniforms={uniforms} side={THREE.DoubleSide} />
         </mesh>
     );
 };
 
-export const World3D: React.FC<{ tick: number; civilizationIndex: number; stability?: number; corruption?: number; localPlayerId?: string | null }> = ({ tick, civilizationIndex, stability, corruption, localPlayerId }) => {
+export const World3D: React.FC<{ tick: number; civilizationIndex: number; localPlayerId?: string | null }> = ({ tick, civilizationIndex, localPlayerId }) => {
     const agents = useStore(state => state.agents);
     const monsters = useStore(state => state.monsters);
     const chunks = useStore(state => state.loadedChunks);
@@ -439,55 +374,33 @@ export const World3D: React.FC<{ tick: number; civilizationIndex: number; stabil
       const allPois: POI[] = [];
       const allMonsters: Monster[] = [];
       const allResources: ResourceNode[] = [];
-      
       chunks.forEach(chunk => {
         const content = WorldBuildingService.generateAxiomaticContent(chunk);
         allPois.push(...content.pois);
         allMonsters.push(...content.monsters);
         allResources.push(...content.resources);
       });
-
       return { pois: allPois, monsters: monsters.length > 0 ? monsters : allMonsters, resources: allResources };
     }, [chunks, monsters]);
 
     return (
         <div className="w-full h-full bg-black">
             <Canvas shadows dpr={[1, 2]}>
-                <PerspectiveCamera makeDefault position={[30, 20, 30]} fov={50} />
+                <PerspectiveCamera makeDefault position={[40, 30, 40]} fov={50} />
                 <DayNightSky tick={tick} />
                 <Environment preset="night" />
-                
-                <Terrain civilizationIndex={civilizationIndex} stability={stability} corruption={corruption} />
-                
+                <Terrain civilizationIndex={civilizationIndex} agents={agents} />
                 {localAgent && <LocalPlayerController agent={localAgent} />}
-
-                {otherAgents.map(agent => (
-                  <AgentModel key={agent.id} agent={agent} />
-                ))}
-
-                {worldContent.monsters.map(monster => (
-                  <MonsterModel key={monster.id} monster={monster} />
-                ))}
-
-                {worldContent.pois.map(poi => (
-                  <POIModel key={poi.id} poi={poi} />
-                ))}
-
+                {otherAgents.map(agent => <AgentModel key={agent.id} agent={agent} />)}
+                {worldContent.monsters.map(monster => <MonsterModel key={monster.id} monster={monster} />)}
+                {worldContent.pois.map(poi => <POIModel key={poi.id} poi={poi} />)}
                 {worldContent.resources.map(res => (
                   <mesh key={res.id} position={[res.position[0], 0.2, res.position[2]]} castShadow>
-                    <octahedronGeometry args={[0.4, 0]} />
-                    <meshStandardMaterial color={res.type === 'SILVER_ORE' ? '#C0C0C0' : '#FFD700'} metalness={1} roughness={0.1} emissive={res.type === 'SILVER_ORE' ? '#444' : '#440'} />
+                    <octahedronGeometry args={[0.4, 0]} /><meshStandardMaterial color={res.type === 'SILVER_ORE' ? '#C0C0C0' : '#FFD700'} metalness={1} roughness={0.1} emissive={res.type === 'SILVER_ORE' ? '#444' : '#440'} />
                   </mesh>
                 ))}
-
                 <ContactShadows resolution={1024} scale={50} blur={2} opacity={0.5} far={10} color="#000000" />
-                
-                <OrbitControls 
-                    enablePan={true} 
-                    maxPolarAngle={Math.PI / 2.1} 
-                    minDistance={10} 
-                    maxDistance={200} 
-                />
+                <OrbitControls enablePan={true} maxPolarAngle={Math.PI / 2.1} minDistance={10} maxDistance={250} />
                 <gridHelper args={[1000, 100, '#111', '#050505']} position={[0, -0.05, 0]} />
             </Canvas>
         </div>
