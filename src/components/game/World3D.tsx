@@ -32,7 +32,7 @@ const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolea
     return () => {
       controller.dispose();
     };
-  }, [agent.id, agent.appearance]);
+  }, [agent.id, agent.appearance, agent.level]);
 
   useEffect(() => {
     if (animController) {
@@ -180,6 +180,26 @@ const POIModel = ({ poi }: { poi: POI }) => {
     );
   }
 
+  // Generic High-Tech Building or Housing
+  if (poi.type === 'BUILDING' || poi.type === 'HOUSE') {
+    return (
+      <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
+        <mesh position={[0, 3, 0]} castShadow>
+          <cylinderGeometry args={[1.5, 2, 6, 6]} />
+          <meshStandardMaterial color="#1a1a1a" metalness={0.8} roughness={0.2} />
+        </mesh>
+        <mesh position={[0, 6.5, 0]}>
+          <coneGeometry args={[1.5, 2, 6]} />
+          <meshStandardMaterial color="#333" />
+        </mesh>
+        <mesh position={[0, 3, 0]}>
+          <torusGeometry args={[2.2, 0.05, 8, 32]} rotation={[Math.PI/2, 0, 0]} />
+          <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={1} />
+        </mesh>
+      </group>
+    );
+  }
+
   if (poi.type === 'FORGE' || poi.type === 'BANK_VAULT' || poi.type === 'MARKET_STALL') {
     const color = poi.type === 'BANK_VAULT' ? '#FBBF24' : poi.type === 'FORGE' ? '#EF4444' : '#60D4FF';
     return (
@@ -198,21 +218,6 @@ const POIModel = ({ poi }: { poi: POI }) => {
             <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" />
           </mesh>
         )}
-      </group>
-    );
-  }
-
-  if (poi.type === 'HOUSE') {
-    return (
-      <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
-        <mesh position={[0, 1.5, 0]} castShadow>
-          <boxGeometry args={[4, 3, 4]} />
-          <meshStandardMaterial color="#222" roughness={0.8} />
-        </mesh>
-        <mesh position={[0, 3.5, 0]} rotation={[0, Math.PI / 4, 0]}>
-          <coneGeometry args={[3.2, 2, 4]} />
-          <meshStandardMaterial color="#333" />
-        </mesh>
       </group>
     );
   }
@@ -336,7 +341,7 @@ const Terrain = ({ civilizationIndex, agents }: { civilizationIndex: number, age
         uFogFar: { value: 400.0 },
         uAgentPositions: { value: new Array(10).fill(new THREE.Vector3()) },
         uAgentVisionRanges: { value: new Array(10).fill(0) },
-        uExplorationLevel: { value: 0.5 }
+        uExplorationLevel: { value: 1.0 } // Set to 1.0 to ensure terrain is always visible
     }), [civilizationIndex, camera]);
 
     useFrame((state) => {
@@ -344,7 +349,7 @@ const Terrain = ({ civilizationIndex, agents }: { civilizationIndex: number, age
             materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
             materialRef.current.uniforms.uCameraPosition.value.copy(state.camera.position);
             
-            // Real-time visibility uniform updates
+            // Real-time uniform updates
             const positions = materialRef.current.uniforms.uAgentPositions.value;
             const ranges = materialRef.current.uniforms.uAgentVisionRanges.value;
             agents.slice(0, 10).forEach((agent, i) => {

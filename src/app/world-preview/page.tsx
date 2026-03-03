@@ -19,7 +19,8 @@ import {
   Monitor,
   Smartphone,
   ShieldCheck,
-  AlertTriangle
+  AlertTriangle,
+  Key
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { World3D } from "@/components/game/World3D"
@@ -32,11 +33,10 @@ import { Button } from "@/components/ui/button"
 
 export default function WorldPreviewPage() {
   const db = useFirestore()
-  const { user } = useUser()
+  const { user, isUserLoading } = useUser()
   const { 
     isMobile, 
     setIsMobile, 
-    controlMode, 
     isAxiomAuthenticated,
     userApiKey,
     setUserApiKey
@@ -62,6 +62,13 @@ export default function WorldPreviewPage() {
       setUser({ id: user.uid, name: user.displayName || 'Pilot', email: user.email || '' })
     }
   }, [user, setUser]);
+
+  // Ensure an API key exists so AI features aren't blocked, but don't show a full-screen blocker
+  useEffect(() => {
+    if (!userApiKey) {
+      setUserApiKey("MOCK_OUROBOROS_KEY");
+    }
+  }, [userApiKey, setUserApiKey]);
 
   useEffect(() => {
     if (user?.email === 'projectouroboroscollective@gmail.com' && !isAxiomAuthenticated) {
@@ -108,6 +115,14 @@ export default function WorldPreviewPage() {
     }
   }, [worldState]);
 
+  if (isUserLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <RefreshCw className="h-12 w-12 animate-spin text-accent" />
+      </div>
+    )
+  }
+
   if (!user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background p-12">
@@ -129,17 +144,6 @@ export default function WorldPreviewPage() {
       <SidebarInset className="flex flex-col overflow-auto">
         {showHandshake && <AxiomHandshakeModal onClose={() => setShowHandshake(false)} />}
 
-        {!userApiKey && (
-          <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[90] p-6 backdrop-blur-3xl">
-            <Card className="max-w-md w-full bg-[#0a0a0f] border-2 border-red-500/50 rounded-[3rem] p-12 text-center shadow-2xl shadow-red-500/20">
-              <AlertTriangle className="w-20 h-20 mx-auto text-red-500 animate-pulse mb-8" />
-              <h2 className="text-3xl font-headline font-black mb-3 uppercase tracking-tighter text-white">API Key Required</h2>
-              <p className="text-sm text-muted-foreground mb-8">To access advanced AI features, verify your Gemini API key.</p>
-              <Button onClick={() => setUserApiKey("MOCK_KEY")} className="w-full h-16 axiom-gradient text-white rounded-3xl font-black text-xs uppercase tracking-[0.3em]">Select API Key</Button>
-            </Card>
-          </div>
-        )}
-
         <header className="flex h-16 items-center border-b border-border px-6 justify-between shrink-0 bg-background/50 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
@@ -147,6 +151,11 @@ export default function WorldPreviewPage() {
           </div>
           <div className="flex items-center gap-4">
              {isAxiomAuthenticated && <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/40 gap-2"><ShieldCheck className="h-3 w-3" /> OVERSEER_ACTIVE</Badge>}
+             {!isAxiomAuthenticated && userApiKey === "MOCK_OUROBOROS_KEY" && (
+               <Badge variant="outline" className="text-orange-500 border-orange-500/30 gap-2">
+                 <Key className="h-3 w-3" /> MOCK_AI_MODE
+               </Badge>
+             )}
              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-[10px] font-black border border-border tracking-widest italic text-white">
               <RefreshCw className={`h-3 w-3 ${(worldState as any)?.tick ? 'animate-spin text-accent' : 'text-muted-foreground'}`} />
               <span>{(worldState as any)?.tick ? 'DETERMINISTIC_SYNC_ACTIVE' : 'SYNC_IDLE'}</span>
