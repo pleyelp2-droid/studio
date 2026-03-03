@@ -120,7 +120,7 @@ export default function LandingPage() {
             
             <p className="text-xl md:text-4xl text-white/80 max-w-4xl mx-auto font-light leading-snug tracking-tight">
               Axiom Frontier presents the first <span className="text-white font-medium italic underline decoration-accent/50 decoration-2 underline-offset-8">Emergent AI-MMORPG</span>. 
-              A deterministic reality where every byte is persistent.
+              A deterministic reality where every byte is persistent and every player is a variable.
             </p>
 
             <div className="flex flex-wrap justify-center gap-8 pt-12">
