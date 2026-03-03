@@ -66,17 +66,6 @@ export interface Agent {
   lastUpdate?: any;
 }
 
-export interface AgentTrust {
-  id: string;
-  agentAId: string;
-  agentBId: string;
-  positiveInteractions: number;
-  negativeInteractions: number;
-  trustScore: number;
-  reputationWeight: number;
-  lastInteractionTick: number;
-}
-
 export interface Faction {
   id: string;
   name: string;
@@ -90,46 +79,6 @@ export interface Faction {
   lastUpdate: any;
 }
 
-export interface MonsterDna {
-  id: string;
-  monsterId: string;
-  morphology: number;
-  aggressionGene: number;
-  speedGene: number;
-  mutationFactor: number;
-  isElite: boolean;
-}
-
-export type ItemRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'AXIOMATIC';
-export type ItemType = 'HELMET' | 'CHEST' | 'LEGS' | 'WEAPON' | 'SHIELD' | 'ACCESSORY' | 'CONSUMABLE' | 'ARMOR';
-
-export interface Item {
-  id: string;
-  name: string;
-  type: ItemType;
-  rarity: ItemRarity;
-}
-
-export interface GeneratedItem {
-  name: string;
-  type: string;
-  rarity: string;
-  stats: Record<string, number>;
-  level: number;
-  value: number;
-}
-
-export interface CombatResult {
-  attackerUid: string;
-  defenderUid: string;
-  defenderType: string;
-  damageDealt: number;
-  damageReceived: number;
-  skillUsed: string;
-  result: string;
-  lootDropped: GeneratedItem[];
-}
-
 export interface MatrixTransaction {
   id: string;
   fromUid: string | null;
@@ -140,6 +89,18 @@ export interface MatrixTransaction {
   description: string;
   tickNumber: number;
   createdAt: any;
+}
+
+export interface LiveEvent {
+  id: string;
+  adminId: string;
+  eventType: 'INVASION' | 'ECONOMIC_SHOCK' | 'BIOME_SHIFT' | 'LORE_INJECTION';
+  name: string;
+  severity: number;
+  parameters: any;
+  status: 'ACTIVE' | 'RESOLVED' | 'CANCELLED';
+  createdAt: any;
+  resolvedAt?: any;
 }
 
 export interface ComplianceMatrixEntry {
@@ -161,13 +122,4 @@ export interface AdminAuditLog {
   details: any;
   ipAddress: string;
   timestamp: any;
-}
-
-export interface SecurityLockout {
-  id: string;
-  identifier: string;
-  lockoutType: 'LOGIN' | 'TRANSACTION';
-  attempts: number;
-  lockedUntil: any | null;
-  updatedAt: any;
 }

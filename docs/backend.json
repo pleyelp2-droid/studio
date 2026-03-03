@@ -32,17 +32,31 @@
         "lastUpdate": { "type": "string", "format": "date-time" }
       }
     },
-    "AgentTrust": {
-      "title": "AgentTrust",
+    "LiveEvent": {
+      "title": "LiveEvent",
       "type": "object",
       "properties": {
-        "agentAId": { "type": "string" },
-        "agentBId": { "type": "string" },
-        "positiveInteractions": { "type": "number" },
-        "negativeInteractions": { "type": "number" },
-        "trustScore": { "type": "number" },
-        "reputationWeight": { "type": "number" },
-        "lastInteractionTick": { "type": "number" }
+        "adminId": { "type": "string" },
+        "eventType": { "type": "string" },
+        "name": { "type": "string" },
+        "severity": { "type": "number" },
+        "parameters": { "type": "object" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "resolvedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "AdminAuditLog": {
+      "title": "AdminAuditLog",
+      "type": "object",
+      "properties": {
+        "adminId": { "type": "string" },
+        "action": { "type": "string" },
+        "targetType": { "type": "string" },
+        "targetId": { "type": "string" },
+        "details": { "type": "object" },
+        "ipAddress": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
       }
     },
     "Chunk": {
@@ -61,22 +75,6 @@
         "lastUpdate": { "type": "string", "format": "date-time" }
       }
     },
-    "CombatLog": {
-      "title": "CombatLog",
-      "type": "object",
-      "properties": {
-        "attackerUid": { "type": "string" },
-        "defenderUid": { "type": "string" },
-        "defenderType": { "type": "string" },
-        "damageDealt": { "type": "number" },
-        "damageReceived": { "type": "number" },
-        "skillUsed": { "type": "string" },
-        "result": { "type": "string" },
-        "lootDropped": { "type": "array" },
-        "tickNumber": { "type": "number" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      }
-    },
     "MarketListing": {
       "title": "MarketListing",
       "type": "object",
@@ -87,20 +85,6 @@
         "quantity": { "type": "number" },
         "pricePerUnit": { "type": "number" },
         "status": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
-      }
-    },
-    "MatrixTransaction": {
-      "title": "MatrixTransaction",
-      "type": "object",
-      "properties": {
-        "fromUid": { "type": "string" },
-        "toUid": { "type": "string" },
-        "txType": { "type": "string" },
-        "amount": { "type": "number" },
-        "currency": { "type": "string" },
-        "description": { "type": "string" },
-        "tickNumber": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" }
       }
     },
@@ -117,40 +101,15 @@
         "createdAt": { "type": "string", "format": "date-time" }
       }
     },
-    "Faction": {
-      "title": "Faction",
+    "AnomalyLog": {
+      "title": "AnomalyLog",
       "type": "object",
       "properties": {
-        "name": { "type": "string" },
-        "entityType": { "type": "string" },
-        "leaderUid": { "type": "string" },
-        "members": { "type": "array" },
-        "level": { "type": "number" },
-        "influence": { "type": "number" },
-        "infrastructure": { "type": "array" },
-        "lastUpdate": { "type": "string", "format": "date-time" }
-      }
-    },
-    "MonsterDna": {
-      "title": "MonsterDna",
-      "type": "object",
-      "properties": {
-        "monsterId": { "type": "string" },
-        "morphology": { "type": "number" },
-        "aggressionGene": { "type": "number" },
-        "speedGene": { "type": "number" },
-        "mutationFactor": { "type": "number" },
-        "isElite": { "type": "boolean" }
-      }
-    },
-    "RecursionState": {
-      "title": "RecursionState",
-      "type": "object",
-      "properties": {
-        "recursionLevel": { "type": "number" },
-        "biomeShiftModifier": { "type": "number" },
-        "mutationRateModifier": { "type": "number" },
-        "economicVolatilityModifier": { "type": "number" }
+        "sourceIp": { "type": "string" },
+        "pattern": { "type": "string" },
+        "severity": { "type": "string" },
+        "details": { "type": "object" },
+        "timestamp": { "type": "string", "format": "date-time" }
       }
     }
   },
@@ -162,45 +121,37 @@
       "schema": { "$ref": "#/entities/Agent" },
       "description": "Neural entity data."
     },
-    "/agentTrust/{trustId}": {
-      "schema": { "$ref": "#/entities/AgentTrust" },
-      "description": "Inter-agent interaction data."
+    "/liveEvents/{eventId}": {
+      "schema": { "$ref": "#/entities/LiveEvent" },
+      "description": "Active simulation events."
+    },
+    "/adminAuditLogs/{logId}": {
+      "schema": { "$ref": "#/entities/AdminAuditLog" },
+      "description": "Admin intervention records."
+    },
+    "/anomalyLogs/{logId}": {
+      "schema": { "$ref": "#/entities/AnomalyLog" },
+      "description": "Security anomalies."
     },
     "/chunks/{chunkId}": {
       "schema": { "$ref": "#/entities/Chunk" },
       "description": "World shard data."
     },
-    "/combatLogs/{logId}": {
-      "schema": { "$ref": "#/entities/CombatLog" },
-      "description": "Engagement records."
-    },
     "/marketplace/{listingId}": {
       "schema": { "$ref": "#/entities/MarketListing" },
       "description": "Economy listings."
-    },
-    "/matrixTransactions/{txId}": {
-      "schema": { "$ref": "#/entities/MatrixTransaction" },
-      "description": "Energy ledger."
     },
     "/tickState/{tickId}": {
       "schema": { "$ref": "#/entities/TickState" },
       "description": "Engine performance log."
     },
-    "/factions/{factionId}": {
-      "schema": { "$ref": "#/entities/Faction" },
-      "description": "Hierarchy data."
-    },
-    "/monsterDna/{dnaId}": {
-      "schema": { "$ref": "#/entities/MonsterDna" },
-      "description": "Genetic persistence."
-    },
-    "/recursionState/{chunkId}": {
-      "schema": { "$ref": "#/entities/RecursionState" },
-      "description": "Dimensional state."
-    },
     "/worldState/global": {
       "schema": { "type": "object" },
       "description": "Core engine state."
+    },
+    "/securityLockouts/{lockoutId}": {
+      "schema": { "type": "object" },
+      "description": "Brute force protection."
     }
   }
 }

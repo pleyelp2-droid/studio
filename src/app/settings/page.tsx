@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -5,15 +6,15 @@ import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
-import { Shield, Save, Power, Loader2, UserPlus } from "lucide-react"
+import { Shield, Save, Power, Loader2, UserPlus, Pause, Play, RotateCcw } from "lucide-react"
 import { useFirestore, useDoc, useMemoFirebase, useAuth, useUser } from "@/firebase"
-import { doc, setDoc, serverTimestamp, collection, addDoc } from "firebase/firestore"
+import { doc, setDoc, serverTimestamp, collection, addDoc, updateDoc } from "firebase/firestore"
 import { signInAnonymously } from "firebase/auth"
 import { useToast } from "@/hooks/use-toast"
+import { emergencyRollback } from "@/services/AdminManager"
 
 export default function SettingsPage() {
   const db = useFirestore()
@@ -26,6 +27,7 @@ export default function SettingsPage() {
   const [booting, setBooting] = useState(false)
   const [saving, setSaving] = useState(false)
   const [seeding, setSeeding] = useState(false)
+  const [toggling, setToggling] = useState(false)
   const [params, setParams] = useState({
     economy: 500,
     military: 500,
@@ -51,6 +53,36 @@ export default function SettingsPage() {
   const calculateCI = () => {
     const { economy, military, stability, knowledge, culture, corruption } = params
     return (0.2 * economy) + (0.2 * military) + (0.15 * stability) + (0.15 * knowledge) + (0.15 * culture) - (0.15 * corruption)
+  }
+
+  const handleToggleEngine = async () => {
+    if (!worldRef) return
+    setToggling(true)
+    try {
+      const newState = !worldState?.paused
+      await updateDoc(worldRef, { paused: newState, updatedAt: serverTimestamp() })
+      toast({ 
+        title: newState ? "Engine Paused" : "Engine Resumed", 
+        description: newState ? "Deterministic cycles suspended." : "Logic flow restored." 
+      })
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Control Error", description: e.message })
+    } finally {
+      setToggling(false)
+    }
+  }
+
+  const handleRollback = async () => {
+    if (!worldState?.tick) return
+    const target = worldState.tick - 10
+    if (target < 1) return
+    
+    try {
+      await emergencyRollback(user?.uid || "admin", target)
+      toast({ title: "Rollback Initiated", description: `World state rewound to Tick ${target}.` })
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Rollback Failed", description: e.message })
+    }
   }
 
   const handleSave = async () => {
@@ -82,6 +114,7 @@ export default function SettingsPage() {
         ...params, 
         civilizationIndex: ci, 
         tick: 1, 
+        paused: false,
         lastHeartbeat: serverTimestamp(),
         updatedAt: serverTimestamp()
       })
@@ -107,6 +140,11 @@ export default function SettingsPage() {
       for (const pilot of pilots) {
         await addDoc(collection(db, "players"), {
           ...pilot,
+          npcClass: 'PILOT',
+          awakened: false,
+          inventory: [],
+          hp: 100,
+          maxHp: 100,
           createdAt: new Date().toISOString()
         })
       }
@@ -130,21 +168,21 @@ export default function SettingsPage() {
           <div className="flex gap-4">
             <Button 
               variant="outline" 
-              onClick={handleSeedPilots} 
-              disabled={seeding}
-              className="border-muted-foreground/20 text-muted-foreground hover:bg-secondary/50 gap-3 font-black text-xs uppercase italic tracking-widest"
+              onClick={handleToggleEngine} 
+              disabled={toggling || !worldState?.tick}
+              className="border-accent/20 text-accent hover:bg-accent/10 gap-3 font-black text-xs uppercase italic tracking-widest"
             >
-              {seeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
-              Seed Pilots
+              {toggling ? <Loader2 className="h-4 w-4 animate-spin" /> : worldState?.paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+              {worldState?.paused ? "Resume Engine" : "Pause Engine"}
             </Button>
             <Button 
               variant="outline" 
-              onClick={handleBootEngine} 
-              disabled={booting}
-              className="border-accent text-accent hover:bg-accent/10 gap-3 font-black text-xs uppercase italic tracking-widest"
+              onClick={handleRollback} 
+              disabled={!worldState?.tick}
+              className="border-destructive/20 text-destructive hover:bg-destructive/10 gap-3 font-black text-xs uppercase italic tracking-widest"
             >
-              {booting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
-              Boot Engine
+              <RotateCcw className="h-4 w-4" />
+              Emergency Rollback
             </Button>
             <Button 
               onClick={handleSave} 
@@ -195,6 +233,29 @@ export default function SettingsPage() {
                     />
                   </div>
                 ))}
+              </div>
+
+              <div className="pt-6 border-t border-border flex justify-between gap-4">
+                <Button 
+                  variant="outline" 
+                  onClick={handleSeedPilots} 
+                  disabled={seeding}
+                  className="border-muted-foreground/20 text-muted-foreground hover:bg-secondary/50 gap-3 font-black text-xs uppercase italic tracking-widest flex-1"
+                >
+                  {seeding ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                  Seed Initial Pilots
+                </Button>
+                {!worldState?.tick && (
+                  <Button 
+                    variant="outline" 
+                    onClick={handleBootEngine} 
+                    disabled={booting}
+                    className="border-accent text-accent hover:bg-accent/10 gap-3 font-black text-xs uppercase italic tracking-widest flex-1"
+                  >
+                    {booting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
+                    Initialize Logic Core
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

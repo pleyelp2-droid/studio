@@ -2,7 +2,7 @@
 'use client';
 /**
  * @fileOverview Axiom Frontier - Admin Security & Threat Mitigation
- * Implements password verification, token management, and brute-force protection.
+ * Implements password verification, session management, and brute-force protection.
  */
 
 import bcrypt from 'bcryptjs';
@@ -21,7 +21,8 @@ import {
   serverTimestamp, 
   orderBy, 
   limit,
-  Timestamp 
+  Timestamp,
+  writeBatch
 } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 
@@ -34,8 +35,7 @@ const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
 
 function getJwtSecret(): string {
-  const secret = process.env.NEXT_PUBLIC_ADMIN_JWT_SECRET || 'OUROBOROS_EMERGENCY_BLUEPRINT_DEFAULT';
-  return secret;
+  return process.env.NEXT_PUBLIC_ADMIN_JWT_SECRET || 'OUROBOROS_EMERGENCY_BLUEPRINT_DEFAULT';
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -76,6 +76,7 @@ export async function checkBruteForce(identifier: string): Promise<{ locked: boo
     collection(db, 'securityLockouts'),
     where('identifier', '==', identifier),
     where('lockoutType', '==', 'LOGIN'),
+    orderBy('createdAt', 'desc'),
     limit(1)
   );
   
@@ -90,8 +91,7 @@ export async function checkBruteForce(identifier: string): Promise<{ locked: boo
   }
 
   if (lockout.attempts >= MAX_LOGIN_ATTEMPTS) {
-    // Threshold reached but timestamp missing, applying new lockout
-    const docRef = doc(db, 'securityLockouts', snap.docs[0].id);
+    const docRef = snap.docs[0].ref;
     await updateDoc(docRef, {
       lockedUntil: Timestamp.fromMillis(Date.now() + LOCKOUT_DURATION_MS)
     });
@@ -118,7 +118,7 @@ export async function recordLoginAttempt(identifier: string, success: boolean): 
 
   if (success) {
     if (!snap.empty) {
-      await deleteDoc(doc(db, 'securityLockouts', snap.docs[0].id));
+      await deleteDoc(snap.docs[0].ref);
     }
     return;
   }
@@ -128,7 +128,7 @@ export async function recordLoginAttempt(identifier: string, success: boolean): 
     const newAttempts = (data.attempts || 0) + 1;
     const lockedUntil = newAttempts >= MAX_LOGIN_ATTEMPTS ? Timestamp.fromMillis(Date.now() + LOCKOUT_DURATION_MS) : null;
     
-    await updateDoc(doc(db, 'securityLockouts', snap.docs[0].id), {
+    await updateDoc(snap.docs[0].ref, {
       attempts: newAttempts,
       lockedUntil,
       updatedAt: serverTimestamp()
@@ -196,15 +196,12 @@ export async function createAdminSession(
 ): Promise<void> {
   if (!db) return;
 
-  const crypto = await import('crypto');
-  const tokenHash = crypto.createHash('sha256').update(accessToken).digest('hex');
-  const refreshHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
   const expiresAt = Timestamp.fromMillis(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   await addDoc(collection(db, 'adminSessions'), {
     adminId,
-    tokenHash,
-    refreshHash,
+    accessToken,
+    refreshToken,
     ipAddress,
     userAgent,
     createdAt: serverTimestamp(),
@@ -226,10 +223,12 @@ export async function revokeAllSessions(adminId: string): Promise<void> {
   );
 
   const snap = await getDocs(q);
+  const batch = writeBatch(db);
   for (const sessionDoc of snap.docs) {
-    await updateDoc(doc(db, 'adminSessions', sessionDoc.id), {
+    batch.update(sessionDoc.ref, {
       revoked: true,
       updatedAt: serverTimestamp()
     });
   }
+  await batch.commit();
 }

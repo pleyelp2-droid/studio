@@ -23,7 +23,10 @@ export const worldHeartbeat = onSchedule("every 1 minutes", async (event) => {
     const snap = await worldRef.get();
     const data = snap.data();
 
-    if (!data) return;
+    if (!data || data.paused) {
+        console.log("Engine paused or missing state. Skipping heartbeat.");
+        return;
+    }
 
     // Formula: CI = (0.2*econ) + (0.2*mil) + (0.15*stab) + (0.15*know) + (0.15*cult) - (0.15*corr)
     const ci = (0.2 * (data.economy || 0)) + 
@@ -65,6 +68,13 @@ export const enforceAxiom = onDocumentUpdated("players/{playerId}", async (event
     // Prevent impossible level jumps
     if (newValue.level > (oldValue.level || 0) + 1) {
         console.warn(`Suspicious level jump detected for player ${event.params.playerId}`);
-        // In a production scenario, we might revert the change here
+        // Log as anomaly
+        await db.collection("anomalyLogs").add({
+            sourceIp: "enforcer",
+            pattern: "LEVEL_JUMP",
+            severity: "HIGH",
+            details: { playerId: event.params.playerId, old: oldValue.level, new: newValue.level },
+            timestamp: admin.firestore.FieldValue.serverTimestamp()
+        });
     }
 });
