@@ -1063,6 +1063,10 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 
+.w-1\.5 {
+  width: .375rem;
+}
+
 .min-w-0 {
   min-width: 0;
 }
@@ -2768,6 +2772,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .text-white\/90 {
   color: rgba(255, 255, 255, .9);
+}
+
+.text-axiom-purple {
+  color: var(--arl-arcane);
 }
 
 .underline {

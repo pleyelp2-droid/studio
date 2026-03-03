@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -19,76 +18,95 @@ import {
   FileCode, 
   Image as ImageIcon, 
   Box, 
-  Music,
   HardDrive,
   Cpu,
   Layers,
-  Activity
+  Activity,
+  Terminal,
+  Unplug
 } from "lucide-react"
 import Image from "next/image"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 
-const assets = [
+const authoritativeAssets = [
   { 
-    id: 1, 
-    name: "Axiomatic_Spire_V2.glb", 
+    id: "blueprint-spire-v2", 
+    name: "Axiom_Core_Spire.glb", 
     type: "Model", 
-    size: "12.4 MB", 
+    size: "18.4 MB", 
     image: PlaceHolderImages.find(i => i.id === 'asset-blueprint') || PlaceHolderImages[6], 
-    tags: ["Procedural", "PBR_V1", "City"],
-    details: "Multi-stage architecture used for city buildings."
+    tags: ["PBR_V1", "Multi-Stage", "Architecture"],
+    details: "Master architectural model for CITY biomes. Features 3 logic-stages and rotating energy bands."
   },
   { 
-    id: 2, 
-    name: "Nexus_Shrine_Core.glb", 
+    id: "artifact-shrine-v1", 
+    name: "Nexus_Shrine_Artifact.glb", 
     type: "Model", 
-    size: "8.2 MB", 
+    size: "4.2 MB", 
     image: PlaceHolderImages.find(i => i.id === 'item-plasma-core') || PlaceHolderImages[1], 
-    tags: ["Artifact", "Emissive", "Floating"],
-    details: "Deterministic central shrine with logic resonance."
+    tags: ["Logic_Core", "Emissive", "Floating"],
+    details: "Central deterministic shrine. 128-vertex octahedron with dynamic torus resonance."
   },
   { 
-    id: 3, 
-    name: "Holographic_Hex_Overlay.png", 
-    type: "Texture", 
-    size: "4.5 MB", 
-    image: PlaceHolderImages.find(i => i.id === 'item-cyber-deck') || PlaceHolderImages[0], 
-    tags: ["Shader", "Terrain", "Grid"],
-    details: "Hexagonal displacement map for the Axiom terrain."
-  },
-  { 
-    id: 4, 
-    name: "Neural_Shell_Base.glb", 
-    type: "Model", 
-    size: "15.8 MB", 
-    image: PlaceHolderImages.find(i => i.id === 'asset-robot') || PlaceHolderImages[5], 
-    tags: ["Character", "Rigged", "Skeletal"],
-    details: "Base humanoid model for all registered pilots."
-  },
-  { 
-    id: 5, 
-    name: "Axiom_Handshake_Logic.json", 
-    type: "Script", 
-    size: "0.2 MB", 
+    id: "shader-hex-kernel", 
+    name: "Axiom_Terrain_Kernel.glsl", 
+    type: "Shader", 
+    size: "0.1 MB", 
     image: PlaceHolderImages.find(i => i.id === 'world-chrome') || PlaceHolderImages[9], 
-    tags: ["Engine", "Security", "Admin"],
-    details: "Authoritative verification for Overseer access."
+    tags: ["Vertex", "Fragment", "Holographic"],
+    details: "Authoritative ground shader. Handles tri-planar mapping and hex-grid displacement."
   },
   { 
-    id: 6, 
-    name: "Void_Perimeter_Wall.glb", 
+    id: "character-ghost-base", 
+    name: "Neural_Ghost_V1.glb", 
+    type: "Model", 
+    size: "12.8 MB", 
+    image: PlaceHolderImages.find(i => i.id === 'asset-robot') || PlaceHolderImages[5], 
+    tags: ["Rigged", "Humanoid", "Skinned"],
+    details: "Deterministic pilot shell. 16-bone skeleton with PBR skin-tone modulation."
+  },
+  { 
+    id: "logic-aue-kernel", 
+    name: "AUE_Utility_Engine.ts", 
+    type: "Logic", 
+    size: "0.5 MB", 
+    image: PlaceHolderImages.find(i => i.id === 'item-cyber-deck') || PlaceHolderImages[0], 
+    tags: ["AUE", "Deterministic", "Kappa"],
+    details: "The universal constant logic kernel. Manages the 1.000 KAPPA variable and agent utility."
+  },
+  { 
+    id: "asset-wall-perimeter", 
+    name: "Axiom_Fortification_Wall.glb", 
     type: "Model", 
     size: "6.1 MB", 
     image: PlaceHolderImages.find(i => i.id === 'item-void-armor') || PlaceHolderImages[2], 
-    tags: ["Fortification", "Metallic", "Modular"],
-    details: "High-gloss metallic segments for city boundaries."
+    tags: ["Fortification", "Metallic", "Segmented"],
+    details: "High-gloss metallic boundary segment. Used for SANCTUARY-layer fortification."
   },
+  { 
+    id: "blueprint-dungeon-gate", 
+    name: "Deterministic_Gate_V2.glb", 
+    type: "Model", 
+    size: "8.5 MB", 
+    image: PlaceHolderImages.find(i => i.id === 'region-nebulas-edge') || PlaceHolderImages[3], 
+    tags: ["Gate", "Logic_Field", "Inter-Biome"],
+    details: "Entry portal blueprint. Manifests glowing logic fields for transit verification."
+  },
+  { 
+    id: "script-enforcer-v1", 
+    name: "AxiomEnforcer_System.js", 
+    type: "Logic", 
+    size: "0.3 MB", 
+    image: PlaceHolderImages.find(i => i.id === 'asset-starship') || PlaceHolderImages[4], 
+    tags: ["Security", "Validation", "Audit"],
+    details: "The server-side validation layer. Monitors state-sync anomalies and level-jumps."
+  }
 ]
 
 export default function AssetHubPage() {
   const [searchQuery, setSearchQuery] = useState("")
 
-  const filteredAssets = assets.filter(asset => 
+  const filteredAssets = authoritativeAssets.filter(asset => 
     asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     asset.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))
   )
@@ -100,17 +118,17 @@ export default function AssetHubPage() {
         <header className="flex h-16 items-center border-b border-border px-6 justify-between shrink-0 bg-background/50 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight">Authoritative Asset Hub</h1>
+            <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight text-white">Authoritative Asset Hub</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="hidden md:flex gap-2 font-black text-[10px] tracking-widest uppercase italic border-white/10 text-white">
-              <Plus className="h-3 w-3" />
-              Upload Blueprint
-            </Button>
+            <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg bg-axiom-purple/10 border border-axiom-purple/20 text-[10px] font-black text-axiom-purple tracking-widest uppercase italic">
+              <Terminal className="h-3 w-3" />
+              <span>Dev_Mode: Enabled</span>
+            </div>
             <div className="h-8 w-[1px] bg-border mx-2 hidden md:block" />
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               <HardDrive className="h-3 w-3 text-axiom-cyan" />
-              <span>Matrix Storage: 42.5 GB / 100 GB</span>
+              <span>Simulation Volume: 64.8 GB / 1 PB</span>
             </div>
           </div>
         </header>
@@ -121,7 +139,7 @@ export default function AssetHubPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 placeholder="Search engine blueprints..." 
-                className="pl-10 bg-secondary/30 border-border italic text-xs" 
+                className="pl-10 bg-secondary/30 border-border italic text-xs text-white" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -140,10 +158,9 @@ export default function AssetHubPage() {
 
           <Tabs defaultValue="all" className="w-full">
             <TabsList className="bg-secondary/50 border border-border mb-6">
-              <TabsTrigger value="all" className="text-[10px] font-black tracking-widest uppercase italic">All Blueprints</TabsTrigger>
-              <TabsTrigger value="models" className="text-[10px] font-black tracking-widest uppercase italic">3D Models</TabsTrigger>
-              <TabsTrigger value="textures" className="text-[10px] font-black tracking-widest uppercase italic">Textures</TabsTrigger>
-              <TabsTrigger value="logic" className="text-[10px] font-black tracking-widest uppercase italic">Logic Units</TabsTrigger>
+              <TabsTrigger value="all" className="text-[10px] font-black tracking-widest uppercase italic">All Master Assets</TabsTrigger>
+              <TabsTrigger value="models" className="text-[10px] font-black tracking-widest uppercase italic">3D Blueprints</TabsTrigger>
+              <TabsTrigger value="logic" className="text-[10px] font-black tracking-widest uppercase italic">Logic Kernels</TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-0">
@@ -167,27 +184,32 @@ export default function AssetHubPage() {
                     </div>
                     <Badge className="absolute top-2 left-2 bg-black/80 backdrop-blur-md text-white border-white/10 text-[8px] font-black uppercase tracking-widest">
                       {asset.type === 'Model' && <Box className="h-2 w-2 mr-1 inline" />}
-                      {asset.type === 'Texture' && <ImageIcon className="h-2 w-2 mr-1 inline" />}
-                      {asset.type === 'Script' && <FileCode className="h-2 w-2 mr-1 inline" />}
+                      {asset.type === 'Shader' && <ImageIcon className="h-2 w-2 mr-1 inline" />}
+                      {asset.type === 'Logic' && <FileCode className="h-2 w-2 mr-1 inline" />}
                       {asset.type}
                     </Badge>
                   </div>
                   <CardHeader className="p-4 space-y-1">
                     <CardTitle className="text-xs font-black truncate tracking-widest uppercase italic text-white group-hover:text-axiom-cyan transition-colors">{asset.name}</CardTitle>
-                    <CardDescription className="text-[10px] font-mono opacity-50 uppercase">{asset.size} // {asset.details}</CardDescription>
+                    <CardDescription className="text-[10px] font-mono opacity-50 uppercase text-white/60">
+                      {asset.size} // {asset.details}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="p-4 pt-0">
                     <div className="flex flex-wrap gap-1">
                       {asset.tags.map(tag => (
-                        <span key={tag} className="text-[8px] font-black bg-white/5 px-1.5 py-0.5 rounded text-white/40 uppercase tracking-tighter border border-white/5">
+                        <span key={tag} className="text-[8px] font-black bg-white/5 px-1.5 py-0.5 rounded text-axiom-cyan uppercase tracking-tighter border border-white/5">
                           #{tag}
                         </span>
                       ))}
                     </div>
                   </CardContent>
                   <CardFooter className="p-4 pt-0 mt-auto border-t border-white/5 flex justify-between items-center bg-white/[0.02]">
-                    <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Sync: Tick 1842</span>
-                    <Button variant="ghost" size="sm" className="h-7 text-[9px] font-black uppercase tracking-[0.2em] italic text-axiom-cyan hover:bg-axiom-cyan/10">Details</Button>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Live_Manifest: Tick 1842</span>
+                    </div>
+                    <Button variant="ghost" size="sm" className="h-7 text-[9px] font-black uppercase tracking-[0.2em] italic text-axiom-cyan hover:bg-axiom-cyan/10">Inspect_Source</Button>
                   </CardFooter>
                 </Card>
               ))}
