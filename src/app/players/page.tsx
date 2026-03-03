@@ -7,17 +7,29 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Users, Search, MoreHorizontal, UserCheck, Shield } from "lucide-react"
-
-const players = [
-  { id: "P-882", name: "Nova_Drifter", level: 42, class: "Technomancer", status: "Online", lastActive: "Just now" },
-  { id: "P-121", name: "VoidReaper", level: 28, class: "Interceptor", status: "Online", lastActive: "5m ago" },
-  { id: "P-455", name: "ChromeBane", level: 15, class: "Smasher", status: "Offline", lastActive: "2h ago" },
-  { id: "P-093", name: "AxiomProphet", level: 60, class: "Sage", status: "Away", lastActive: "24m ago" },
-  { id: "P-231", name: "BinaryGhost", level: 31, class: "Infiltrator", status: "Online", lastActive: "Just now" },
-]
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { collection, query, limit } from "firebase/firestore"
+import { Users, Search, MoreHorizontal, UserCheck, Shield, Loader2, AlertCircle } from "lucide-react"
+import { useState } from "react"
 
 export default function PlayersPage() {
+  const db = useFirestore()
+  const [searchQuery, setSearchQuery] = useState("")
+
+  // Live Firestore Collection Reference
+  const playersQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, "players"), limit(50));
+  }, [db]);
+
+  const { data: livePlayers, isLoading, error } = useCollection(playersQuery);
+
+  // Filter logic (client-side for prototyping responsiveness)
+  const filteredPlayers = livePlayers?.filter(player => 
+    player.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    player.id?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <AppSidebar />
@@ -25,12 +37,12 @@ export default function PlayersPage() {
         <header className="flex h-16 items-center border-b border-border px-6 justify-between shrink-0 bg-background/50 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <h1 className="text-xl font-headline font-semibold">Player Database</h1>
+            <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight">Pilot Directory</h1>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2">
-              <UserCheck className="h-4 w-4" />
-              Active Sessions: 2,412
+            <Button variant="outline" size="sm" className="gap-2 font-black text-[10px] tracking-widest uppercase italic">
+              <UserCheck className="h-3 w-3" />
+              Live Nodes: {livePlayers?.length || 0}
             </Button>
           </div>
         </header>
@@ -39,55 +51,78 @@ export default function PlayersPage() {
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search players by name, ID, or class..." className="pl-10 bg-secondary/30" />
+              <Input 
+                placeholder="Search pilot signatures..." 
+                className="pl-10 bg-secondary/30 border-border" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
-            <Button variant="secondary" className="gap-2">
+            <Button variant="secondary" className="gap-2 font-black text-[10px] tracking-widest uppercase italic border border-border">
               <Shield className="h-4 w-4" />
-              Admin Actions
+              Security Oversight
             </Button>
           </div>
 
-          <Card className="border-border bg-card">
-            <Table>
-              <TableHeader className="bg-secondary/20">
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[100px]">ID</TableHead>
-                  <TableHead>Player Name</TableHead>
-                  <TableHead>Class</TableHead>
-                  <TableHead>Level</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Last Active</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {players.map((player) => (
-                  <TableRow key={player.id} className="border-border/50">
-                    <TableCell className="font-mono text-xs text-muted-foreground">{player.id}</TableCell>
-                    <TableCell className="font-medium">{player.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="font-normal">{player.class}</Badge>
-                    </TableCell>
-                    <TableCell className="font-headline font-bold">{player.level}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className={`h-2 w-2 rounded-full ${
-                          player.status === 'Online' ? 'bg-emerald-500 heartbeat-pulse' : 
-                          player.status === 'Away' ? 'bg-amber-500' : 'bg-muted-foreground'
-                        }`} />
-                        <span className="text-sm">{player.status}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{player.lastActive}</TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
+          <Card className="border-border bg-card overflow-hidden shadow-2xl">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
+                <Loader2 className="h-10 w-10 animate-spin mb-4 text-accent" />
+                <p className="text-xs font-black uppercase tracking-[0.3em] italic">Accessing Neural Database...</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center py-24 text-destructive">
+                <AlertCircle className="h-10 w-10 mb-4" />
+                <p className="text-xs font-black uppercase tracking-[0.3em] italic">Protocol Error: Access Denied</p>
+                <p className="text-[10px] mt-2 opacity-50 uppercase font-bold tracking-widest">Verify Admin Credentials</p>
+              </div>
+            ) : filteredPlayers.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
+                <Users className="h-12 w-12 opacity-10 mb-4" />
+                <p className="text-xs font-black uppercase tracking-[0.3em] italic">No Active Signatures Found</p>
+                <p className="text-[10px] mt-2 opacity-50 uppercase font-bold tracking-widest">Awaiting First Pilot Enrollment</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader className="bg-secondary/20 border-b border-border">
+                  <TableRow className="hover:bg-transparent border-none">
+                    <TableHead className="w-[120px] text-[10px] font-black uppercase tracking-widest italic text-accent">Signature ID</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest italic">Pilot Name</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest italic">Level</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase tracking-widest italic">Position</TableHead>
+                    <TableHead className="text-right text-[10px] font-black uppercase tracking-widest italic">Control</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredPlayers.map((player) => (
+                    <TableRow key={player.id} className="border-border/30 axiom-card-hover group">
+                      <TableCell className="font-mono text-[10px] text-muted-foreground uppercase tracking-tighter">
+                        {player.id.substring(0, 8)}...
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-2 w-2 rounded-full bg-accent heartbeat-pulse" />
+                          <span className="font-headline font-bold text-sm tracking-tight">{player.displayName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-black text-[10px] border-accent/20 text-accent bg-accent/5">
+                          LVL {player.level || 1}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-[10px] text-muted-foreground">
+                        {player.position ? `X:${player.position.x?.toFixed(1)} Y:${player.position.y?.toFixed(1)}` : 'NULL_POS'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-50 group-hover:opacity-100 transition-opacity">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </Card>
         </main>
       </SidebarInset>

@@ -16,7 +16,8 @@ import {
   Maximize2,
   Minimize2,
   RefreshCw,
-  Box
+  Box,
+  AlertCircle
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import Image from "next/image"
@@ -28,7 +29,7 @@ export default function WorldPreviewPage() {
   const { data: worldState, isLoading } = useDoc(worldRef)
   
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const [currentEra, setCurrentEra] = useState("Initializing Engine")
+  const [currentEra, setCurrentEra] = useState("Awaiting Logic Core")
   const [eraImage, setEraImage] = useState(PlaceHolderImages.find(img => img.id === "world-primitive"))
 
   useEffect(() => {
@@ -54,12 +55,12 @@ export default function WorldPreviewPage() {
         <header className="flex h-16 items-center border-b border-border px-6 justify-between shrink-0 bg-background/50 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight">Live Render Preview</h1>
+            <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight text-white">Live Render Viewport</h1>
           </div>
           <div className="flex items-center gap-4">
-             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-[10px] font-black border border-border tracking-widest">
-              <RefreshCw className="h-3 w-3 animate-spin text-accent" />
-              <span>DETERMINISTIC_SYNC_ACTIVE</span>
+             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-[10px] font-black border border-border tracking-widest italic">
+              <RefreshCw className={`h-3 w-3 ${worldState?.tick ? 'animate-spin text-accent' : 'text-muted-foreground'}`} />
+              <span>{worldState?.tick ? 'DETERMINISTIC_SYNC_ACTIVE' : 'SYNC_IDLE'}</span>
             </div>
             <Badge variant="outline" className="text-accent border-accent font-black text-[10px] tracking-widest uppercase italic">Render_Layer_0</Badge>
           </div>
@@ -68,7 +69,7 @@ export default function WorldPreviewPage() {
         <main className={`p-6 space-y-6 max-w-7xl mx-auto w-full transition-all duration-500 ${isFullscreen ? 'fixed inset-0 z-[100] bg-background p-0 m-0 max-w-none' : ''}`}>
           <div className="grid gap-6 lg:grid-cols-12 h-full">
             {/* Viewport Card */}
-            <Card className={`lg:col-span-8 border-border bg-card overflow-hidden flex flex-col relative group ${isFullscreen ? 'rounded-none border-0 h-full' : 'aspect-video shadow-2xl shadow-accent/5'}`}>
+            <Card className={`lg:col-span-8 border-border bg-card overflow-hidden flex flex-col relative group ${isFullscreen ? 'rounded-none border-0 h-full' : 'aspect-video shadow-2xl shadow-accent/10'}`}>
               <div className="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button 
                   onClick={() => setIsFullscreen(!isFullscreen)}
@@ -79,12 +80,16 @@ export default function WorldPreviewPage() {
               </div>
 
               <div className="relative flex-1 bg-black overflow-hidden group">
-                {eraImage && (
+                {isLoading ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-30">
+                    <RefreshCw className="h-12 w-12 animate-spin text-accent" />
+                  </div>
+                ) : eraImage && (
                   <Image 
                     src={eraImage.imageUrl} 
                     alt={currentEra} 
                     fill 
-                    className="object-cover opacity-70 transition-all duration-[30s] scale-105 group-hover:scale-110"
+                    className={`object-cover ${worldState?.tick ? 'opacity-80' : 'opacity-40 grayscale'} transition-all duration-[30s] scale-105 group-hover:scale-110`}
                     priority
                     data-ai-hint={eraImage.imageHint}
                   />
@@ -95,8 +100,8 @@ export default function WorldPreviewPage() {
                 
                 <div className="absolute top-10 left-10 space-y-2">
                   <div className="flex items-center gap-3">
-                    <div className="h-3 w-3 rounded-full bg-accent heartbeat-pulse shadow-[0_0_15px_rgba(96,212,255,1)]" />
-                    <span className="text-[12px] font-black text-white/90 uppercase tracking-[0.4em] italic drop-shadow-md">Axiom Core Protocol // v0.9.4</span>
+                    <div className={`h-3 w-3 rounded-full ${worldState?.tick ? 'bg-accent heartbeat-pulse shadow-[0_0_15px_rgba(96,212,255,1)]' : 'bg-muted-foreground'}`} />
+                    <span className="text-[12px] font-black text-white/90 uppercase tracking-[0.4em] italic drop-shadow-md">Axiom Core Protocol // {worldState?.tick ? 'ONLINE' : 'BOOT_PENDING'}</span>
                   </div>
                   <h2 className="text-6xl font-headline font-black text-white uppercase italic tracking-tighter drop-shadow-2xl">{currentEra}</h2>
                 </div>
@@ -117,18 +122,20 @@ export default function WorldPreviewPage() {
                     </div>
                     <div className="flex gap-8">
                       <div className="flex items-center gap-3">
-                        <Activity className="h-5 w-5 text-accent" />
+                        <Activity className={`h-5 w-5 ${worldState?.tick ? 'text-accent animate-pulse' : 'text-muted-foreground'}`} />
                         <span className="text-sm font-black text-white uppercase italic tracking-widest">TICK: {worldState?.tick || 0}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Box className="h-5 w-5 text-emerald-500" />
-                        <span className="text-sm font-black text-white uppercase italic tracking-widest">RENDER_READY</span>
+                        <Box className={`h-5 w-5 ${worldState?.tick ? 'text-emerald-500' : 'text-muted-foreground'}`} />
+                        <span className="text-sm font-black text-white uppercase italic tracking-widest">{worldState?.tick ? 'RENDER_LIVE' : 'IDLE'}</span>
                       </div>
                     </div>
                   </div>
                   <div className="text-right flex flex-col items-end gap-2">
                     <div className="text-[10px] text-white/50 font-black uppercase tracking-[0.4em] italic">Telemetry_Stream</div>
-                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/40 px-6 py-2 text-xs font-black italic tracking-widest uppercase">Persistent Sync Active</Badge>
+                    <Badge variant={worldState?.tick ? 'default' : 'secondary'} className={`${worldState?.tick ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'opacity-40'} px-6 py-2 text-xs font-black italic tracking-widest uppercase`}>
+                      {worldState?.tick ? 'Persistent Sync Active' : 'Waiting for Logic Core'}
+                    </Badge>
                   </div>
                 </div>
                 
@@ -139,7 +146,7 @@ export default function WorldPreviewPage() {
 
             {/* Sidebar Telemetry */}
             <div className={`lg:col-span-4 space-y-6 ${isFullscreen ? 'hidden' : ''}`}>
-              <Card className="border-border bg-card">
+              <Card className="border-border bg-card shadow-lg">
                 <CardHeader className="bg-secondary/10 border-b border-border/50">
                   <CardTitle className="text-xs font-black uppercase italic tracking-[0.3em] flex items-center gap-3 text-accent">
                     <Activity className="h-4 w-4" />
@@ -156,7 +163,7 @@ export default function WorldPreviewPage() {
                     <div key={stat.label} className="space-y-2">
                       <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
                         <span className="text-muted-foreground italic">{stat.label}</span>
-                        <span className="text-white">{stat.value}</span>
+                        <span className="text-white font-bold">{stat.value}</span>
                       </div>
                       <div className="h-1 w-full bg-secondary rounded-full overflow-hidden">
                         <div 
@@ -169,29 +176,36 @@ export default function WorldPreviewPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-border bg-card">
+              <Card className="border-border bg-card shadow-lg">
                 <CardHeader className="bg-secondary/10 border-b border-border/50">
                   <CardTitle className="text-xs font-black uppercase italic tracking-[0.3em] flex items-center gap-3 text-accent">
                     <Shield className="h-4 w-4" />
-                    Logic Core Log
+                    Logic Core Event Log
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                    <div className="space-y-0 divide-y divide-border/50">
-                    {[
-                      { msg: `Epoch Sync: ${worldState?.tick || 0}`, type: "success" },
-                      { msg: `Primary Era: ${currentEra}`, type: "info" },
-                      { msg: "Godot Connector: ONLINE", type: "success" },
-                      { msg: "Deterministic Heartbeat Active", type: "info" },
-                    ].map((log, i) => (
-                      <div key={i} className="px-6 py-3 text-[10px] font-black uppercase italic tracking-widest flex justify-between items-center hover:bg-accent/5 transition-colors">
-                        <span className="text-muted-foreground">{log.msg}</span>
-                        <div className={`h-2 w-2 rounded-full ${
-                          log.type === 'success' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 
-                          log.type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
-                        }`} />
+                    {worldState?.tick ? (
+                      <>
+                        <div className="px-6 py-4 text-[10px] font-black uppercase italic tracking-widest flex justify-between items-center hover:bg-accent/5 transition-colors">
+                          <span className="text-accent">Epoch Sync Detected</span>
+                          <span className="text-white font-mono">T-{worldState.tick}</span>
+                        </div>
+                        <div className="px-6 py-4 text-[10px] font-black uppercase italic tracking-widest flex justify-between items-center hover:bg-accent/5 transition-colors">
+                          <span className="text-muted-foreground italic">Current Era</span>
+                          <Badge variant="outline" className="text-[9px] border-accent/20 text-accent uppercase tracking-tighter">{currentEra}</Badge>
+                        </div>
+                        <div className="px-6 py-4 text-[10px] font-black uppercase italic tracking-widest flex justify-between items-center hover:bg-accent/5 transition-colors">
+                          <span className="text-muted-foreground italic">Godot Engine</span>
+                          <span className="text-emerald-500">CONNECTED</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="p-12 text-center">
+                        <AlertCircle className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest italic">Awaiting Core Signal...</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </CardContent>
               </Card>
