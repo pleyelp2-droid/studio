@@ -10,13 +10,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Sparkles, Loader2, Send, ScrollText } from "lucide-react"
+import { Sparkles, Loader2, ScrollText, Code, Copy, Check } from "lucide-react"
 import { generateDynamicQuest, type GenerateDynamicQuestOutput } from "@/ai/flows/generate-dynamic-quest"
 import { useToast } from "@/hooks/use-toast"
 
 export default function QuestsPage() {
   const [loading, setLoading] = useState(false)
   const [quest, setQuest] = useState<GenerateDynamicQuestOutput | null>(null)
+  const [copied, setCopied] = useState(false)
   const { toast } = useToast()
 
   const handleGenerateQuest = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -43,6 +44,30 @@ export default function QuestsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const copyToGodot = () => {
+    if (!quest) return
+    const godotJson = JSON.stringify({
+      quest_id: quest.title.toLowerCase().replace(/\s+/g, '_'),
+      display_name: quest.title,
+      lore_description: quest.description,
+      objectives: quest.objectives,
+      rewards: quest.rewards,
+      meta_data: {
+        giver: quest.giverNpc,
+        region: quest.region,
+        difficulty: quest.difficulty
+      }
+    }, null, 2)
+    
+    navigator.clipboard.writeText(godotJson)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+    toast({
+      title: "Exported to Clipboard",
+      description: "Godot-ready JSON is ready for your .gd scripts."
+    })
   }
 
   return (
@@ -108,7 +133,10 @@ export default function QuestsPage() {
                       <Badge className="mb-2 bg-accent text-accent-foreground uppercase text-[10px] tracking-widest">{quest.difficulty} QUEST</Badge>
                       <CardTitle className="text-2xl font-headline text-accent">{quest.title}</CardTitle>
                     </div>
-                    <ScrollText className="h-8 w-8 text-muted-foreground/30" />
+                    <Button variant="ghost" size="sm" onClick={copyToGodot} className="gap-2">
+                      {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Code className="h-4 w-4" />}
+                      Export to Godot
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6">

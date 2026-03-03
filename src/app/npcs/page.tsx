@@ -16,7 +16,9 @@ import {
   BrainCircuit, 
   History,
   Tag,
-  Target
+  Target,
+  Code,
+  Check
 } from "lucide-react"
 import { generateNpcPersonality, type GenerateNpcPersonalityOutput } from "@/ai/flows/generate-npc-personality-flow"
 import { useToast } from "@/hooks/use-toast"
@@ -24,6 +26,7 @@ import { useToast } from "@/hooks/use-toast"
 export default function NpcArchitectPage() {
   const [loading, setLoading] = useState(false)
   const [npc, setNpc] = useState<GenerateNpcPersonalityOutput | null>(null)
+  const [copied, setCopied] = useState(false)
   const { toast } = useToast()
 
   const handleGenerateNpc = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -48,6 +51,26 @@ export default function NpcArchitectPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const copyToGodot = () => {
+    if (!npc) return
+    const godotJson = JSON.stringify({
+      npc_id: npc.name.toLowerCase().replace(/\s+/g, '_'),
+      name: npc.name,
+      traits: npc.personalityTraits,
+      backstory: npc.backstory,
+      motivations: npc.motivations,
+      quirks: npc.quirks || []
+    }, null, 2)
+    
+    navigator.clipboard.writeText(godotJson)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+    toast({
+      title: "NPC Data Copied",
+      description: "Godot-ready character profile is on your clipboard."
+    })
   }
 
   return (
@@ -100,8 +123,14 @@ export default function NpcArchitectPage() {
               <Card className="border-accent/30 bg-card">
                 <CardHeader className="bg-secondary/20 border-b border-border">
                   <div className="flex justify-between items-center">
-                    <CardTitle className="text-3xl font-headline text-accent">{npc.name}</CardTitle>
-                    <Badge variant="outline" className="text-accent border-accent">SYNTHESIZED</Badge>
+                    <div className="flex items-center gap-4">
+                      <CardTitle className="text-3xl font-headline text-accent">{npc.name}</CardTitle>
+                      <Badge variant="outline" className="text-accent border-accent">SYNTHESIZED</Badge>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={copyToGodot} className="gap-2">
+                      {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Code className="h-4 w-4" />}
+                      Godot JSON
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-8">
