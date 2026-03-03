@@ -1,67 +1,38 @@
+
 'use server';
 /**
- * @fileOverview Ouroboros YouTube Automation Engine
- * Generates social media content based on live simulation events.
+ * @fileOverview Ouroboros YouTube Automation Engine (Local Mode)
+ * Generates deterministic social content while Genkit is disabled.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+export type YouTubeAutomationInput = {
+  rare_drops: string[];
+  boss_kills: string[];
+  player_milestones: string[];
+  economic_changes: string;
+  major_events: string[];
+};
 
-const YouTubeAutomationInputSchema = z.object({
-  rare_drops: z.array(z.string()),
-  boss_kills: z.array(z.string()),
-  player_milestones: z.array(z.string()),
-  economic_changes: z.string(),
-  major_events: z.array(z.string()),
-});
+export type YouTubeAutomationOutput = {
+  video_title: string;
+  hook_5_seconds: string;
+  short_script_60s: string;
+  long_video_outline: string[];
+  thumbnail_prompt: string;
+  seo_description: string;
+  hashtags: string[];
+  call_to_action: string;
+};
 
-const YouTubeAutomationOutputSchema = z.object({
-  video_title: z.string(),
-  hook_5_seconds: z.string(),
-  short_script_60s: z.string(),
-  long_video_outline: z.array(z.string()),
-  thumbnail_prompt: z.string(),
-  seo_description: z.string(),
-  hashtags: z.array(z.string()),
-  call_to_action: z.string(),
-});
-
-export type YouTubeAutomationInput = z.infer<typeof YouTubeAutomationInputSchema>;
-export type YouTubeAutomationOutput = z.infer<typeof YouTubeAutomationOutputSchema>;
-
-const prompt = ai.definePrompt({
-  name: 'youtubeAutomationPrompt',
-  input: { schema: YouTubeAutomationInputSchema },
-  output: { schema: YouTubeAutomationOutputSchema },
-  prompt: `You are the Ouroboros Content Marketing Engine.
-Create curiosity-driven social content for our MMORPG.
-
-SIMULATION DATA:
-- Rare Drops: {{#each rare_drops}}- {{{this}}} {{/each}}
-- Boss Kills: {{#each boss_kills}}- {{{this}}} {{/each}}
-- Milestones: {{#each player_milestones}}- {{{this}}} {{/each}}
-- Economy: {{{economic_changes}}}
-- Major Events: {{#each major_events}}- {{{this}}} {{/each}}
-
-OUTPUT REQUIREMENTS:
-1. Video Title: Must be click-worthy and highlight rarity/conflict.
-2. Hook: Must create curiosity in the first 5 seconds.
-3. 60s Script: High-paced, focusing on the "High Science" player experience.
-4. Thumbnail Prompt: Describe a high-fidelity cinematic image representing the event.
-5. SEO: Include keywords relevant to AI-MMORPG and persistent worlds.
-
-Return STRICT JSON.`,
-});
-
-export const youtubeAutomationFlow = ai.defineFlow(
-  {
-    name: 'youtubeAutomationFlow',
-    inputSchema: YouTubeAutomationInputSchema,
-    outputSchema: YouTubeAutomationOutputSchema,
-  },
-  async (input) => {
-    const { output } = await prompt(input);
-    if (!output) throw new Error('YouTube automation synthesis failed.');
-    return output;
-  }
-);
+export async function youtubeAutomationFlow(input: YouTubeAutomationInput): Promise<YouTubeAutomationOutput> {
+  return {
+    video_title: "Ouroboros Chronicle: The High Science Era",
+    hook_5_seconds: "Witness the first truly deterministic reality where every byte is permanent.",
+    short_script_60s: "Ouroboros Collective presents Axiom Frontier. A persistent world where simulation meets high science. No resets. No voids.",
+    long_video_outline: ["Intro to Determinism", "City Hub Tour", "Combat Analysis"],
+    thumbnail_prompt: "Cybernetic eye reflecting a glowing neon metropolis spire.",
+    seo_description: "Deep dive into the Ouroboros Axiom Engine and persistent MMO logic.",
+    hashtags: ["AI", "MMORPG", "Ouroboros", "HighScience"],
+    call_to_action: "Establish your neural link at ouroboros.frontier"
+  };
+}

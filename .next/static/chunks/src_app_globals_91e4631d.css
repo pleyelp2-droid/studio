@@ -683,8 +683,8 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 2rem;
 }
 
-.ml-1 {
-  margin-left: .25rem;
+.ml-1\.5 {
+  margin-left: .375rem;
 }
 
 .ml-auto {
@@ -693,6 +693,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .mr-1 {
   margin-right: .25rem;
+}
+
+.mr-1\.5 {
+  margin-right: .375rem;
 }
 
 .mr-2 {
@@ -725,6 +729,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .mt-auto {
   margin-top: auto;
+}
+
+.line-clamp-3 {
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  overflow: hidden;
 }
 
 .block {
@@ -1746,6 +1757,10 @@ h1, h2, h3, h4, h5, h6 {
   border-color: hsl(var(--primary));
 }
 
+.border-red-500\/20 {
+  border-color: rgba(239, 68, 68, .2);
+}
+
 .border-red-500\/30 {
   border-color: rgba(239, 68, 68, .3);
 }
@@ -1774,12 +1789,12 @@ h1, h2, h3, h4, h5, h6 {
   border-color: rgba(255, 255, 255, .2);
 }
 
-.border-white\/5 {
-  border-color: rgba(255, 255, 255, .05);
+.border-white\/30 {
+  border-color: rgba(255, 255, 255, .3);
 }
 
-.border-red-500\/20 {
-  border-color: rgba(239, 68, 68, .2);
+.border-white\/5 {
+  border-color: rgba(255, 255, 255, .05);
 }
 
 .border-l-transparent {
@@ -1868,6 +1883,10 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(0, 0, 0, .8);
 }
 
+.bg-black\/90 {
+  background-color: rgba(0, 0, 0, .9);
+}
+
 .bg-black\/95 {
   background-color: rgba(0, 0, 0, .95);
 }
@@ -1932,6 +1951,10 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(239, 68, 68, var(--tw-bg-opacity, 1));
 }
 
+.bg-red-500\/5 {
+  background-color: rgba(239, 68, 68, .05);
+}
+
 .bg-red-600\/20 {
   background-color: rgba(220, 38, 38, .2);
 }
@@ -1994,10 +2017,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .bg-white\/\[0\.03\] {
   background-color: rgba(255, 255, 255, .03);
-}
-
-.bg-red-500\/5 {
-  background-color: rgba(239, 68, 68, .05);
 }
 
 .bg-\[linear-gradient\(rgba\(18\,16\,16\,0\)_50\%\,rgba\(0\,0\,0\,0\.15\)_50\%\)\] {
@@ -2642,6 +2661,10 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--arl-teal);
 }
 
+.text-axiom-gold {
+  color: var(--arl-gold);
+}
+
 .text-axiom-purple {
   color: var(--arl-arcane);
 }
@@ -2799,10 +2822,6 @@ h1, h2, h3, h4, h5, h6 {
   color: rgba(255, 255, 255, .9);
 }
 
-.text-axiom-gold {
-  color: var(--arl-gold);
-}
-
 .underline {
   -webkit-text-decoration-line: underline;
   text-decoration-line: underline;
@@ -2903,6 +2922,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .shadow-\[0_0_15px_currentColor\] {
   --tw-shadow: 0 0 15px currentColor;
+  --tw-shadow-colored: 0 0 15px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 rgba(0, 0, 0, 0)), var(--tw-ring-shadow, 0 0 rgba(0, 0, 0, 0)), var(--tw-shadow);
+}
+
+.shadow-\[0_0_15px_rgba\(0\,0\,0\,0\.5\)\] {
+  --tw-shadow: 0 0 15px rgba(0, 0, 0, .5);
   --tw-shadow-colored: 0 0 15px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 rgba(0, 0, 0, 0)), var(--tw-ring-shadow, 0 0 rgba(0, 0, 0, 0)), var(--tw-shadow);
 }
@@ -3254,6 +3279,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .zoom-in-95 {
   --tw-enter-scale: .95;
+}
+
+.slide-in-from-bottom-4 {
+  --tw-enter-translate-y: 1rem;
 }
 
 .duration-1000 {
@@ -3624,6 +3653,10 @@ h1, h2, h3, h4, h5, h6 {
   background-color: hsl(var(--primary) / .9);
 }
 
+.hover\:bg-red-500\/10:hover {
+  background-color: rgba(239, 68, 68, .1);
+}
+
 .hover\:bg-secondary:hover {
   background-color: hsl(var(--secondary));
 }
@@ -3673,10 +3706,6 @@ h1, h2, h3, h4, h5, h6 {
   background-color: rgba(255, 255, 255, .07);
 }
 
-.hover\:bg-red-500\/10:hover {
-  background-color: rgba(239, 68, 68, .1);
-}
-
 .hover\:text-accent:hover {
   color: hsl(var(--accent));
 }
@@ -3705,6 +3734,10 @@ h1, h2, h3, h4, h5, h6 {
 .hover\:text-white:hover {
   --tw-text-opacity: 1;
   color: rgba(255, 255, 255, var(--tw-text-opacity, 1));
+}
+
+.hover\:text-destructive:hover {
+  color: hsl(var(--destructive));
 }
 
 .hover\:underline:hover {
@@ -3901,12 +3934,12 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 1;
 }
 
-.group:hover .group-hover\:opacity-40 {
-  opacity: .4;
-}
-
 .group:hover .group-hover\:opacity-20 {
   opacity: .2;
+}
+
+.group:hover .group-hover\:opacity-40 {
+  opacity: .4;
 }
 
 .group:hover .group-hover\:axiom-gradient {

@@ -231,3 +231,45 @@ export interface Item {
   value: number;
   description?: string;
 }
+
+export interface QuestLine {
+  id: string;
+  title: string;
+  description: string;
+  requiredLevel: number;
+  xpReward: number;
+  goldReward: number;
+  itemRewards: any[];
+  unlockConditions: any;
+  npcId: string | null;
+  dialogTree: any[];
+  questSteps: any[];
+  status: 'active' | 'draft' | 'archived';
+  createdBy: string;
+  createdAt: any;
+}
+
+export interface NPCDialog {
+  id: string;
+  npcId: string | null;
+  questLineId: string;
+  dialogKey: string | null;
+  speaker: string;
+  text: string;
+  options: Array<{ text: string; next_key?: string; trigger?: string }>;
+  triggerConditions: any;
+  createdAt: any;
+}
+
+export interface LoreEntry {
+  id: string;
+  title: string;
+  theme: string | null;
+  region: string | null;
+  faction: string | null;
+  content: string;
+  npcBackground: string;
+  conflictHook: string;
+  generatedBy: 'ai' | 'admin';
+  createdAt: any;
+}

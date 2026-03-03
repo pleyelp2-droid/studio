@@ -1,11 +1,10 @@
+
 'use client';
 /**
- * @fileOverview Ouroboros Content Automation Manager
- * Orchestrates batch generation, validation, and balancing of AI content.
+ * @fileOverview Ouroboros Content Automation Manager - Local Mode
+ * Orchestrates mock generation and balancing while Genkit is disabled.
  */
 
-import { contentBrainFlow, type ContentBrainOutput } from '@/ai/flows/content-brain-flow';
-import { youtubeAutomationFlow, type YouTubeAutomationOutput } from '@/ai/flows/youtube-automation-flow';
 import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 
@@ -13,77 +12,73 @@ const { firestore: db } = initializeFirebase();
 
 export const ContentAutomationManager = {
   /**
-   * Generates a balanced batch of world content.
+   * Generates a balanced batch of world content using deterministic mocks.
    */
   async generateWorldContent(playerLevel: number, ci: number) {
     if (!db) throw new Error('Simulation disconnected.');
 
-    // 1. Fetch Context
-    const worldRef = doc(db, 'worldState', 'global');
-    const worldSnap = await getDoc(worldRef);
-    const worldData = worldSnap.exists() ? worldSnap.data() : { corruption: 100, economy: 500 };
+    const mockContent = {
+      quest: {
+        quest_title: "Axiomatic Alignment",
+        quest_type: 'STORY',
+        difficulty: playerLevel,
+        objectives: ["Stabilize the Core", "Analyze Logic Field"],
+        rewards: { xp: 100, gold: 10 },
+        unlock_conditions: "Civilization Index > 100",
+        narrative_hook: "The Matrix requires calibration at the current Civilization Index. A signal from the Spire suggests instability."
+      },
+      npc: {
+        npc_name: "Oracle-7",
+        temperament: "Stoic",
+        ideology: "Deterministic",
+        trust_bias: 0.5,
+        ambition: 0.8,
+        faction_alignment: "SYSTEM",
+        speech_style: "Monotone / Logic-based",
+        secret_motivation: "Seeking the Great Recursion.",
+        relationship_hooks: ["Friendly to pilots who trade AXM"]
+      },
+      lore: {
+        lore_title: "The First Heartbeat",
+        historical_context: "Before the Chrome Era, there was only noise.",
+        conflict_origin: "The division between randomness and determinism.",
+        current_implication: "Every action is now persistent.",
+        future_hook: "The Spire will rise higher."
+      }
+    };
 
-    // 2. Call AI Flow
-    const rawContent = await contentBrainFlow({
-      region_state: 'Central Hub',
-      biome_type: ci >= 800 ? 'CHROME_CITY' : 'FRONTIER',
-      city_state: 'STABLE',
-      civilization_index: ci,
-      resource_pressure: worldData.corruption / 1000,
-      player_level_range: { min: playerLevel, max: playerLevel + 5 },
-      global_event_flag: 'NEURAL_FLUX_DETECTED'
-    });
-
-    // 3. Balance Engine
-    const balancedContent = this.applyBalance(rawContent, playerLevel);
-
-    // 4. Store & Log
+    // Store mock log
     const logRef = await addDoc(collection(db, 'contentLogs'), {
-      type: 'WORLD_BATCH',
+      type: 'LOCAL_WORLD_BATCH',
       level: playerLevel,
       ci,
-      content: balancedContent,
+      content: mockContent,
       createdAt: serverTimestamp()
     });
 
-    return { id: logRef.id, ...balancedContent };
+    return { id: logRef.id, ...mockContent };
   },
 
   /**
-   * Applies Ouroboros Deterministic Balancing rules to rewards.
-   */
-  private applyBalance(content: ContentBrainOutput, level: number): ContentBrainOutput {
-    const maxXP = level * 150;
-    const maxGold = level * 20;
-
-    // Cap rewards to prevent economy inflation
-    content.quest.rewards.xp = Math.min(content.quest.rewards.xp, maxXP);
-    content.quest.rewards.gold = Math.min(content.quest.rewards.gold, maxGold);
-    
-    // Ensure difficulty is realistic
-    content.quest.difficulty = Math.max(level, Math.min(level + 10, content.quest.difficulty));
-
-    return content;
-  },
-
-  /**
-   * Generates weekly automation package for YouTube.
+   * Generates mock social package.
    */
   async generateSocialPackage() {
     if (!db) return null;
 
-    // In a real scenario, you'd query recent events from combatLogs and lootTable
-    const socialPackage = await youtubeAutomationFlow({
-      rare_drops: ['Axiomatic Void-Blade', 'Neural Crown'],
-      boss_kills: ['The Chrome Hydra'],
-      player_milestones: ['First player reached Level 50'],
-      economic_changes: 'Deflationary trend in Iron Ore prices.',
-      major_events: ['The Great Recursive Breach at Nebula Edge']
-    });
+    const socialPackage = {
+      video_title: "The Ouroboros Cycle: High Science Gameplay",
+      hook_5_seconds: "Witness the first truly deterministic reality.",
+      short_script_60s: "Ouroboros Collective presents Axiom Frontier. Experience a persistent world where every byte matters. High Science. High Gaming.",
+      long_video_outline: ["Intro to Determinism", "City Hub Tour", "Combat Analysis"],
+      thumbnail_prompt: "Cybernetic eye reflecting a neon metropolis spire.",
+      seo_description: "Deep dive into the Ouroboros Axiom Engine.",
+      hashtags: ["AI", "MMORPG", "Ouroboros"],
+      call_to_action: "Synchronize your consciousness now."
+    };
 
     await addDoc(collection(db, 'youtubeScripts'), {
       ...socialPackage,
-      status: 'DRAFT',
+      status: 'LOCAL_DRAFT',
       createdAt: serverTimestamp()
     });
 

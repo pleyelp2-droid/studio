@@ -1,10 +1,10 @@
 (globalThis.TURBOPACK_CHUNK_LISTS || (globalThis.TURBOPACK_CHUNK_LISTS = [])).push({
     script: typeof document === "object" ? document.currentScript : undefined,
     chunks: [
-  "static/chunks/src_f01732f0._.js",
+  "static/chunks/src_522f241c._.js",
   "static/chunks/94568_@firebase_auth_dist_esm2017_39867e80._.js",
   "static/chunks/node_modules_@firebase_firestore_dist_index_esm2017_d9c36ae7.js",
-  "static/chunks/node_modules_b071dca3._.js",
+  "static/chunks/node_modules_101ba32b._.js",
   "static/chunks/src_app_globals_91e4631d.css"
 ],
     source: "dynamic"

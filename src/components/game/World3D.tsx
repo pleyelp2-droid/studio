@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Html, OrbitControls, Sky, PerspectiveCamera, Environment, ContactShadows, Float } from '@react-three/drei';
@@ -22,14 +23,66 @@ const ARL_COLORS = {
   border: "#1e2a4a"
 };
 
-const HighTechMaterial = (color: string, emissive: string = "#000", intensity: number = 1) => {
-  return new THREE.MeshStandardMaterial({
-    color: color,
-    metalness: 0.9,
-    roughness: 0.1,
-    emissive: emissive,
-    emissiveIntensity: intensity,
+const HighScienceSpire = ({ position, rotationY, color, type }: { position: [number, number, number], rotationY: number, color: string, type: string }) => {
+  const ring1Ref = useRef<THREE.Group>(null);
+  const ring2Ref = useRef<THREE.Group>(null);
+  const coreRef = useRef<THREE.Mesh>(null);
+
+  useFrame((state) => {
+    const t = state.clock.getElapsedTime();
+    if (ring1Ref.current) ring1Ref.current.rotation.y = t * 0.6;
+    if (ring2Ref.current) ring2Ref.current.rotation.y = -t * 0.9;
+    if (coreRef.current) {
+      coreRef.current.position.y = Math.sin(t * 2.5) * 0.3 + 8;
+      coreRef.current.rotation.z = t * 1.2;
+    }
   });
+
+  const isMajor = type === 'FORGE' || type === 'BANK_VAULT' || type === 'BUILDING';
+  const height = isMajor ? 16 : 8;
+
+  return (
+    <group position={position} rotation={[0, rotationY, 0]}>
+      {/* Heavy Hexagonal Foundation */}
+      <mesh position={[0, 0.5, 0]} receiveShadow>
+        <cylinderGeometry args={[isMajor ? 4.5 : 2.2, isMajor ? 5.5 : 2.8, 1.2, 6]} />
+        <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.15} />
+      </mesh>
+
+      {/* Main Spire Core Structure */}
+      <mesh position={[0, height / 2, 0]} castShadow>
+        <cylinderGeometry args={[isMajor ? 0.6 : 0.35, isMajor ? 1.8 : 0.9, height, 6]} />
+        <meshStandardMaterial color={ARL_COLORS.border} metalness={0.95} roughness={0.05} />
+      </mesh>
+
+      {/* Floating Energy Core */}
+      <mesh ref={coreRef} position={[0, 8, 0]}>
+        <octahedronGeometry args={[isMajor ? 1.0 : 0.5]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={12} />
+      </mesh>
+
+      {/* Orbital Logic Rings */}
+      <group position={[0, height * 0.75, 0]} ref={ring1Ref}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[isMajor ? 3.0 : 1.8, 0.06, 8, 64]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={6} transparent opacity={0.9} />
+        </mesh>
+        <mesh position={[isMajor ? 3.0 : 1.8, 0, 0]}>
+          <boxGeometry args={[0.25, 0.25, 0.25]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={20} />
+        </mesh>
+      </group>
+
+      <group position={[0, height * 0.45, 0]} ref={ring2Ref}>
+        <mesh rotation={[Math.PI / 2, 0, Math.PI / 4]}>
+          <torusGeometry args={[isMajor ? 3.8 : 2.4, 0.04, 8, 64]} />
+          <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={3} transparent opacity={0.5} />
+        </mesh>
+      </group>
+
+      <pointLight position={[0, height, 0]} color={color} intensity={20} distance={40} decay={2} />
+    </group>
+  );
 };
 
 const POIModel = ({ poi }: { poi: POI }) => {
@@ -37,66 +90,39 @@ const POIModel = ({ poi }: { poi: POI }) => {
 
   if (poi.type === 'SHRINE') {
     return (
-      <Float speed={3} rotationIntensity={1} floatIntensity={2}>
-        <group position={[poi.position[0], 2, poi.position[2]]}>
+      <Float speed={4} rotationIntensity={1.5} floatIntensity={2.5}>
+        <group position={[poi.position[0], 2.5, poi.position[2]]}>
           <mesh castShadow>
-            <octahedronGeometry args={[1.5, 0]} />
-            <primitive object={HighTechMaterial(ARL_COLORS.void, ARL_COLORS.teal, 3)} attach="material" />
+            <octahedronGeometry args={[1.8, 0]} />
+            <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.05} emissive={ARL_COLORS.teal} emissiveIntensity={4} />
           </mesh>
           <mesh rotation={[Math.PI / 4, 0, 0]}>
-            <torusGeometry args={[2.5, 0.05, 16, 100]} />
-            <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={5} />
+            <torusGeometry args={[2.8, 0.06, 16, 100]} />
+            <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={6} />
           </mesh>
         </group>
       </Float>
     );
   }
 
-  if (poi.type === 'BUILDING' || poi.type === 'HOUSE' || poi.type === 'FORGE' || poi.type === 'BANK_VAULT' || poi.type === 'MARKET_STALL') {
-    const isMajor = poi.type === 'FORGE' || poi.type === 'BANK_VAULT' || poi.type === 'BUILDING';
-    const height = isMajor ? 12 : 4;
-    const color = poi.type === 'FORGE' ? ARL_COLORS.blood : poi.type === 'BANK_VAULT' ? ARL_COLORS.gold : poi.type === 'MARKET_STALL' ? ARL_COLORS.teal : ARL_COLORS.arcane;
-
-    return (
-      <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
-        <mesh position={[0, 0.5, 0]} receiveShadow>
-          <boxGeometry args={[isMajor ? 6 : 3, 1, isMajor ? 6 : 3]} />
-          <primitive object={HighTechMaterial(ARL_COLORS.void)} attach="material" />
-        </mesh>
-        
-        <mesh position={[0, height / 2, 0]} castShadow>
-          <cylinderGeometry args={[isMajor ? 1.5 : 0.8, isMajor ? 2 : 1.2, height, 6]} />
-          <primitive object={HighTechMaterial(ARL_COLORS.border)} attach="material" />
-        </mesh>
-
-        {[0.3, 0.6, 0.9].map((h, i) => (
-          <mesh key={i} position={[0, height * h, 0]}>
-            <torusGeometry args={[isMajor ? 1.8 : 1.0, 0.05, 8, 32]} rotation={[Math.PI/2, 0, 0]} />
-            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={3} />
-          </mesh>
-        ))}
-
-        <mesh position={[0, height + 0.5, 0]}>
-          <sphereGeometry args={[0.3, 8, 8]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={10} />
-        </mesh>
-        
-        <pointLight position={[0, height, 0]} color={color} intensity={10} distance={20} />
-      </group>
-    );
+  if (['BUILDING', 'HOUSE', 'FORGE', 'BANK_VAULT', 'MARKET_STALL'].includes(poi.type)) {
+    const color = poi.type === 'FORGE' ? ARL_COLORS.blood : 
+                  poi.type === 'BANK_VAULT' ? ARL_COLORS.gold : 
+                  poi.type === 'MARKET_STALL' ? ARL_COLORS.teal : ARL_COLORS.arcane;
+    return <HighScienceSpire position={poi.position} rotationY={rotationY} color={color} type={poi.type} />;
   }
 
   if (poi.type === 'WALL' || poi.type === 'GATE') {
     const isGate = poi.type === 'GATE';
     return (
       <group position={[poi.position[0], 0, poi.position[2]]} rotation={[0, rotationY, 0]}>
-        <mesh position={[0, 3, 0]} castShadow receiveShadow>
-          <boxGeometry args={[isGate ? 4 : 20, 6, 2]} />
-          <primitive object={HighTechMaterial(ARL_COLORS.void, ARL_COLORS.teal, isGate ? 0.8 : 0.2)} attach="material" />
+        <mesh position={[0, 3.5, 0]} castShadow receiveShadow>
+          <boxGeometry args={[isGate ? 4.5 : 20, 7, 2.5]} />
+          <meshStandardMaterial color={ARL_COLORS.void} metalness={0.95} roughness={0.05} emissive={ARL_COLORS.teal} emissiveIntensity={isGate ? 1.2 : 0.3} />
         </mesh>
-        <mesh position={[0, 6, 0]}>
-          <boxGeometry args={[isGate ? 4.2 : 20.2, 0.1, 2.2]} />
-          <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={2} />
+        <mesh position={[0, 7, 0]}>
+          <boxGeometry args={[isGate ? 4.8 : 20.2, 0.15, 2.8]} />
+          <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={3} />
         </mesh>
       </group>
     );
@@ -135,7 +161,7 @@ const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolea
     if (animController) animController.update(delta);
     if (groupRef.current && !isLocal) {
       const targetPos = new THREE.Vector3(agent.position.x, agent.position.y || 0, agent.position.z);
-      groupRef.current.position.lerp(targetPos, 0.1);
+      groupRef.current.position.lerp(targetPos, 0.12);
     }
   });
 
@@ -144,11 +170,11 @@ const AgentModel = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolea
   return (
     <group ref={groupRef} position={[agent.position.x, agent.position.y || 0, agent.position.z]}>
       <primitive object={model.group} />
-      <Html position={[0, 2.5, 0]} center distanceFactor={15}>
+      <Html position={[0, 2.8, 0]} center distanceFactor={15}>
         <div className="flex flex-col items-center gap-1 pointer-events-none">
-          <div className={`px-2 py-0.5 rounded bg-black/80 border ${isLocal ? 'border-axiom-cyan' : 'border-white/20'} text-[#e8dfc8] text-[10px] font-black uppercase tracking-widest whitespace-nowrap shadow-xl`}>
-            {isLocal && <span className="text-axiom-cyan mr-1">YOU //</span>}
-            {agent.displayName} <span className="text-axiom-cyan ml-1">LVL {agent.level}</span>
+          <div className={`px-2.5 py-1 rounded bg-black/90 border-2 ${isLocal ? 'border-axiom-cyan' : 'border-white/30'} text-[#e8dfc8] text-[11px] font-black uppercase tracking-widest whitespace-nowrap shadow-[0_0_15px_rgba(0,0,0,0.5)] backdrop-blur-md`}>
+            {isLocal && <span className="text-axiom-cyan mr-1.5">PILOT //</span>}
+            {agent.displayName} <span className="text-axiom-cyan ml-1.5">LVL {agent.level}</span>
           </div>
         </div>
       </Html>
@@ -160,8 +186,8 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
   const { camera } = useThree();
   const db = useFirestore();
   const { virtualInput, controlMode, targetPosition, setTargetPosition } = useStore();
-  const moveSpeed = 0.45;
-  const updateInterval = 500;
+  const moveSpeed = 0.5;
+  const updateInterval = 400;
   const lastUpdateRef = useRef(0);
 
   const keys = useRef<{ [key: string]: boolean }>({});
@@ -181,7 +207,6 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
     let moving = false;
     const newPos = { ...agent.position };
 
-    // 1. Keyboard / Joystick Logic
     if (controlMode === 'KEYBOARD') {
       if (keys.current['w']) { newPos.z -= moveSpeed; moving = true; }
       if (keys.current['s']) { newPos.z += moveSpeed; moving = true; }
@@ -195,18 +220,16 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
       }
     }
 
-    // Interrupt Target-Navigation if direct input is detected
     if (moving && targetPosition) {
       setTargetPosition(null);
     }
 
-    // 2. Push-to-Walk Logic (Autonomous Pathing)
     if (!moving && targetPosition && controlMode === 'PUSH_TO_WALK') {
       const dx = targetPosition.x - agent.position.x;
       const dz = targetPosition.z - agent.position.z;
       const dist = Math.hypot(dx, dz);
 
-      if (dist > 0.5) {
+      if (dist > 0.6) {
         newPos.x += (dx / dist) * moveSpeed;
         newPos.z += (dz / dist) * moveSpeed;
         moving = true;
@@ -220,8 +243,8 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
       agent.position.z = newPos.z;
       agent.state = AgentState.EXPLORING;
 
-      camera.position.x = newPos.x + 30;
-      camera.position.z = newPos.z + 30;
+      camera.position.x = newPos.x + 35;
+      camera.position.z = newPos.z + 35;
       camera.lookAt(newPos.x, 0, newPos.z);
 
       const now = Date.now();
@@ -255,13 +278,11 @@ const Terrain = ({ civilizationIndex }: { civilizationIndex: number }) => {
         uAxiomaticIntensity: { value: 0.5 },
         uStability: { value: 0.5 },
         uCorruption: { value: 0.1 },
-        uIsHovered: { value: false },
-        uIsSelected: { value: false },
-        uCameraPosition: { value: camera.position },
+        uCameraPosition: { value: new THREE.Vector3() },
         uFogColor: { value: new THREE.Color('#060810') },
-        uFogNear: { value: 50.0 },
-        uFogFar: { value: 300.0 }
-    }), [civilizationIndex, camera]);
+        uFogNear: { value: 60.0 },
+        uFogFar: { value: 400.0 }
+    }), [civilizationIndex]);
 
     useFrame((state) => {
         if (materialRef.current) {
@@ -280,11 +301,11 @@ const Terrain = ({ civilizationIndex }: { civilizationIndex: number }) => {
     return (
         <mesh 
           rotation={[-Math.PI / 2, 0, 0]} 
-          position={[0, -0.1, 0]} 
+          position={[0, -0.15, 0]} 
           receiveShadow
           onPointerDown={handlePointerDown}
         >
-            <planeGeometry args={[1000, 1000, 256, 256]} />
+            <planeGeometry args={[1200, 1200, 256, 256]} />
             <shaderMaterial 
               ref={materialRef} 
               vertexShader={axiomVertexShader} 
@@ -315,21 +336,21 @@ export const World3D: React.FC<{ tick: number; civilizationIndex: number; localP
     return (
         <div className="w-full h-full bg-black">
             <Canvas shadows dpr={[1, 2]}>
-                <PerspectiveCamera makeDefault position={[40, 30, 40]} fov={50} />
-                <Sky sunPosition={[100, 20, 100]} turbidity={0.1} rayleigh={0.5} />
+                <PerspectiveCamera makeDefault position={[45, 35, 45]} fov={45} />
+                <Sky sunPosition={[100, 15, 100]} turbidity={0.05} rayleigh={0.4} />
                 <Environment preset="night" />
-                <ambientLight intensity={0.2} />
-                <pointLight position={[0, 50, 0]} intensity={1} color={ARL_COLORS.teal} />
+                <ambientLight intensity={0.15} />
+                <pointLight position={[0, 60, 0]} intensity={1.5} color={ARL_COLORS.teal} />
                 <Terrain civilizationIndex={civilizationIndex} />
                 {localAgent && <LocalPlayerController agent={localAgent} />}
                 {otherAgents.map(agent => <AgentModel key={agent.id} agent={agent} />)}
                 {worldContent.pois.map(poi => <POIModel key={poi.id} poi={poi} />)}
-                <ContactShadows resolution={1024} scale={50} blur={2} opacity={0.5} far={10} color="#000000" />
+                <ContactShadows resolution={1024} scale={60} blur={2.5} opacity={0.6} far={15} color="#000000" />
                 <OrbitControls 
                   enablePan={true} 
                   maxPolarAngle={Math.PI / 2.1} 
-                  minDistance={10} 
-                  maxDistance={250}
+                  minDistance={15} 
+                  maxDistance={300}
                   enableDamping={true}
                 />
             </Canvas>

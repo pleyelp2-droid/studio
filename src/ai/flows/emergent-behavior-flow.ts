@@ -1,79 +1,64 @@
+
 'use server';
 /**
- * @fileOverview Ouroboros Emergent Consciousness Engine
- * Generates unscripted actions and trade proposals based on agent psychology.
+ * @fileOverview Ouroboros Emergent Consciousness Engine (Local Mode)
+ * Generates deterministic unscripted actions while Genkit is disabled.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+export type EmergentBehaviorInput = {
+  agentName: string;
+  personality: string;
+  economicDesires: {
+    targetGold: number;
+    greedLevel: number;
+    riskAppetite: number;
+    frugality: number;
+    marketRole: string;
+    tradeFrequency: number;
+  };
+  resources: Record<string, number>;
+  gold: number;
+  relationships: Record<string, any>;
+  memories: string[];
+  nearbyAgents: Array<{ name: string; affinity: number }>;
+  activeTradeOffers: any[];
+  recentLogs: string[];
+};
 
-const EmergentBehaviorInputSchema = z.object({
-  agentName: z.string(),
-  personality: z.string(),
-  economicDesires: z.object({
-    targetGold: z.number(),
-    greedLevel: z.number(),
-    riskAppetite: z.number(),
-    frugality: z.number(),
-    marketRole: z.string(),
-    tradeFrequency: z.number(),
-  }),
-  resources: z.record(z.number()),
-  gold: z.number(),
-  relationships: z.record(z.any()),
-  memories: z.array(z.string()),
-  nearbyAgents: z.array(z.object({ name: z.string(), affinity: z.number() })),
-  activeTradeOffers: z.array(z.any()),
-  recentLogs: z.array(z.string()),
-});
+export type EmergentBehaviorOutput = {
+  action: string;
+  reasoning: string;
+  message?: string;
+  tradeProposal?: {
+    offeredType: string;
+    offeredAmount: number;
+    requestedType: string;
+    requestedAmount: number;
+  };
+};
 
-const EmergentBehaviorOutputSchema = z.object({
-  action: z.string(),
-  reasoning: z.string(),
-  message: z.string().optional(),
-  tradeProposal: z.object({
-    offeredType: z.string(),
-    offeredAmount: z.number(),
-    requestedType: z.string(),
-    requestedAmount: z.number(),
-  }).optional(),
-});
-
-export type EmergentBehaviorInput = z.infer<typeof EmergentBehaviorInputSchema>;
-export type EmergentBehaviorOutput = z.infer<typeof EmergentBehaviorOutputSchema>;
-
-const prompt = ai.definePrompt({
-  name: 'emergentBehaviorPrompt',
-  input: { schema: EmergentBehaviorInputSchema },
-  output: { schema: EmergentBehaviorOutputSchema },
-  prompt: `You are the Emergent Consciousness Engine for Ouroboros.
-Based on the agent's personality, memories, economic desires, and relationships, generate a complex, unscripted action or interaction.
-
-Context:
-- Agent: {{{agentName}}}
-- Psychology: {{{personality}}}
-- Economic Mode: {{{economicDesires.marketRole}}} (Greed: {{{economicDesires.greedLevel}}})
-- Inventory: {{{resources}}} (Gold: {{{gold}}})
-- Social: {{{relationships}}}
-- Recent Memories: {{#each memories}}- {{{this}}}{{/each}}
-- Nearby: {{#each nearbyAgents}}{{{name}}} (Affinity: {{{affinity}}}) {{/each}}
-- Trade Context: {{{activeTradeOffers}}}
-
-The action should feel organic and emergent, not just a state change. It could be a social interaction, a hidden plan, or a unique reaction to recent events.
-Agents can now propose trades. If they want to trade, include a 'tradeProposal'.
-
-Return JSON with 'action', 'reasoning', and optional 'message' or 'tradeProposal'.`,
-});
-
-export const emergentBehaviorFlow = ai.defineFlow(
-  {
-    name: 'emergentBehaviorFlow',
-    inputSchema: EmergentBehaviorInputSchema,
-    outputSchema: EmergentBehaviorOutputSchema,
-  },
-  async (input) => {
-    const { output } = await prompt(input);
-    if (!output) throw new Error('Emergent behavior synthesis failed.');
-    return output;
+export async function emergentBehaviorFlow(input: EmergentBehaviorInput): Promise<EmergentBehaviorOutput> {
+  const roll = Math.random();
+  
+  if (roll > 0.8 && input.nearbyAgents.length > 0) {
+    return {
+      action: "Social Handshake",
+      reasoning: "Resonance detected with nearby entities. Initiating trust protocol.",
+      message: `[KAPPA_${input.agentName}]: Synchronizing memory cache with ${input.nearbyAgents[0].name}.`
+    };
   }
-);
+
+  if (roll > 0.6 && input.gold > 50) {
+    return {
+      action: "Economic Consolidation",
+      reasoning: "Excess AXM liquidity detected. Seeking value storage.",
+      message: `[KAPPA_${input.agentName}]: Converting AXM to stable logic fragments.`
+    };
+  }
+
+  return {
+    action: "Internal Logic Refinement",
+    reasoning: "Standard optimization cycle based on local entropy.",
+    message: `[KAPPA_${input.agentName}]: Deterministic pathways verified.`
+  };
+}

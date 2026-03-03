@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -16,7 +17,8 @@ import {
   Zap,
   Home,
   MonitorPlay,
-  BrainCircuit
+  BrainCircuit,
+  BookOpen
 } from "lucide-react"
 
 import {
@@ -44,6 +46,7 @@ const contentItems = [
   { title: "Content Brain", icon: BrainCircuit, url: "/admin/content" },
   { title: "Quest Engine", icon: ScrollText, url: "/quests" },
   { title: "NPC Architect", icon: UserPlus, url: "/npcs" },
+  { title: "Lore Archives", icon: BookOpen, url: "/admin/lore" },
   { title: "Asset Hub", icon: Database, url: "/assets" },
 ]
 

@@ -1,11 +1,11 @@
+
+/**
+ * @fileOverview Axiom Frontier - AI Dev Entry Point
+ * All external flow imports are disabled to resolve module resolution failures.
+ */
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/generate-dynamic-quest.ts';
-import '@/ai/flows/generate-npc-personality-flow.ts';
-import '@/ai/flows/autonomous-decision-flow.ts';
-import '@/ai/flows/emergent-behavior-flow.ts';
-import '@/ai/flows/import-agent-flow.ts';
-import '@/ai/flows/project-diagnostics-flow.ts';
-import '@/ai/flows/content-brain-flow.ts';
-import '@/ai/flows/youtube-automation-flow.ts';
+// Flows disabled for current local mode stability.
+// import '@/ai/flows/generate-dynamic-quest.ts';
+// ...

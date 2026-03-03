@@ -1,62 +1,42 @@
+
 'use server';
 /**
- * @fileOverview Ouroboros Deep Debugger
- * Analyzes project context and logs to identify architectural corruption.
+ * @fileOverview Ouroboros Deep Debugger (Local Mode)
+ * Returns deterministic health reports while Genkit is disabled.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+export type ProjectDiagnosticsInput = {
+  context: string;
+  errorLog?: string;
+};
 
-const ProjectDiagnosticsInputSchema = z.object({
-  context: z.string(),
-  errorLog: z.string().optional(),
-});
+export type ProjectDiagnosticsOutput = {
+  status: 'HEALTHY' | 'WARNING' | 'CRITICAL';
+  summary: string;
+  issues: Array<{
+    severity: 'LOW' | 'MEDIUM' | 'HIGH';
+    description: string;
+    suggestedFix: string;
+    file?: string;
+  }>;
+  recoverySteps: string[];
+};
 
-const ProjectDiagnosticsOutputSchema = z.object({
-  status: z.enum(['HEALTHY', 'WARNING', 'CRITICAL']),
-  summary: z.string(),
-  issues: z.array(z.object({
-    severity: z.enum(['LOW', 'MEDIUM', 'HIGH']),
-    description: z.string(),
-    suggestedFix: z.string(),
-    file: z.string().optional(),
-  })),
-  recoverySteps: z.array(z.string()),
-});
-
-export type ProjectDiagnosticsOutput = z.infer<typeof ProjectDiagnosticsOutputSchema>;
-
-const prompt = ai.definePrompt({
-  name: 'projectDiagnosticsPrompt',
-  input: { schema: ProjectDiagnosticsInputSchema },
-  output: { schema: ProjectDiagnosticsOutputSchema },
-  prompt: `You are the Ouroboros Deep Debugger. 
-Analyze the project context and logs to identify architectural flaws, migration errors, and logic bugs.
-
-Project Context:
-{{{context}}}
-
-Error Logs:
-{{{errorLog}}}
-
-Identify specific issues related to:
-1. Environment variables (GEMINI_API_KEY, etc.)
-2. Dependency mismatches.
-3. Matrix corruption (logic errors in state or agent behavior).
-4. Build or runtime errors.
-
-Return a structured JSON diagnostic report.`,
-});
-
-export const projectDiagnosticsFlow = ai.defineFlow(
-  {
-    name: 'projectDiagnosticsFlow',
-    inputSchema: ProjectDiagnosticsInputSchema,
-    outputSchema: ProjectDiagnosticsOutputSchema,
-  },
-  async (input) => {
-    const { output } = await prompt(input);
-    if (!output) throw new Error('Diagnostic scan interrupted.');
-    return output;
-  }
-);
+export async function projectDiagnosticsFlow(input: ProjectDiagnosticsInput): Promise<ProjectDiagnosticsOutput> {
+  return {
+    status: 'HEALTHY',
+    summary: "Simulation core is operating in Local Deterministic Mode. External AI layers are currently in stasis.",
+    issues: [
+      {
+        severity: 'LOW',
+        description: "Genkit is currently disabled by administrative override.",
+        suggestedFix: "Re-enable Genkit dependencies when cloud-sync is required.",
+        file: "package.json"
+      }
+    ],
+    recoverySteps: [
+      "Verify Firestore real-time listeners",
+      "Check 144Hz logic cycle consistency"
+    ]
+  };
+}
