@@ -86,7 +86,6 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
   const { camera } = useThree();
   const db = useFirestore();
   const moveSpeed = 0.25;
-  const rotateSpeed = 0.05;
   const updateInterval = 500; // ms
   const lastUpdateRef = useRef(0);
 
@@ -146,20 +145,13 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
 };
 
 const POIModel = ({ poi }: { poi: POI }) => {
-  const material = useMemo(() => new THREE.MeshStandardMaterial({ 
-    color: poi.type === 'SHRINE' ? '#60D4FF' : poi.type === 'BUILDING' ? '#222' : '#22c55e',
-    emissive: poi.type === 'SHRINE' ? '#60D4FF' : '#000',
-    emissiveIntensity: 0.5,
-    roughness: 0.1,
-    metalness: 0.9
-  }), [poi.type]);
-
   if (poi.type === 'SHRINE') {
     return (
       <Float speed={3} rotationIntensity={1} floatIntensity={2}>
         <group position={[poi.position[0], 2, poi.position[2]]}>
-          <mesh material={material}>
+          <mesh castShadow>
             <octahedronGeometry args={[1.5, 0]} />
+            <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={0.5} metalness={0.9} roughness={0.1} />
           </mesh>
           <mesh rotation={[Math.PI / 4, 0, 0]}>
             <torusGeometry args={[2.5, 0.05, 16, 100]} />
@@ -174,18 +166,62 @@ const POIModel = ({ poi }: { poi: POI }) => {
     );
   }
 
-  if (poi.type === 'BUILDING' || poi.type === 'MARKET_STALL') {
+  if (poi.type === 'BUILDING') {
     return (
       <group position={[poi.position[0], 0, poi.position[2]]}>
-        <mesh position={[0, 4, 0]} castShadow>
-          <cylinderGeometry args={[2, 3, 8, 6]} />
+        <mesh position={[0, 5, 0]} castShadow>
+          <cylinderGeometry args={[1.2, 2.5, 10, 6]} />
           <meshStandardMaterial color="#1a1a1a" metalness={0.8} roughness={0.2} />
         </mesh>
-        <mesh position={[0, 8.5, 0]}>
-          <coneGeometry args={[0.5, 2, 6]} />
-          <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={1} />
+        <mesh position={[0, 10.5, 0]}>
+          <coneGeometry args={[0.4, 2, 6]} />
+          <meshStandardMaterial color="#60D4FF" emissive="#60D4FF" emissiveIntensity={2} />
         </mesh>
-        <pointLight position={[0, 5, 0]} intensity={5} color="#60D4FF" distance={15} />
+        <pointLight position={[0, 8, 0]} intensity={10} color="#60D4FF" distance={20} />
+      </group>
+    );
+  }
+
+  if (poi.type === 'MARKET_STALL') {
+    return (
+      <group position={[poi.position[0], 0, poi.position[2]]}>
+        <mesh position={[0, 0.1, 0]} receiveShadow>
+          <cylinderGeometry args={[3, 3.2, 0.2, 32]} />
+          <meshStandardMaterial color="#222" metalness={0.5} />
+        </mesh>
+        <Float speed={2} floatIntensity={0.5}>
+          <mesh position={[0, 1.5, 0]}>
+            <torusGeometry args={[2, 0.1, 16, 100]} />
+            <meshStandardMaterial color="#2E2EB3" emissive="#2E2EB3" emissiveIntensity={1} />
+          </mesh>
+        </Float>
+      </group>
+    );
+  }
+
+  if (poi.type === 'RUIN') {
+    return (
+      <group position={[poi.position[0], 0, poi.position[2]]}>
+        {[0, 1, 2].map(i => (
+          <Float key={i} speed={1 + i} floatIntensity={1} position={[Math.sin(i) * 3, 2 + i * 2, Math.cos(i) * 3]}>
+            <mesh castShadow rotation={[Math.random(), Math.random(), 0]}>
+              <boxGeometry args={[1, 4, 1]} />
+              <meshStandardMaterial color="#444" roughness={0.8} />
+            </mesh>
+          </Float>
+        ))}
+      </group>
+    );
+  }
+
+  if (poi.type === 'DUNGEON') {
+    return (
+      <group position={[poi.position[0], -0.5, poi.position[2]]}>
+        <mesh rotation={[-Math.PI/2, 0, 0]}>
+          <circleGeometry args={[4, 32]} />
+          <meshStandardMaterial color="#000" emissive="#60D4FF" emissiveIntensity={2} />
+        </mesh>
+        <pointLight position={[0, 2, 0]} intensity={20} color="#60D4FF" distance={30} />
       </group>
     );
   }

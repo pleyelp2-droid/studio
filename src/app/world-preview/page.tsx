@@ -55,11 +55,14 @@ export default function WorldPreviewPage() {
       else if (ci < 800) setCurrentEra("Industrial Hub")
       else setCurrentEra("Chrome Metropolis")
 
+      // Generate mock high-science chunk data for visualization
       const mockChunk = {
-        id: "0_0", x: 0, z: 0, seed: 42, biome: ci < 400 ? 'PLAINS' : ci < 800 ? 'FOREST' : 'CITY',
+        id: "0_0", x: 0, z: 0, seed: 42, 
+        biome: ci < 400 ? 'PLAINS' : ci < 800 ? 'FOREST' : 'CITY',
+        cellType: ci > 800 ? 'SANCTUARY' : 'WILDERNESS',
         entropy: 0.2, stabilityIndex: 0.8, corruptionLevel: 0.1, resourceData: {},
-        logicField: Array(8).fill(0).map(() => Array(8).fill({ vx: 0.1, vz: 0.1 })),
-        axiomaticData: Array(8).fill(0).map(() => Array(8).fill(0.5))
+        logicField: Array(8).fill(0).map(() => Array(8).fill(0).map(() => ({ vx: Math.random() * 0.2, vz: Math.random() * 0.2 }))),
+        axiomaticData: Array(8).fill(0).map(() => Array(8).fill(0).map(() => Math.random()))
       };
       
       const content = WorldBuildingService.generateAxiomaticContent(mockChunk as any);

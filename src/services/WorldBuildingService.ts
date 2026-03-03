@@ -123,7 +123,7 @@ export class WorldBuildingService {
         const posZ = chunkWorldZ + (j * 10 - 35);
 
         // Shrines (Resonance POIs)
-        if (dataVal > 0.85 && magnitude < 0.05) {
+        if (dataVal > 0.8 && magnitude < 0.08) {
           pois.push({
             id: `poi-${chunk.id}-${i}-${j}`,
             type: 'SHRINE',
@@ -131,13 +131,13 @@ export class WorldBuildingService {
             isDiscovered: false,
             discoveryRadius: 15,
             rewardInsight: 10,
-            loreFragment: `Axiomatic Resonance detected at ${chunk.logicString || 'unknown coordinate'}.`,
+            loreFragment: `Axiomatic Resonance detected at ${chunk.id}.`,
             threatLevel: 0.1
           });
         }
 
         // Monsters (Corrupted Entities)
-        if (magnitude > 0.12 && dataVal < 0.3) {
+        if (magnitude > 0.1 && dataVal < 0.4) {
           const chunkDist = Math.hypot(chunk.x, chunk.z);
           const roll = Math.random();
           const mType = (roll > 0.85 && chunkDist >= 4) ? 'DRAGON' : 
@@ -174,7 +174,7 @@ export class WorldBuildingService {
         }
 
         // Resource Nodes (Extraction Points)
-        if (magnitude > 0.08 && magnitude < 0.12 && dataVal > 0.5) {
+        if (magnitude > 0.05 && magnitude < 0.15 && dataVal > 0.4) {
           const rType = dataVal > 0.8 ? 'SILVER_ORE' : dataVal > 0.6 ? 'IRON_ORE' : 'STONE';
           resources.push({
             id: `res-${chunk.id}-${i}-${j}`,
@@ -185,7 +185,7 @@ export class WorldBuildingService {
         }
 
         // Biome Specific POIs
-        if (chunk.biome === 'FOREST' && dataVal > 0.4 && Math.random() < 0.3) {
+        if (chunk.biome === 'FOREST' && dataVal > 0.3 && Math.random() < 0.4) {
            pois.push({
             id: `tree-${chunk.id}-${i}-${j}`,
             type: 'TREE',
@@ -198,40 +198,15 @@ export class WorldBuildingService {
         }
 
         // Dungeon Entrances
-        if (chunk.biome === 'MOUNTAIN' && dataVal > 0.3 && magnitude > 0.06 && Math.random() < 0.1) {
+        if (magnitude > 0.06 && Math.random() < 0.05) {
           pois.push({
             id: `dungeon-${chunk.id}-${i}-${j}`,
-            type: 'DUNGEON',
+            type: Math.random() > 0.5 ? 'DUNGEON' : 'RUIN',
             position: [posX, 0, posZ],
             isDiscovered: false,
             discoveryRadius: 25,
             rewardInsight: 30,
             threatLevel: 0.6
-          });
-        }
-
-        if (chunk.biome === 'FOREST' && dataVal > 0.4 && magnitude > 0.05 && Math.random() < 0.08) {
-          pois.push({
-            id: `dungeon-${chunk.id}-${i}-${j}`,
-            type: 'DUNGEON',
-            position: [posX, 0, posZ],
-            isDiscovered: false,
-            discoveryRadius: 25,
-            rewardInsight: 25,
-            threatLevel: 0.5
-          });
-        }
-
-        // Generic Emergent POIs
-        if (chunk.cellType === 'WILDERNESS' && Math.random() < 0.015) {
-           pois.push({
-            id: `poi-emergent-${chunk.id}-${i}-${j}`,
-            type: Math.random() > 0.5 ? 'DUNGEON' : 'RUIN',
-            position: [posX, 0, posZ],
-            isDiscovered: false,
-            discoveryRadius: 20,
-            rewardInsight: 25,
-            threatLevel: 0.5
           });
         }
       }
