@@ -32,7 +32,9 @@ export interface Chunk {
   stabilityIndex: number;
   corruptionLevel: number;
   resourceData: Record<string, number>;
-  logicField?: Array<{ vx: number; vz: number; magnitude: number }>;
+  logicField?: Array<Array<{ vx: number; vz: number; magnitude: number }>>;
+  axiomaticData?: number[][];
+  logicString?: string;
   dungeonProbability?: number;
   lastUpdate?: any;
 }
@@ -42,7 +44,46 @@ export interface POI {
   type: 'SHRINE' | 'RUIN' | 'NEST' | 'DUNGEON' | 'MARKET_STALL' | 'TREE' | 'BUILDING';
   position: [number, number, number];
   isDiscovered: boolean;
+  discoveryRadius?: number;
+  rewardInsight?: number;
+  loreFragment?: string;
+  threatLevel?: number;
 }
+
+export interface ResourceNode {
+  id: string;
+  type: 'WOOD' | 'STONE' | 'IRON_ORE' | 'SILVER_ORE' | 'GOLD_ORE' | 'ANCIENT_RELIC' | 'SUNLEAF_HERB';
+  position: [number, number, number];
+  amount: number;
+}
+
+export interface Monster {
+  id: string;
+  type: string;
+  name: string;
+  position: [number, number, number];
+  rotationY: number;
+  stats: {
+    hp: number;
+    maxHp: number;
+    str: number;
+    agi: number;
+    int: number;
+    vit: number;
+  };
+  xpReward: number;
+  state: string;
+  targetId: string | null;
+  color: string;
+  scale: number;
+}
+
+export const MONSTER_TEMPLATES: Record<string, any> = {
+  'SLIME': { hp: 30, str: 2, agi: 2, int: 1, vit: 5, xp: 10, scale: 0.8 },
+  'GOBLIN': { hp: 50, str: 5, agi: 8, int: 3, vit: 4, xp: 25, scale: 1.0 },
+  'ORC': { hp: 120, str: 15, agi: 5, int: 2, vit: 12, xp: 75, scale: 1.4 },
+  'DRAGON': { hp: 500, str: 40, agi: 12, int: 25, vit: 30, xp: 500, scale: 3.5 }
+};
 
 export interface Agent {
   id: string;
@@ -122,4 +163,26 @@ export interface AdminAuditLog {
   details: any;
   ipAddress: string;
   timestamp: any;
+}
+
+export interface GeneratedItem {
+  name: string;
+  type: string;
+  rarity: string;
+  stats: Record<string, number>;
+  level: number;
+  value: number;
+}
+
+export type ItemRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'AXIOMATIC';
+export type ItemType = 'WEAPON' | 'SHIELD' | 'ARMOR' | 'ACCESSORY' | 'CONSUMABLE';
+
+export interface Item {
+  id: string;
+  name: string;
+  type: ItemType;
+  rarity: ItemRarity;
+  stats: Record<string, number>;
+  level: number;
+  value: number;
 }
