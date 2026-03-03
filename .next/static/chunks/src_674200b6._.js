@@ -1808,7 +1808,7 @@ const POIModel = (param)=>{
                                 ]
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 43,
+                                lineNumber: 44,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("primitive", {
@@ -1816,13 +1816,13 @@ const POIModel = (param)=>{
                                 attach: "material"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 44,
+                                lineNumber: 45,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 42,
+                        lineNumber: 43,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("mesh", {
@@ -1841,7 +1841,7 @@ const POIModel = (param)=>{
                                 ]
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 47,
+                                lineNumber: 48,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
@@ -1850,24 +1850,24 @@ const POIModel = (param)=>{
                                 emissiveIntensity: 5
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 48,
+                                lineNumber: 49,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 46,
+                        lineNumber: 47,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0))
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 41,
+                lineNumber: 42,
                 columnNumber: 9
             }, ("TURBOPACK compile-time value", void 0))
         }, void 0, false, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 40,
+            lineNumber: 41,
             columnNumber: 7
         }, ("TURBOPACK compile-time value", void 0));
     }
@@ -1903,7 +1903,7 @@ const POIModel = (param)=>{
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 63,
+                            lineNumber: 64,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("primitive", {
@@ -1911,13 +1911,13 @@ const POIModel = (param)=>{
                             attach: "material"
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 64,
+                            lineNumber: 65,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 62,
+                    lineNumber: 63,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("mesh", {
@@ -1937,7 +1937,7 @@ const POIModel = (param)=>{
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 68,
+                            lineNumber: 69,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("primitive", {
@@ -1945,13 +1945,13 @@ const POIModel = (param)=>{
                             attach: "material"
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 69,
+                            lineNumber: 70,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 67,
+                    lineNumber: 68,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0)),
                 [
@@ -1979,7 +1979,7 @@ const POIModel = (param)=>{
                                 ]
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 74,
+                                lineNumber: 75,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
@@ -1988,13 +1988,13 @@ const POIModel = (param)=>{
                                 emissiveIntensity: 3
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 75,
+                                lineNumber: 76,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, i, true, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 73,
+                        lineNumber: 74,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0))),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("mesh", {
@@ -2012,7 +2012,7 @@ const POIModel = (param)=>{
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 80,
+                            lineNumber: 81,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
@@ -2021,13 +2021,13 @@ const POIModel = (param)=>{
                             emissiveIntensity: 10
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 81,
+                            lineNumber: 82,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 79,
+                    lineNumber: 80,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("pointLight", {
@@ -2041,13 +2041,13 @@ const POIModel = (param)=>{
                     distance: 20
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 84,
+                    lineNumber: 85,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0))
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 61,
+            lineNumber: 62,
             columnNumber: 7
         }, ("TURBOPACK compile-time value", void 0));
     }
@@ -2082,7 +2082,7 @@ const POIModel = (param)=>{
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 94,
+                            lineNumber: 95,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("primitive", {
@@ -2090,13 +2090,13 @@ const POIModel = (param)=>{
                             attach: "material"
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 95,
+                            lineNumber: 96,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 93,
+                    lineNumber: 94,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("mesh", {
@@ -2114,7 +2114,7 @@ const POIModel = (param)=>{
                             ]
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 98,
+                            lineNumber: 99,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("meshStandardMaterial", {
@@ -2123,19 +2123,19 @@ const POIModel = (param)=>{
                             emissiveIntensity: 2
                         }, void 0, false, {
                             fileName: "[project]/src/components/game/World3D.tsx",
-                            lineNumber: 99,
+                            lineNumber: 100,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 97,
+                    lineNumber: 98,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0))
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 92,
+            lineNumber: 93,
             columnNumber: 7
         }, ("TURBOPACK compile-time value", void 0));
     }
@@ -2201,7 +2201,7 @@ const AgentModel = (param)=>{
                 object: model.group
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 146,
+                lineNumber: 147,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$web$2f$Html$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Html"], {
@@ -2222,7 +2222,7 @@ const AgentModel = (param)=>{
                                 children: "YOU //"
                             }, void 0, false, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 150,
+                                lineNumber: 151,
                                 columnNumber: 25
                             }, ("TURBOPACK compile-time value", void 0)),
                             agent.displayName,
@@ -2235,29 +2235,29 @@ const AgentModel = (param)=>{
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/components/game/World3D.tsx",
-                                lineNumber: 151,
+                                lineNumber: 152,
                                 columnNumber: 33
                             }, ("TURBOPACK compile-time value", void 0))
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 149,
+                        lineNumber: 150,
                         columnNumber: 11
                     }, ("TURBOPACK compile-time value", void 0))
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 148,
+                    lineNumber: 149,
                     columnNumber: 9
                 }, ("TURBOPACK compile-time value", void 0))
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 147,
+                lineNumber: 148,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 145,
+        lineNumber: 146,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -2272,7 +2272,7 @@ const LocalPlayerController = (param)=>{
     _s1();
     const { camera } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$fiber$2f$dist$2f$events$2d$5a94e5eb$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__C__as__useThree$3e$__["useThree"])();
     const db = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useFirestore"])();
-    const { virtualInput, controlMode } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])();
+    const { virtualInput, controlMode, targetPosition, setTargetPosition } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])();
     const moveSpeed = 0.45;
     const updateInterval = 500;
     const lastUpdateRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(0);
@@ -2301,6 +2301,7 @@ const LocalPlayerController = (param)=>{
             const newPos = {
                 ...agent.position
             };
+            // 1. Keyboard / Joystick Logic
             if (controlMode === 'KEYBOARD') {
                 if (keys.current['w']) {
                     newPos.z -= moveSpeed;
@@ -2325,6 +2326,23 @@ const LocalPlayerController = (param)=>{
                     moving = true;
                 }
             }
+            // Interrupt Target-Navigation if direct input is detected
+            if (moving && targetPosition) {
+                setTargetPosition(null);
+            }
+            // 2. Push-to-Walk Logic (Autonomous Pathing)
+            if (!moving && targetPosition && controlMode === 'PUSH_TO_WALK') {
+                const dx = targetPosition.x - agent.position.x;
+                const dz = targetPosition.z - agent.position.z;
+                const dist = Math.hypot(dx, dz);
+                if (dist > 0.5) {
+                    newPos.x += dx / dist * moveSpeed;
+                    newPos.z += dz / dist * moveSpeed;
+                    moving = true;
+                } else {
+                    setTargetPosition(null);
+                }
+            }
             if (moving) {
                 agent.position.x = newPos.x;
                 agent.position.z = newPos.z;
@@ -2346,6 +2364,8 @@ const LocalPlayerController = (param)=>{
                         lastUpdate: (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm2017$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["serverTimestamp"])()
                     });
                 }
+            } else if (agent.state === __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AgentState"].EXPLORING) {
+                agent.state = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$types$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["AgentState"].IDLE;
             }
         }
     }["LocalPlayerController.useFrame"]);
@@ -2354,11 +2374,11 @@ const LocalPlayerController = (param)=>{
         isLocal: true
     }, void 0, false, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 219,
+        lineNumber: 243,
         columnNumber: 10
     }, ("TURBOPACK compile-time value", void 0));
 };
-_s1(LocalPlayerController, "wG0/FxXUBue1CA/jFNGWqDqcZB4=", false, function() {
+_s1(LocalPlayerController, "adwW7b8kUhnh3VjRxQkRv3NwPgw=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$fiber$2f$dist$2f$events$2d$5a94e5eb$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__C__as__useThree$3e$__["useThree"],
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$firebase$2f$provider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useFirestore"],
@@ -2372,6 +2392,12 @@ const Terrain = (param)=>{
     _s2();
     const materialRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
     const { camera } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$fiber$2f$dist$2f$events$2d$5a94e5eb$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__C__as__useThree$3e$__["useThree"])();
+    const setTargetPosition = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])({
+        "Terrain.useStore[setTargetPosition]": (state)=>state.setTargetPosition
+    }["Terrain.useStore[setTargetPosition]"]);
+    const controlMode = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])({
+        "Terrain.useStore[controlMode]": (state)=>state.controlMode
+    }["Terrain.useStore[controlMode]"]);
     const uniforms = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useMemo"])({
         "Terrain.useMemo[uniforms]": ()=>({
                 uTime: {
@@ -2423,6 +2449,16 @@ const Terrain = (param)=>{
             }
         }
     }["Terrain.useFrame"]);
+    const handlePointerDown = (e)=>{
+        if (controlMode === 'PUSH_TO_WALK') {
+            const point = e.point;
+            setTargetPosition({
+                x: point.x,
+                y: 0,
+                z: point.z
+            });
+        }
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("mesh", {
         rotation: [
             -Math.PI / 2,
@@ -2435,6 +2471,7 @@ const Terrain = (param)=>{
             0
         ],
         receiveShadow: true,
+        onPointerDown: handlePointerDown,
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("planeGeometry", {
                 args: [
@@ -2445,7 +2482,7 @@ const Terrain = (param)=>{
                 ]
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 250,
+                lineNumber: 288,
                 columnNumber: 13
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("shaderMaterial", {
@@ -2456,19 +2493,21 @@ const Terrain = (param)=>{
                 side: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$three$2f$build$2f$three$2e$core$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["DoubleSide"]
             }, void 0, false, {
                 fileName: "[project]/src/components/game/World3D.tsx",
-                lineNumber: 251,
+                lineNumber: 289,
                 columnNumber: 13
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 249,
+        lineNumber: 282,
         columnNumber: 9
     }, ("TURBOPACK compile-time value", void 0));
 };
-_s2(Terrain, "FxuhbcGS1ZfUCNYqmP4h2b5q1/c=", false, function() {
+_s2(Terrain, "K7vHkLK05aH+cC8XTqoWdzozNNU=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$fiber$2f$dist$2f$events$2d$5a94e5eb$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__C__as__useThree$3e$__["useThree"],
+        __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"],
+        __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"],
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$fiber$2f$dist$2f$events$2d$5a94e5eb$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__D__as__useFrame$3e$__["useFrame"]
     ];
 });
@@ -2533,7 +2572,7 @@ const World3D = (param)=>{
                     fov: 50
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 281,
+                    lineNumber: 319,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$Sky$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Sky"], {
@@ -2546,21 +2585,21 @@ const World3D = (param)=>{
                     rayleigh: 0.5
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 282,
+                    lineNumber: 320,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$Environment$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Environment"], {
                     preset: "night"
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 283,
+                    lineNumber: 321,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ambientLight", {
                     intensity: 0.2
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 284,
+                    lineNumber: 322,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("pointLight", {
@@ -2573,35 +2612,35 @@ const World3D = (param)=>{
                     color: ARL_COLORS.teal
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 285,
+                    lineNumber: 323,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(Terrain, {
                     civilizationIndex: civilizationIndex
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 286,
+                    lineNumber: 324,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 localAgent && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(LocalPlayerController, {
                     agent: localAgent
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 287,
+                    lineNumber: 325,
                     columnNumber: 32
                 }, ("TURBOPACK compile-time value", void 0)),
                 otherAgents.map((agent)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(AgentModel, {
                         agent: agent
                     }, agent.id, false, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 288,
+                        lineNumber: 326,
                         columnNumber: 43
                     }, ("TURBOPACK compile-time value", void 0))),
                 worldContent.pois.map((poi)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(POIModel, {
                         poi: poi
                     }, poi.id, false, {
                         fileName: "[project]/src/components/game/World3D.tsx",
-                        lineNumber: 289,
+                        lineNumber: 327,
                         columnNumber: 47
                     }, ("TURBOPACK compile-time value", void 0))),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$ContactShadows$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["ContactShadows"], {
@@ -2613,28 +2652,29 @@ const World3D = (param)=>{
                     color: "#000000"
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 290,
+                    lineNumber: 328,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0)),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$react$2d$three$2f$drei$2f$core$2f$OrbitControls$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["OrbitControls"], {
                     enablePan: true,
                     maxPolarAngle: Math.PI / 2.1,
                     minDistance: 10,
-                    maxDistance: 250
+                    maxDistance: 250,
+                    enableDamping: true
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/World3D.tsx",
-                    lineNumber: 291,
+                    lineNumber: 329,
                     columnNumber: 17
                 }, ("TURBOPACK compile-time value", void 0))
             ]
         }, void 0, true, {
             fileName: "[project]/src/components/game/World3D.tsx",
-            lineNumber: 280,
+            lineNumber: 318,
             columnNumber: 13
         }, ("TURBOPACK compile-time value", void 0))
     }, void 0, false, {
         fileName: "[project]/src/components/game/World3D.tsx",
-        lineNumber: 279,
+        lineNumber: 317,
         columnNumber: 9
     }, ("TURBOPACK compile-time value", void 0));
 };
@@ -2669,6 +2709,8 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/button.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$move$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Move$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/move.js [app-client] (ecmascript) <export default as Move>");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$mouse$2d$pointer$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MousePointer2$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/mouse-pointer-2.js [app-client] (ecmascript) <export default as MousePointer2>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$smartphone$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Smartphone$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/smartphone.js [app-client] (ecmascript) <export default as Smartphone>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$monitor$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Monitor$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/monitor.js [app-client] (ecmascript) <export default as Monitor>");
 ;
 var _s = __turbopack_context__.k.signature();
 "use client";
@@ -2678,7 +2720,7 @@ var _s = __turbopack_context__.k.signature();
 ;
 const MobileControls = ()=>{
     _s();
-    const { controlMode, setControlMode, setVirtualInput } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])();
+    const { controlMode, setControlMode, setVirtualInput, isMobile } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])();
     const [isTouching, setIsTouching] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const joystickRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
     const knobRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
@@ -2720,42 +2762,85 @@ const MobileControls = ()=>{
         className: "absolute inset-0 pointer-events-none z-50 flex flex-col justify-between p-6",
         children: [
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                className: "flex justify-end pointer-events-auto",
+                className: "flex justify-between items-start pointer-events-auto",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-1 flex gap-1",
+                    className: "flex items-center gap-2 px-3 py-2 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10",
                     children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                            variant: controlMode === 'JOYSTICK' ? 'default' : 'ghost',
-                            size: "sm",
-                            className: "rounded-xl h-10 w-10 p-0",
-                            onClick: ()=>setControlMode('JOYSTICK'),
-                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$move$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Move$3e$__["Move"], {
-                                className: "h-4 w-4"
-                            }, void 0, false, {
-                                fileName: "[project]/src/components/game/MobileControls.tsx",
-                                lineNumber: 66,
-                                columnNumber: 13
-                            }, ("TURBOPACK compile-time value", void 0))
-                        }, void 0, false, {
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-axiom-cyan mr-4 italic",
+                            children: [
+                                isMobile ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$smartphone$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Smartphone$3e$__["Smartphone"], {
+                                    className: "h-3 w-3"
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/game/MobileControls.tsx",
+                                    lineNumber: 61,
+                                    columnNumber: 25
+                                }, ("TURBOPACK compile-time value", void 0)) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$monitor$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Monitor$3e$__["Monitor"], {
+                                    className: "h-3 w-3"
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/game/MobileControls.tsx",
+                                    lineNumber: 61,
+                                    columnNumber: 62
+                                }, ("TURBOPACK compile-time value", void 0)),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                    children: [
+                                        "System: ",
+                                        isMobile ? 'Android' : 'Desktop'
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/src/components/game/MobileControls.tsx",
+                                    lineNumber: 62,
+                                    columnNumber: 13
+                                }, ("TURBOPACK compile-time value", void 0))
+                            ]
+                        }, void 0, true, {
                             fileName: "[project]/src/components/game/MobileControls.tsx",
                             lineNumber: 60,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0)),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
-                            variant: controlMode === 'PUSH_TO_WALK' ? 'default' : 'ghost',
-                            size: "sm",
-                            className: "rounded-xl h-10 w-10 p-0",
-                            onClick: ()=>setControlMode('PUSH_TO_WALK'),
-                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$mouse$2d$pointer$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MousePointer2$3e$__["MousePointer2"], {
-                                className: "h-4 w-4"
-                            }, void 0, false, {
-                                fileName: "[project]/src/components/game/MobileControls.tsx",
-                                lineNumber: 74,
-                                columnNumber: 13
-                            }, ("TURBOPACK compile-time value", void 0))
-                        }, void 0, false, {
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "flex gap-1",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                    variant: controlMode === 'JOYSTICK' ? 'default' : 'ghost',
+                                    size: "sm",
+                                    className: "rounded-xl h-10 w-10 p-0 ".concat(controlMode === 'JOYSTICK' ? 'axiom-gradient border-0' : ''),
+                                    onClick: ()=>setControlMode('JOYSTICK'),
+                                    title: "Joystick Mode",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$move$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Move$3e$__["Move"], {
+                                        className: "h-4 w-4"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/game/MobileControls.tsx",
+                                        lineNumber: 72,
+                                        columnNumber: 15
+                                    }, ("TURBOPACK compile-time value", void 0))
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/game/MobileControls.tsx",
+                                    lineNumber: 65,
+                                    columnNumber: 13
+                                }, ("TURBOPACK compile-time value", void 0)),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
+                                    variant: controlMode === 'PUSH_TO_WALK' ? 'default' : 'ghost',
+                                    size: "sm",
+                                    className: "rounded-xl h-10 w-10 p-0 ".concat(controlMode === 'PUSH_TO_WALK' ? 'axiom-gradient border-0' : ''),
+                                    onClick: ()=>setControlMode('PUSH_TO_WALK'),
+                                    title: "Push to Walk",
+                                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$mouse$2d$pointer$2d$2$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__MousePointer2$3e$__["MousePointer2"], {
+                                        className: "h-4 w-4"
+                                    }, void 0, false, {
+                                        fileName: "[project]/src/components/game/MobileControls.tsx",
+                                        lineNumber: 81,
+                                        columnNumber: 15
+                                    }, ("TURBOPACK compile-time value", void 0))
+                                }, void 0, false, {
+                                    fileName: "[project]/src/components/game/MobileControls.tsx",
+                                    lineNumber: 74,
+                                    columnNumber: 13
+                                }, ("TURBOPACK compile-time value", void 0))
+                            ]
+                        }, void 0, true, {
                             fileName: "[project]/src/components/game/MobileControls.tsx",
-                            lineNumber: 68,
+                            lineNumber: 64,
                             columnNumber: 11
                         }, ("TURBOPACK compile-time value", void 0))
                     ]
@@ -2773,41 +2858,48 @@ const MobileControls = ()=>{
                 className: "flex justify-start items-end p-8 pointer-events-auto",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     ref: joystickRef,
-                    className: "w-32 h-32 rounded-full bg-white/10 backdrop-blur-md border-2 border-white/20 relative flex items-center justify-center touch-none",
+                    className: "w-32 h-32 rounded-full bg-white/5 backdrop-blur-md border-2 border-white/10 relative flex items-center justify-center touch-none shadow-2xl",
                     onTouchStart: handleTouchStart,
                     onTouchMove: handleTouchMove,
                     onTouchEnd: handleTouchEnd,
                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                         ref: knobRef,
-                        className: "w-12 h-12 rounded-full axiom-gradient shadow-2xl shadow-accent/50 border-2 border-white/40 transition-transform duration-75 ease-out"
+                        className: "w-14 h-14 rounded-full axiom-gradient shadow-[0_0_30px_rgba(31,184,184,0.6)] border-2 border-white/20 transition-transform duration-75 ease-out flex items-center justify-center",
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                            className: "w-4 h-4 rounded-full bg-white/20 animate-pulse"
+                        }, void 0, false, {
+                            fileName: "[project]/src/components/game/MobileControls.tsx",
+                            lineNumber: 101,
+                            columnNumber: 16
+                        }, ("TURBOPACK compile-time value", void 0))
                     }, void 0, false, {
                         fileName: "[project]/src/components/game/MobileControls.tsx",
-                        lineNumber: 89,
+                        lineNumber: 97,
                         columnNumber: 13
                     }, ("TURBOPACK compile-time value", void 0))
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/MobileControls.tsx",
-                    lineNumber: 82,
+                    lineNumber: 90,
                     columnNumber: 11
                 }, ("TURBOPACK compile-time value", void 0))
             }, void 0, false, {
                 fileName: "[project]/src/components/game/MobileControls.tsx",
-                lineNumber: 81,
+                lineNumber: 89,
                 columnNumber: 9
             }, ("TURBOPACK compile-time value", void 0)),
             controlMode === 'PUSH_TO_WALK' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "flex justify-center mb-12",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-[0.3em] text-accent italic animate-pulse",
-                    children: "Tap Terrain to Move Neural Shell"
+                    className: "bg-black/60 backdrop-blur-2xl px-6 py-3 rounded-full border border-axiom-cyan/30 text-[10px] font-black uppercase tracking-[0.4em] text-axiom-cyan italic animate-pulse shadow-2xl",
+                    children: "Tap Terrain to Manifest Destination"
                 }, void 0, false, {
                     fileName: "[project]/src/components/game/MobileControls.tsx",
-                    lineNumber: 100,
+                    lineNumber: 110,
                     columnNumber: 11
                 }, ("TURBOPACK compile-time value", void 0))
             }, void 0, false, {
                 fileName: "[project]/src/components/game/MobileControls.tsx",
-                lineNumber: 99,
+                lineNumber: 109,
                 columnNumber: 9
             }, ("TURBOPACK compile-time value", void 0))
         ]
@@ -2817,7 +2909,7 @@ const MobileControls = ()=>{
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };
-_s(MobileControls, "HqZPQft/jgGlWbHyoCCXxjFSsME=", false, function() {
+_s(MobileControls, "1SEkK6zmkSa72npnk0NsH/oK5pU=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"]
     ];
