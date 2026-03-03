@@ -1,8 +1,15 @@
+
 'use server';
 /**
  * @fileOverview Axiom Frontier - PayPal Payment Service
  * Handles order creation, payment capture, and Matrix Energy provisioning.
  */
+
+import { rewardEnergy } from './TransactionManager';
+import { doc, getDoc } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase';
+
+const { firestore: db } = initializeFirebase();
 
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const PAYPAL_SECRET_KEY = process.env.PAYPAL_SECRET_KEY;
@@ -97,12 +104,12 @@ export async function createPaypalOrder(productId: string) {
 }
 
 /**
- * Captures a PayPal order after user approval
+ * Captures a PayPal order after user approval and provisions energy
  */
-export async function capturePaypalOrder(orderID: string) {
+export async function capturePaypalOrder(orderID: string, userId: string) {
   try {
-    if (!orderID) {
-      throw new Error('Missing orderID');
+    if (!orderID || !userId) {
+      throw new Error('Missing orderID or userId');
     }
 
     const accessToken = await getAccessToken();
@@ -130,9 +137,21 @@ export async function capturePaypalOrder(orderID: string) {
     const refId = captureData.purchase_units?.[0]?.reference_id;
     const product = PRODUCTS[refId];
     const energy = product?.energy || 0;
-    const capturedAmount = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.amount;
+    
+    // Get current world tick for the ledger entry
+    let tick = 0;
+    if (db) {
+      const worldRef = doc(db, 'worldState', 'global');
+      const worldSnap = await getDoc(worldRef);
+      if (worldSnap.exists()) {
+        tick = worldSnap.data().tick || 0;
+      }
+    }
 
-    console.log(`[PAYMENT_SUCCESS] Order: ${orderID}, Energy: ${energy}, Amount: ${capturedAmount?.value} ${capturedAmount?.currency_code}`);
+    // Provision the energy in the Matrix Ledger
+    await rewardEnergy(userId, energy, `PayPal Purchase: ${refId} (${orderID})`, tick);
+
+    console.log(`[PAYMENT_PROVISIONED] User: ${userId}, Energy: ${energy}, Order: ${orderID}`);
 
     return {
       success: true,
