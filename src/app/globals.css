@@ -5,11 +5,13 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* Fonts */
   --font-display: "Cinzel Decorative", serif;
   --font-heading: "Cinzel", serif;
   --font-body: "Inter", sans-serif;
   --font-code: "JetBrains Mono", monospace;
 
+  /* Base Colors */
   --color-background: hsl(240 10% 2%);
   --color-foreground: hsl(45 40% 85%);
   --color-card: hsl(240 10% 4%);
@@ -30,15 +32,41 @@
   --color-input: hsl(231 60% 20%);
   --color-ring: hsl(231 60% 44%);
 
+  /* Border Radii */
   --radius-lg: 1rem;
   --radius-md: calc(1rem - 2px);
   --radius-sm: calc(1rem - 4px);
 
-  /* Legacy variable support for components */
-  --axiom-dark: var(--color-background);
-  --axiom-purple: hsl(263 60% 57%);
-  --axiom-cyan: var(--color-accent);
-  --axiom-gold: hsl(45 67% 47%);
+  /* Axiom Frontier Custom Colors */
+  --color-arl-void: #020203;
+  --color-arl-deep: #050508;
+  --color-arl-surface: #0a0a0f;
+  --color-arl-border: #1e2a4a;
+  --color-axiom-dark: #020203;
+  --color-axiom-purple: hsl(263 60% 57%);
+  --color-axiom-cyan: hsl(196 100% 69%);
+  --color-axiom-gold: hsl(45 67% 47%);
+
+  /* Animations */
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  @keyframes matrix-scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+
+  --animate-gradient: gradient 8s ease infinite;
+  --animate-marquee: marquee 30s linear infinite;
+  --animate-matrix-scan: matrix-scan 4s linear infinite;
 }
 
 @layer base {
@@ -48,6 +76,7 @@
   body {
     @apply bg-background text-foreground font-body antialiased overflow-x-hidden;
     margin: 0;
+    overscroll-behavior-y: contain;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading tracking-tight text-white uppercase italic;

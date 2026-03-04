@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -10,22 +9,19 @@ import {
   Hammer,
   Swords,
   Brain,
-  ArrowRight,
+  Play,
+  Monitor,
+  Trophy,
   Infinity,
   Layers,
   Activity,
-  Globe,
-  Zap,
-  Play,
-  Monitor,
-  Trophy
+  Globe
 } from "lucide-react"
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
 import Image from "next/image"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
 import { motion } from "framer-motion"
-import { Header } from "@/components/layout/Header"
 
 export default function MMORPGPortal() {
   const db = useFirestore()
@@ -60,8 +56,6 @@ export default function MMORPGPortal() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/95 via-[#020203]/80 to-[#020203]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(123,79,212,0.15),transparent_70%)]" />
       </div>
-
-      <Header />
 
       <main className="relative z-10 pt-24 md:pt-32 lg:pt-48">
         {/* Hero Section */}
@@ -205,27 +199,6 @@ export default function MMORPGPortal() {
           </div>
         </div>
       </footer>
-
-      <style jsx global>{`
-        @keyframes gradient {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        .animate-gradient {
-          background-size: 200% auto;
-          animation: gradient 8s ease infinite;
-        }
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-marquee {
-          display: flex;
-          width: 200%;
-          animation: marquee 30s linear infinite;
-        }
-      `}</style>
     </div>
   )
 }

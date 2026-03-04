@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useRef } from "react"
@@ -165,12 +164,6 @@ export default function WorldPreviewPage() {
       {windowStates.CHARACTER.isOpen && <CharacterSheet />}
       {windowStates.AUCTION.isOpen && <AuctionHouseOverlay />}
       {windowStates.QUESTS.isOpen && <QuestBoardOverlay />}
-
-      <style jsx global>{`
-        body {
-          overscroll-behavior-y: contain;
-        }
-      `}</style>
     </div>
   )
 }

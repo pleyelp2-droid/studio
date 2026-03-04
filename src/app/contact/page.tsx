@@ -1,13 +1,11 @@
 "use client"
 
-import { Header } from "@/components/layout/Header"
 import { Mail, MessageSquare, Zap } from "lucide-react"
 import { motion } from "framer-motion"
 
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-[#020203] text-[#e8dfc8] font-body relative overflow-hidden">
-      <Header />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(123,79,212,0.1),transparent_70%)] pointer-events-none" />
       
       <main className="relative z-10 pt-32 px-6 flex flex-col items-center justify-center min-h-[calc(100vh-80px)]">

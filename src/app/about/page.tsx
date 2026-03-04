@@ -1,15 +1,12 @@
-
 "use client"
 
 import { Infinity, ShieldCheck, Heart, Zap } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Header } from "@/components/layout/Header"
 
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-[#020203] text-[#e8dfc8] font-body flex flex-col relative overflow-hidden">
-      <Header />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(123,79,212,0.1),transparent_70%)] pointer-events-none" />
       
       <motion.div 

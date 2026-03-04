@@ -1,125 +1,16 @@
-
 import type {Config} from 'tailwindcss';
 
+/**
+ * Tailwind CSS v4 transition: configuration is primarily handled in globals.css
+ * via the @theme block. This file is kept minimal to avoid compiler conflicts
+ * with Turbopack while allowing tool-specific extensions if required.
+ */
 export default {
-  darkMode: ['class'],
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
-    extend: {
-      fontFamily: {
-        display: ['var(--font-display)', 'serif'],
-        heading: ['var(--font-heading)', 'serif'],
-        body: ['var(--font-body)', 'serif'],
-        code: ['var(--font-code)', 'monospace'],
-        sans: ['var(--font-body)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        serif: ['var(--font-heading)', 'serif'],
-        mono: ['var(--font-code)', 'ui-monospace', 'SFMono-Regular', 'monospace'],
-      },
-      spacing: {
-        'arl-xs': 'var(--sp-xs)',
-        'arl-sm': 'var(--sp-sm)',
-        'arl-md': 'var(--sp-md)',
-        'arl-lg': 'var(--sp-lg)',
-        'arl-xl': 'var(--sp-xl)',
-        'arl-2xl': 'var(--sp-2xl)',
-      },
-      borderRadius: {
-        'arl-sm': 'var(--r-sm)',
-        'arl-md': 'var(--r-md)',
-        'arl-lg': 'var(--r-lg)',
-        'arl-xl': 'var(--r-xl)',
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
-      },
-      colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        'arl-void': 'var(--arl-void)',
-        'arl-deep': 'var(--arl-deep)',
-        'arl-surface': 'var(--arl-surface)',
-        'arl-elevated': 'var(--arl-elevated)',
-        'arl-panel': 'var(--arl-panel)',
-        'arl-border': 'var(--arl-border)',
-        'arl-border-glow': 'var(--arl-border-glow)',
-        'arl-gold': 'var(--arl-gold)',
-        'arl-gold-dim': 'var(--arl-gold-dim)',
-        'arl-gold-glow': 'var(--arl-gold-glow)',
-        'arl-amber': 'var(--arl-amber)',
-        'arl-amber-glow': 'var(--arl-amber-glow)',
-        'arl-arcane': 'var(--arl-arcane)',
-        'arl-arcane-mid': 'var(--arl-arcane-mid)',
-        'arl-arcane-glow': 'var(--arl-arcane-glow)',
-        'arl-teal': 'var(--arl-teal)',
-        'arl-teal-dim': 'var(--arl-teal-dim)',
-        'arl-teal-glow': 'var(--arl-teal-glow)',
-        'arl-blood': 'var(--arl-blood)',
-        'arl-blood-dim': 'var(--arl-blood-dim)',
-        'arl-sage': 'var(--arl-sage)',
-        'arl-sage-bright': 'var(--arl-sage-bright)',
-        'axiom-dark': 'var(--arl-void)',
-        'axiom-purple': 'var(--arl-arcane)',
-        'axiom-cyan': 'var(--arl-teal)',
-        'axiom-gold': 'var(--arl-gold)',
-        'soul-fire': 'var(--arl-blood)',
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))',
-        },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
-        },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))',
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
-        },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))',
-        },
-      },
-      boxShadow: {
-        'arl-arcane-glow': '0 0 12px var(--arl-arcane-glow)',
-        'arl-arcane-glow-lg': '0 0 20px var(--arl-arcane-glow)',
-      },
-      transitionDuration: {
-        '300': '300ms',
-        '700': '700ms',
-        '1000': '1000ms',
-        '2000': '2000ms',
-        '40000': '40000ms',
-      },
-    },
+    extend: {},
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [],
 } satisfies Config;
