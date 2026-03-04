@@ -17,7 +17,8 @@ import {
   FileArchive,
   ImageIcon,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle
 } from "lucide-react"
 import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
@@ -27,6 +28,46 @@ import { initializeFirebase } from "@/firebase"
 import JSZip from "jszip"
 
 const { firestore: db } = initializeFirebase();
+
+/**
+ * Optimizes an image for Firestore storage by resizing and compressing it.
+ * Keeps textures within the 1MB document limit.
+ */
+async function optimizeTexture(base64: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 512;
+      const MAX_HEIGHT = 512;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject('Canvas context failure');
+      
+      ctx.drawImage(img, 0, 0, width, height);
+      // Use JPEG with 0.7 quality to significantly reduce base64 string length
+      resolve(canvas.toDataURL('image/jpeg', 0.7));
+    };
+    img.onerror = reject;
+    img.src = base64;
+  });
+}
 
 export default function AssetHubPage() {
   const [loading, setLoading] = useState(false)
@@ -82,15 +123,23 @@ export default function AssetHubPage() {
               reader.onloadend = async () => {
                 const base64 = reader.result as string;
                 const name = filename.split('/').pop() || 'unnamed';
-                await addDoc(collection(db, 'worldAssets'), {
-                  name,
-                  url: base64,
-                  category: autoCategorize(name),
-                  tags: [filename.includes('terrain') ? 'terrain' : 'architecture', 'extracted'],
-                  isActive: false,
-                  createdAt: serverTimestamp()
-                });
-                extractedCount++;
+                
+                try {
+                  // Optimize image size before saving to Firestore
+                  const optimizedUrl = await optimizeTexture(base64);
+                  
+                  await addDoc(collection(db, 'worldAssets'), {
+                    name,
+                    url: optimizedUrl,
+                    category: autoCategorize(name),
+                    tags: [filename.includes('terrain') ? 'terrain' : 'architecture', 'extracted'],
+                    isActive: false,
+                    createdAt: serverTimestamp()
+                  });
+                  extractedCount++;
+                } catch (err) {
+                  console.error(`Failed to optimize/save ${name}`, err);
+                }
                 resolve(null);
               };
               reader.readAsDataURL(blob);
@@ -100,7 +149,7 @@ export default function AssetHubPage() {
 
         toast({ 
           title: "Archive Deciphered", 
-          description: `Successfully extracted and sorted ${extractedCount} neural textures.` 
+          description: `Successfully extracted and optimized ${extractedCount} neural textures.` 
         });
       } catch (e: any) {
         toast({ variant: "destructive", title: "Extraction Failed", description: e.message });
@@ -117,15 +166,23 @@ export default function AssetHubPage() {
         const reader = new FileReader();
         reader.onloadend = async () => {
           const base64 = reader.result as string;
-          await addDoc(collection(db, 'worldAssets'), {
-            name: file.name,
-            url: base64,
-            category: autoCategorize(file.name),
-            tags: ['direct_upload'],
-            isActive: false,
-            createdAt: serverTimestamp()
-          });
-          toast({ title: "Texture Manifested", description: "Asset has been synchronized with the core engine." });
+          
+          try {
+            // Optimize image size
+            const optimizedUrl = await optimizeTexture(base64);
+            
+            await addDoc(collection(db, 'worldAssets'), {
+              name: file.name,
+              url: optimizedUrl,
+              category: autoCategorize(file.name),
+              tags: ['direct_upload'],
+              isActive: false,
+              createdAt: serverTimestamp()
+            });
+            toast({ title: "Texture Manifested", description: "Optimized asset synchronized with the core engine." });
+          } catch (err: any) {
+            toast({ variant: "destructive", title: "Optimization Error", description: "Texture exceeds neural capacity." });
+          }
           setLoading(false);
         };
         reader.readAsDataURL(file);
@@ -215,12 +272,12 @@ export default function AssetHubPage() {
             <Card className="bg-secondary/10 border-border">
               <CardHeader className="pb-2">
                 <CardTitle className="text-[10px] font-black uppercase text-axiom-purple tracking-widest flex items-center gap-2">
-                  <FileArchive className="h-3 w-3" /> Archive Extraction
+                  <AlertTriangle className="h-3 w-3" /> Data Optimization
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-black font-headline text-white">ZIP_READY</div>
-                <p className="text-[9px] text-muted-foreground uppercase mt-1">JSZip Protocol v3.10 Stable</p>
+                <div className="text-3xl font-black font-headline text-white">512px_MAX</div>
+                <p className="text-[9px] text-muted-foreground uppercase mt-1">Auto-compression protocol active</p>
               </CardContent>
             </Card>
             <Card className="bg-secondary/10 border-border">
