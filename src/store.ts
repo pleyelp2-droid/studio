@@ -68,6 +68,7 @@ interface AppState {
   unequipItem: (agentId: string, slot: string) => void;
   moveInventoryItem: (agentId: string, from: number, to: number) => void;
   allocateStatPoint: (agentId: string, stat: string) => void;
+  unstuckPlayer: (agentId: string) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -211,5 +212,8 @@ export const useStore = create<AppState>((set) => ({
       if (a.id !== agentId || (a.unspentStatPoints || 0) <= 0) return a;
       return { ...a, [stat]: ((a as any)[stat] || 10) + 1, unspentStatPoints: (a.unspentStatPoints || 0) - 1 };
     })
+  })),
+  unstuckPlayer: (agentId) => set((state) => ({
+    agents: state.agents.map(a => a.id === agentId ? { ...a, position: { x: 10, y: 0, z: 10 }, state: AgentState.IDLE } : a)
   })),
 }));

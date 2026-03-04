@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { useStore } from '@/store'
-import { Pickaxe, Hammer, Swords, Brain, Shield, Crosshair, Zap, Package, Compass, Activity } from 'lucide-react'
+import { Pickaxe, Hammer, Swords, Brain, Shield, Crosshair, Zap, Package, Compass, Activity, LifeBuoy } from 'lucide-react'
 
 const ACTIONS = [
   { id: 'attack', label: 'ATTACK', icon: Crosshair, color: 'text-red-500', key: '1' },
@@ -13,16 +13,21 @@ const ACTIONS = [
   { id: 'gather', label: 'GATHER', icon: Package, color: 'text-emerald-500', key: '6' },
   { id: 'scan', label: 'SCAN', icon: Compass, color: 'text-axiom-cyan', key: '7' },
   { id: 'burst', label: 'BURST', icon: Zap, color: 'text-yellow-400', key: '8' },
-  { id: 'rest', label: 'REST', icon: Activity, color: 'text-gray-400', key: '9' },
+  { id: 'unstuck', label: 'UNSTUCK', icon: LifeBuoy, color: 'text-white', key: 'U' },
 ]
 
 export const SkillBar = () => {
-  const { agents, selectedAgentId, addLog } = useStore()
+  const { agents, selectedAgentId, addLog, unstuckPlayer } = useStore()
   const agent = agents.find(a => a.id === selectedAgentId)
 
   if (!agent) return null
 
   const handleAction = (id: string) => {
+    if (id === 'unstuck') {
+      unstuckPlayer(agent.id);
+      addLog(`Teleporting to safe coordinates...`, 'SYSTEM');
+      return;
+    }
     addLog(`Action triggered: ${id.toUpperCase()}`, 'SYSTEM');
   }
 
@@ -42,13 +47,6 @@ export const SkillBar = () => {
             {/* Slot Highlight */}
             <div className={`absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-white/10 pointer-events-none`} />
           </button>
-        ))}
-        
-        {/* Empty Slots */}
-        {Array.from({ length: 1 }).map((_, i) => (
-          <div key={i} className="min-w-[60px] h-16 md:min-w-[70px] md:h-20 rounded-2xl bg-black/40 border border-dashed border-white/5 flex items-center justify-center">
-            <span className="text-white/5 font-black text-[10px]">EMPTY</span>
-          </div>
         ))}
       </div>
     </div>

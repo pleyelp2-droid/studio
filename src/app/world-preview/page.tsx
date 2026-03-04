@@ -29,10 +29,10 @@ export default function WorldPreviewPage() {
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
   const { data: worldState } = useDoc(worldRef)
 
-  // Robust Device Detection for Android Tablets
   useEffect(() => {
     const checkMobile = () => {
-      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      // Force mobile controls if touch capability detected or screen small
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth < 1024;
       setIsMobile(isTouch);
     };
     checkMobile();
@@ -75,7 +75,8 @@ export default function WorldPreviewPage() {
         agi: 10,
         int: 10,
         vit: 10,
-        position: { x: 0, y: 0, z: 0 },
+        // Spawn offset to avoid getting stuck in Spire center
+        position: { x: 10, y: 0, z: 10 },
         visionRange: 100,
         state: AgentState.IDLE,
         inventory: Array(10).fill(null),

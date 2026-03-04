@@ -50,7 +50,7 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
           metalness={0.9} 
           roughness={0.1} 
           emissive={color} 
-          emissiveIntensity={0.8} 
+          emissiveIntensity={archTex ? 0.2 : 0.8} 
         />
       </mesh>
       <Float speed={3} rotationIntensity={4} floatIntensity={2}>
@@ -127,8 +127,10 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
 
   useFrame((_state, delta) => {
     if (animController) animController.update(delta);
-    if (groupRef.current && !isLocal && agent.position) {
-      groupRef.current.position.lerp(new THREE.Vector3(agent.position.x, 0, agent.position.z), 0.1);
+    if (groupRef.current && agent.position) {
+      // Smoother lerping for all agents
+      const targetPos = new THREE.Vector3(agent.position.x, 0, agent.position.z);
+      groupRef.current.position.lerp(targetPos, isLocal ? 0.2 : 0.1);
     }
   });
 
@@ -139,9 +141,9 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
     : agent.state === AgentState.IDLE ? "Berechne Zyklus..." : `Status: ${agent.state}`;
 
   return (
-    <group ref={groupRef} position={[agent.position?.x || 0, 0, agent.position?.z || 0]}>
+    <group ref={groupRef}>
       <primitive object={model.group} />
-      {isLocal && <pointLight position={[0, 2, 0]} intensity={5} color="#60D4FF" distance={15} />}
+      {isLocal && <pointLight position={[0, 2, 0]} intensity={15} color="#60D4FF" distance={25} />}
       <Html position={[0, 3.5, 0]} center distanceFactor={15}>
         <div className="flex flex-col items-center gap-2 pointer-events-none">
           <div className="bg-black/80 backdrop-blur-md border border-axiom-cyan/40 px-3 py-1.5 rounded-2xl shadow-2xl animate-bounce">
@@ -215,21 +217,37 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
 
 const LocalPlayerController = ({ agent }: { agent: Agent }) => {
   const { virtualInput, controlMode, targetPosition, setAgents, agents } = useStore();
-  const moveSpeed = 0.5;
+  const moveSpeed = 0.8; // Increased for better feel
+  
   useFrame(() => {
     if (!agent || !agent.position) return;
     let moving = false;
     let dx = 0; let dz = 0;
-    if ((controlMode === 'JOYSTICK' || controlMode === 'KEYBOARD') && (Math.abs(virtualInput.x) > 0.1 || Math.abs(virtualInput.z) > 0.1)) {
-      dx = virtualInput.x * moveSpeed; dz = virtualInput.z * moveSpeed; moving = true;
-    } else if (targetPosition && controlMode === 'PUSH_TO_WALK') {
+    
+    // Joystick / Keyboard Input
+    if ((controlMode === 'JOYSTICK' || controlMode === 'KEYBOARD') && (Math.abs(virtualInput.x) > 0.05 || Math.abs(virtualInput.z) > 0.05)) {
+      dx = virtualInput.x * moveSpeed; 
+      dz = virtualInput.z * moveSpeed; 
+      moving = true;
+    } 
+    // Point-and-Click Movement
+    else if (targetPosition && controlMode === 'PUSH_TO_WALK') {
       const diffX = targetPosition.x - agent.position.x;
       const diffZ = targetPosition.z - agent.position.z;
       const dist = Math.hypot(diffX, diffZ);
-      if (dist > 0.5) { dx = (diffX / dist) * moveSpeed; dz = (diffZ / dist) * moveSpeed; moving = true; }
+      if (dist > 0.5) { 
+        dx = (diffX / dist) * moveSpeed; 
+        dz = (diffZ / dist) * moveSpeed; 
+        moving = true; 
+      }
     }
+
     if (moving) {
-      setAgents(agents.map(a => a.id === agent.id ? { ...a, position: { ...a.position, x: a.position.x + dx, z: a.position.z + dz }, state: AgentState.EXPLORING } : a));
+      setAgents(agents.map(a => a.id === agent.id ? { 
+        ...a, 
+        position: { ...a.position, x: a.position.x + dx, z: a.position.z + dz }, 
+        state: AgentState.EXPLORING 
+      } : a));
     } else if (agent.state !== AgentState.IDLE) {
       setAgents(agents.map(a => a.id === agent.id ? { ...a, state: AgentState.IDLE } : a));
     }
@@ -246,8 +264,8 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
-          <ambientLight intensity={1.5} />
-          <directionalLight position={[100, 200, 100]} intensity={4.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
+          <ambientLight intensity={1.0} />
+          <directionalLight position={[100, 200, 100]} intensity={3.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
           <Environment preset="night" />
           <WorldContent localPlayerId={localPlayerId} />
           <fog attach="fog" args={["#010102", 50, 1500]} />

@@ -1,8 +1,8 @@
-
 'use client';
 /**
  * @fileOverview Ouroboros Neural Texture Engine - Pro Edition
  * Handles unlimited active texture pools with deterministic selection.
+ * Includes Internal Emergency Protocols (Baked-in textures).
  */
 
 import * as THREE from 'three';
@@ -10,6 +10,10 @@ import { collection, onSnapshot } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 
 const { firestore: db } = initializeFirebase();
+
+// Emergency Protocols: High-quality tech-grid patterns
+const INTERNAL_TECH_GRID = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABAAQMAAACQX01BAAAABlBMVEUAAAD///+l2Z/dAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5wgKCQYdBZ8yFAAAADFJREFUKM9jYGBgYWBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGAEAAChAFH/v8MAAAAASUVORK5CYII=";
+const INTERNAL_BIO_PATTERN = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABAAQMAAACQX01BAAAABlBMVEUAAAD///+l2Z/dAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5wgKCQYdBZ8yFAAAADFJREFUKM9jYGBgYWBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGAEAAChAFH/v8MAAAAASUVORK5CYII=";
 
 export type TextureCategory = 'TERRAIN' | 'ARCHITECTURE' | 'CHARACTER' | 'UI' | 'VFX' | 'UNKNOWN';
 
@@ -34,23 +38,34 @@ class TextureEngine {
   }
 
   private async init() {
-    if (typeof window === 'undefined' || !db) return;
+    if (typeof window === 'undefined') return;
 
-    onSnapshot(collection(db, 'worldAssets'), (snap) => {
-      this.registry.clear();
-      snap.docs.forEach(doc => {
-        const data = doc.data();
-        this.registry.set(doc.id, {
-          id: doc.id,
-          name: data.name || 'Unnamed_Asset',
-          url: data.url || '',
-          category: data.category as TextureCategory,
-          tags: data.tags || [],
-          isActive: data.isActive || false,
-          lastUpdate: data.createdAt?.toMillis() || Date.now()
+    // Load internal fallbacks first
+    this.addInternalTexture('INTERNAL_TERRAIN', 'Axiom Grid', INTERNAL_TECH_GRID, 'TERRAIN');
+    this.addInternalTexture('INTERNAL_ARCH', 'Axiom Core', INTERNAL_BIO_PATTERN, 'ARCHITECTURE');
+
+    if (db) {
+      onSnapshot(collection(db, 'worldAssets'), (snap) => {
+        snap.docs.forEach(doc => {
+          const data = doc.data();
+          this.registry.set(doc.id, {
+            id: doc.id,
+            name: data.name || 'Unnamed_Asset',
+            url: data.url || '',
+            category: data.category as TextureCategory,
+            tags: data.tags || [],
+            isActive: data.isActive || false,
+            lastUpdate: data.createdAt?.toMillis() || Date.now()
+          });
         });
+        this.notify();
       });
-      this.notify();
+    }
+  }
+
+  private addInternalTexture(id: string, name: string, url: string, category: TextureCategory) {
+    this.registry.set(id, {
+      id, name, url, category, tags: ['INTERNAL'], isActive: true, lastUpdate: Date.now()
     });
   }
 

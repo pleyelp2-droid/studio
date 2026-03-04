@@ -8,5 +8,6 @@
   "/admin/audit-logs/page": "app/admin/audit-logs/page.js",
   "/assets/page": "app/assets/page.js",
   "/npcs/page": "app/npcs/page.js",
-  "/admin/content/page": "app/admin/content/page.js"
+  "/admin/content/page": "app/admin/content/page.js",
+  "/godot/page": "app/godot/page.js"
 }
