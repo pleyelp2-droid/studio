@@ -46,7 +46,7 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
         <cylinderGeometry args={[2, 5, 30, 6]} />
         <meshStandardMaterial 
           color={archTex ? "#ffffff" : ARL_COLORS.arcane} 
-          map={archTex}
+          map={archTex || undefined}
           metalness={0.9} 
           roughness={0.1} 
           emissive={color} 
@@ -59,7 +59,7 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={5} toneMapped={false} />
         </mesh>
       </Float>
-      <pointLight position={[0, 35, 0]} intensity={10} color={color} distance={150} decay={2} />
+      <pointLight position={[0, 35, 0]} intensity={15} color={color} distance={150} decay={2} />
     </group>
   );
 };
@@ -88,13 +88,13 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[400, 400]} />
         <meshStandardMaterial 
-          color={terrainTex ? "#ffffff" : "#111111"} 
-          map={terrainTex}
+          color={terrainTex ? "#ffffff" : "#1a1a24"} 
+          map={terrainTex || undefined}
           roughness={0.8} 
           metalness={0.2} 
         />
       </mesh>
-      <gridHelper args={[400, 10, ARL_COLORS.border, "#050508"]} position={[0, 0.05, 0]} />
+      <gridHelper args={[400, 20, ARL_COLORS.border, "#0a0a14"]} position={[0, 0.05, 0]} />
     </group>
   );
 };
@@ -136,12 +136,13 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
 
   const lastThought = agent.memoryCache && agent.memoryCache.length > 0 
     ? agent.memoryCache[agent.memoryCache.length - 1] 
-    : agent.state === AgentState.IDLE ? "Berechne nächsten Zyklus..." : `Status: ${agent.state}`;
+    : agent.state === AgentState.IDLE ? "Berechne Zyklus..." : `Status: ${agent.state}`;
 
   return (
     <group ref={groupRef} position={[agent.position?.x || 0, 0, agent.position?.z || 0]}>
       <primitive object={model.group} />
-      <Html position={[0, 3, 0]} center distanceFactor={15}>
+      {isLocal && <pointLight position={[0, 2, 0]} intensity={2} color="#60D4FF" distance={10} />}
+      <Html position={[0, 3.5, 0]} center distanceFactor={15}>
         <div className="flex flex-col items-center gap-2 pointer-events-none">
           <div className="bg-black/80 backdrop-blur-md border border-axiom-cyan/40 px-3 py-1.5 rounded-2xl shadow-2xl animate-bounce">
             <p className="text-[9px] font-medium text-axiom-cyan italic whitespace-nowrap">{String(lastThought)}</p>
@@ -178,7 +179,7 @@ const CameraController = () => {
     }
   });
 
-  return <OrbitControls ref={controlsRef} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.2} minDistance={5} maxDistance={300} />;
+  return <OrbitControls ref={controlsRef} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.2} minDistance={5} maxDistance={1000} />;
 };
 
 const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
@@ -241,15 +242,15 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
   const controlMode = useStore(state => state.controlMode);
   return (
     <div className="w-full h-full bg-[#010102] touch-none">
-      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Materialisierungs-Zyklus läuft...</div>}>
+      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Initialisierung...</div>}>
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
-          <PerspectiveCamera makeDefault position={[60, 40, 60]} fov={45} far={5000} />
+          <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[100, 200, 100]} intensity={2.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
+          <ambientLight intensity={0.8} />
+          <directionalLight position={[100, 200, 100]} intensity={3.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
           <Environment preset="night" />
           <WorldContent localPlayerId={localPlayerId} />
-          <fog attach="fog" args={["#010102", 50, 1000]} />
+          <fog attach="fog" args={["#010102", 100, 2000]} />
         </Canvas>
       </Suspense>
     </div>

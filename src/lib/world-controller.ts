@@ -1,27 +1,25 @@
 'use client';
 
 import { Agent, AgentState } from '@/types';
-import { InteractionManager } from './interaction-system';
+import { interactionLogger } from './interaction-logger';
 
 /**
  * WorldController
- * Handles simulation steps using functional transformations to be compatible with plain data objects.
+ * Handles simulation steps using functional transformations to ensure compatibility with plain store objects.
  */
 export class WorldController {
   private agents: Agent[];
-  private interactionManager: InteractionManager;
 
   constructor(agents: Agent[]) {
     this.agents = agents;
-    this.interactionManager = new InteractionManager(agents as any);
   }
 
   /**
    * Processes one tick of simulation time.
-   * Returns a new array of updated agents (functional approach).
+   * Returns a new array of updated agents.
    */
   tick(): Agent[] {
-    const updatedAgents = this.agents.map(agent => {
+    return this.agents.map(agent => {
       const newAgent = { ...agent };
 
       // 1. Functional Trust Decay
@@ -37,7 +35,7 @@ export class WorldController {
         newAgent.relationships = newRels;
       }
 
-      // 2. Functional Task Update
+      // 2. Functional Task Update & Learning
       if (newAgent.tasks) {
         newAgent.tasks = newAgent.tasks.map(task => {
           if (task.status === 'active' && Math.random() > 0.98) {
@@ -47,7 +45,7 @@ export class WorldController {
         });
       }
 
-      // 3. Update Needs (Functional)
+      // 3. Update Needs
       if (newAgent.needs) {
         newAgent.needs = {
           ...newAgent.needs,
@@ -59,8 +57,6 @@ export class WorldController {
 
       return newAgent;
     });
-
-    return updatedAgents;
   }
 
   getAgents() {
