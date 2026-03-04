@@ -6,7 +6,7 @@
  */
 
 import * as THREE from 'three';
-import { collection, query, getDocs, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 
 const { firestore: db } = initializeFirebase();
@@ -34,7 +34,7 @@ class TextureEngine {
   }
 
   private async init() {
-    if (!db) return;
+    if (typeof window === 'undefined' || !db) return;
 
     // Real-time sync with the global asset ledger
     onSnapshot(collection(db, 'worldAssets'), (snap) => {
@@ -61,11 +61,12 @@ class TextureEngine {
   private autoCategorize(name: string, tags: string[]): TextureCategory {
     const combined = (name + tags.join(' ')).toLowerCase();
     
-    if (combined.match(/grass|dirt|soil|sand|rock|terrain|ground|snow/)) return 'TERRAIN';
-    if (combined.match(/wall|metal|floor|ceiling|window|neon|door/)) return 'ARCHITECTURE';
-    if (combined.match(/skin|eye|hair|clothes|armor|ghost/)) return 'CHARACTER';
-    if (combined.match(/icon|button|panel|border|hud/)) return 'UI';
-    if (combined.match(/particle|glow|fire|smoke|pulse/)) return 'VFX';
+    // Advanced heuristic detection for texture packs
+    if (combined.match(/grass|dirt|soil|sand|rock|terrain|ground|snow|biome|floor_g/)) return 'TERRAIN';
+    if (combined.match(/wall|metal|architecture|structure|neon|door|concrete|tech_panel/)) return 'ARCHITECTURE';
+    if (combined.match(/skin|eye|hair|clothes|armor|ghost|pilot|npc/)) return 'CHARACTER';
+    if (combined.match(/icon|button|panel|border|hud|gui/)) return 'UI';
+    if (combined.match(/particle|glow|fire|smoke|pulse|laser|magic/)) return 'VFX';
     
     return 'UNKNOWN';
   }

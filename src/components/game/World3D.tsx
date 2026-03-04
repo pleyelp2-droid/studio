@@ -24,6 +24,23 @@ const ARL_COLORS = {
 }
 
 const HighScienceSpire = ({ position, rotationY, color }: { position: [number, number, number], rotationY: number, color: string }) => {
+  const [archTex, setArchTex] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    const unsub = textureEngine.subscribe(async (registry) => {
+      const archAssets = Array.from(registry.values()).filter(s => s.category === 'ARCHITECTURE');
+      if (archAssets.length > 0) {
+        const tex = await textureEngine.getTexture(archAssets[0].id);
+        if (tex) {
+          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+          tex.repeat.set(2, 8);
+          setArchTex(tex);
+        }
+      }
+    });
+    return unsub;
+  }, []);
+
   const safePos = useMemo(() => {
     return [
       Number.isFinite(position[0]) ? position[0] : 0,
@@ -37,7 +54,8 @@ const HighScienceSpire = ({ position, rotationY, color }: { position: [number, n
       <mesh position={[0, 15, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[2, 5, 30, 6]} />
         <meshStandardMaterial 
-          color={ARL_COLORS.void} 
+          color={archTex ? "#ffffff" : ARL_COLORS.void} 
+          map={archTex}
           metalness={0.9} 
           roughness={0.1} 
           emissive={color} 
@@ -74,6 +92,7 @@ const Terrain = () => {
     const unsub = textureEngine.subscribe(async (registry) => {
       const terrainAssets = Array.from(registry.values()).filter(s => s.category === 'TERRAIN');
       if (terrainAssets.length > 0) {
+        // Automatically apply the first detected terrain texture from the pack
         const tex = await textureEngine.getTexture(terrainAssets[0].id);
         if (tex) {
           tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
@@ -113,7 +132,6 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
 
     try {
       const appearance = agent.appearance || { skinTone: '#c68642', bodyScale: 1.0 };
-      // Significantly increased base scale for character presence
       humanoid = createHumanoidModel({
         skinTone: appearance.skinTone,
         bodyScale: (appearance.bodyScale || 1.0) * 8.0 
@@ -179,11 +197,9 @@ const CameraController = ({ targetPosition }: { targetPosition: { x: number, z: 
   useFrame(() => {
     if (controlledAgent && controlledAgent.position) {
       const { x, z } = controlledAgent.position;
-      const idealOffset = new THREE.Vector3(0, 15, 40); // Standard 3rd person height/distance
-      const idealLookat = new THREE.Vector3(x, 8, z); // Look at character chest height
+      const idealOffset = new THREE.Vector3(0, 15, 40); 
+      const idealLookat = new THREE.Vector3(x, 8, z); 
 
-      // Camera Follow Logic
-      const currentPos = camera.position.clone();
       const targetPos = new THREE.Vector3(x, 0, z).add(idealOffset);
       
       camera.position.lerp(targetPos, 0.1);
