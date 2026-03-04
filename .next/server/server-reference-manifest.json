@@ -1,17 +1,5 @@
 {
-  "node": {
-    "40e2f9443d788c555668204434229071fd455504db": {
-      "workers": {
-        "app/npcs/page": {
-          "moduleId": "[project]/.next-internal/server/app/npcs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/ai/flows/generate-npc-personality-flow.ts [app-rsc] (ecmascript)\" } [app-rsc] (ecmascript)",
-          "async": false
-        }
-      },
-      "layer": {
-        "app/npcs/page": "action-browser"
-      }
-    }
-  },
+  "node": {},
   "edge": {},
   "encryptionKey": "O90o5a8k2QGzjNt/xxAlmBdb4yEIBpoExQycO8qxgIc="
 }

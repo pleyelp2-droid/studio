@@ -50,7 +50,7 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
           metalness={0.9} 
           roughness={0.1} 
           emissive={color} 
-          emissiveIntensity={0.5} 
+          emissiveIntensity={0.8} 
         />
       </mesh>
       <Float speed={3} rotationIntensity={4} floatIntensity={2}>
@@ -59,7 +59,7 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={5} toneMapped={false} />
         </mesh>
       </Float>
-      <pointLight position={[0, 35, 0]} intensity={15} color={color} distance={150} decay={2} />
+      <pointLight position={[0, 35, 0]} intensity={25} color={color} distance={200} decay={2} />
     </group>
   );
 };
@@ -141,14 +141,14 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
   return (
     <group ref={groupRef} position={[agent.position?.x || 0, 0, agent.position?.z || 0]}>
       <primitive object={model.group} />
-      {isLocal && <pointLight position={[0, 2, 0]} intensity={2} color="#60D4FF" distance={10} />}
+      {isLocal && <pointLight position={[0, 2, 0]} intensity={5} color="#60D4FF" distance={15} />}
       <Html position={[0, 3.5, 0]} center distanceFactor={15}>
         <div className="flex flex-col items-center gap-2 pointer-events-none">
           <div className="bg-black/80 backdrop-blur-md border border-axiom-cyan/40 px-3 py-1.5 rounded-2xl shadow-2xl animate-bounce">
             <p className="text-[9px] font-medium text-axiom-cyan italic whitespace-nowrap">{String(lastThought)}</p>
           </div>
           <div className={`px-4 py-1 rounded-full bg-black/60 border-2 ${isLocal ? 'border-axiom-cyan shadow-[0_0_15px_rgba(6,182,212,0.5)]' : 'border-white/10'} text-white text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-md italic whitespace-nowrap`}>
-            {agent.displayName || "Pilot"}
+            {agent.displayName || agent.name || "Pilot"}
           </div>
         </div>
       </Html>
@@ -246,11 +246,11 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
-          <ambientLight intensity={0.8} />
-          <directionalLight position={[100, 200, 100]} intensity={3.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
+          <ambientLight intensity={1.5} />
+          <directionalLight position={[100, 200, 100]} intensity={4.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
           <Environment preset="night" />
           <WorldContent localPlayerId={localPlayerId} />
-          <fog attach="fog" args={["#010102", 100, 2000]} />
+          <fog attach="fog" args={["#010102", 50, 1500]} />
         </Canvas>
       </Suspense>
     </div>

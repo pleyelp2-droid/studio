@@ -1,11 +1,11 @@
 'use client';
 
 import { Agent, AgentState } from '@/types';
-import { interactionLogger } from './interaction-logger';
 
 /**
  * WorldController
- * Handles simulation steps using functional transformations to ensure compatibility with plain store objects.
+ * Behandelt Simulationsschritte mit funktionalen Transformationen.
+ * Verhindert "not a function" Fehler bei Zustand-Objekten.
  */
 export class WorldController {
   private agents: Agent[];
@@ -15,14 +15,15 @@ export class WorldController {
   }
 
   /**
-   * Processes one tick of simulation time.
-   * Returns a new array of updated agents.
+   * Berechnet einen Welt-Tick.
+   * Gibt ein neues Array mit transformierten Agenten-Daten zurück.
    */
   tick(): Agent[] {
     return this.agents.map(agent => {
+      // 1. Erstelle eine funktionale Kopie des Agenten
       const newAgent = { ...agent };
 
-      // 1. Functional Trust Decay
+      // 2. Trust Decay (Funktional)
       if (newAgent.relationships) {
         const newRels = { ...newAgent.relationships };
         Object.keys(newRels).forEach(targetId => {
@@ -35,7 +36,7 @@ export class WorldController {
         newAgent.relationships = newRels;
       }
 
-      // 2. Functional Task Update & Learning
+      // 3. Task Update (Funktional)
       if (newAgent.tasks) {
         newAgent.tasks = newAgent.tasks.map(task => {
           if (task.status === 'active' && Math.random() > 0.98) {
@@ -45,7 +46,7 @@ export class WorldController {
         });
       }
 
-      // 3. Update Needs
+      // 4. Update Needs (Funktional)
       if (newAgent.needs) {
         newAgent.needs = {
           ...newAgent.needs,

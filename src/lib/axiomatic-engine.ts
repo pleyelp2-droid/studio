@@ -34,7 +34,9 @@ export interface AxiomaticSummary {
  */
 export const calculateUtility = (agent: Agent, action: AgentState): number => {
   return RobustnessEngine.wrap(() => {
-    const { hunger, social, wealth } = agent.needs || { hunger: 0, social: 50, wealth: 50 };
+    const hunger = agent.needs?.hunger ?? 0;
+    const social = agent.needs?.social ?? 50;
+    const wealth = agent.needs?.wealth ?? 50;
 
     switch (action) {
       case AgentState.GATHERING:
@@ -57,51 +59,50 @@ export const calculateUtility = (agent: Agent, action: AgentState): number => {
 };
 
 /**
- * Heuristische Konversation (Trust-basiert)
+ * Generiert kontextabhängige Dialoge für Agenten-Interaktionen.
  */
-export const generateDialogue = (agent: Agent, target: Agent, intent: 'trade' | 'social' | 'combat'): string => {
-  return RobustnessEngine.wrap(() => {
-    const rel = (agent.relationships as any)?.[target.id] || { trust: 0, type: 'neutral' as const };
-    const tone = rel.trust > 50 ? "warm" : rel.trust < -50 ? "kalt" : "neutral";
+export const generateDialogue = (sender: Agent, receiver: Agent, intent: 'social' | 'trade' | 'combat'): string => {
+  const name = sender.displayName || sender.name || 'Pilot';
+  const recName = receiver.displayName || receiver.name || 'Entity';
+  
+  const dialogues = {
+    social: [
+      `Grüße, ${recName}. Das Axiom fließt heute stark.`,
+      `Hast du die neuesten Logik-Drifts im Spire bemerkt?`,
+      `Meine neurale Matrix resoniert mit deiner Signatur.`,
+      `Die Stabilität in Sektor 0_0 scheint zuzunehmen.`
+    ],
+    trade: [
+      `Ich habe Logik-Fragmente anzubieten. Besteht Interesse?`,
+      `Tausche AXM gegen Energie. Lass uns das Ledger aktualisieren.`,
+      `Der Markt-Fluss deutet darauf hin, dass ein Handel vorteilhaft wäre.`,
+      `Meine Bestände an Eisen-Logik sind hoch. Brauchst du etwas?`
+    ],
+    combat: [
+      `Dein Protokoll ist veraltet. Terminierung eingeleitet.`,
+      `Ziel erfasst. Neurale Disruptions-Sequenz gestartet.`,
+      `Die Matrix benötigt deine Signatur nicht länger.`,
+      `Erosion wird dich zu binärem Staub zerfallen lassen.`
+    ]
+  };
 
-    const templates = {
-      trade: [
-        `[${tone}] Ich brauche Ressourcen, ${target.displayName}. Hast du etwas für mich?`,
-        `[${tone}] Der Markt ist im Wandel. Lass uns handeln, mein Freund.`,
-        `[${tone}] Meine Vorräte sind knapp. Was verlangst du für deine Waren?`
-      ],
-      social: [
-        `[${tone}] Wie läuft das Leben in diesem Sektor?`,
-        `[${tone}] Hast du heute schon an der Spire gearbeitet?`,
-        `[${tone}] Die Matrix fühlt sich heute stabil an, findest du nicht?`
-      ],
-      combat: [
-        `[${tone}] Deine Signatur ist korrumpiert! Weiche zurück!`,
-        `[${tone}] Für den Ouroboros!`,
-        `[${tone}] Die Korruption endet hier.`
-      ]
-    };
-
-    const options = (templates as any)[intent] || ["Hallo."];
-    return options[Math.floor(Math.random() * options.length)];
-  }, "Hallo.", "DialogueGeneration");
+  const pool = dialogues[intent] || dialogues.social;
+  return pool[Math.floor(Math.random() * pool.length)];
 };
 
 /**
  * NO LEVEL CAP LOGIC
- * Levels < 100: Multiplier 1.5
- * Levels >= 100: Each additional level costs 225% more than the previous one.
+ * Ab Level 100 kostet jedes Level 225% mehr als das vorherige.
  */
 export const getXPForNextLevel = (currentLevel: number): number => {
     const baseXP = 100;
     if (currentLevel < 100) {
-        // Standard geometric growth
+        // Standard geometrisches Wachstum (1.5x)
         return Math.floor(baseXP * Math.pow(1.5, currentLevel - 1));
     } else {
-        // High Science Era: 225% increase per level from level 100
+        // High Science Era: Jedes Level ab 100 kostet 225% mehr als das davor (Faktor 3.25)
         const xpAt99 = Math.floor(baseXP * Math.pow(1.5, 98));
         const levelsOver99 = currentLevel - 99;
-        // Exponential difficulty: each level is 3.25x the previous (225% increase)
         return Math.floor(xpAt99 * Math.pow(3.25, levelsOver99));
     }
 };

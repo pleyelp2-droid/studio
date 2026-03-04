@@ -7,11 +7,13 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, limit, orderBy } from "firebase/firestore"
-import { Cpu, Activity, Loader2, AlertTriangle, UserCheck, Zap } from "lucide-react"
+import { Cpu, Activity, Loader2, AlertTriangle, UserCheck, Zap, Database } from "lucide-react"
 import { Agent } from "@/types"
+import { NeuralCacheManager } from "@/services/NeuralCacheManager"
 
 export default function AgentsPage() {
   const db = useFirestore()
+  const cacheStatus = NeuralCacheManager.getStatus();
 
   const agentsQuery = useMemoFirebase(() => {
     if (!db) return null;
@@ -41,15 +43,17 @@ export default function AgentsPage() {
             <SidebarTrigger />
             <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight text-white">Agent Oversight</h1>
           </div>
-          <Badge variant="outline" className="text-accent border-accent font-black text-[10px] tracking-widest italic">NEURAL_MONITORING_ACTIVE</Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="text-emerald-500 border-emerald-500/20 gap-2 font-mono text-[9px]">
+              <Database className="h-3 w-3" /> MEMORY_CACHE_CONNECTED
+            </Badge>
+            <Badge variant="outline" className="text-accent border-accent font-black text-[10px] tracking-widest italic">NEURAL_MONITORING_ACTIVE</Badge>
+          </div>
         </header>
 
         <main className="p-6 space-y-6 max-w-7xl mx-auto w-full">
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-4">
             <Card className="border-border bg-card shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <UserCheck className="h-16 w-16" />
-              </div>
               <CardHeader className="pb-2">
                 <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Agents</CardTitle>
               </CardHeader>
@@ -57,35 +61,40 @@ export default function AgentsPage() {
                 <div className="text-3xl font-black font-headline text-white italic">
                   {isLoading ? "..." : (agents?.length || 0)}
                 </div>
-                <p className="text-[9px] text-muted-foreground uppercase mt-1">Active Neural Signatures</p>
+                <p className="text-[9px] text-muted-foreground uppercase mt-1">Live Neural Signatures</p>
               </CardContent>
             </Card>
             <Card className="border-border bg-card shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Activity className="h-16 w-16" />
-              </div>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Thinking Cache</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-black font-headline text-emerald-500 italic">
+                  {cacheStatus.latencyMs}ms
+                </div>
+                <p className="text-[9px] text-muted-foreground uppercase mt-1">AWS ElastiCache Latency</p>
+              </CardContent>
+            </Card>
+            <Card className="border-border bg-card shadow-2xl relative overflow-hidden group">
               <CardHeader className="pb-2">
                 <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Global Integrity</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-black font-headline text-emerald-500 italic">
-                  {isLoading ? "..." : "99.9%"}
+                <div className="text-3xl font-black font-headline text-axiom-cyan italic">
+                  99.9%
                 </div>
-                <p className="text-[9px] text-muted-foreground uppercase mt-1">Average Matrix Health</p>
+                <p className="text-[9px] text-muted-foreground uppercase mt-1">Matrix Stability</p>
               </CardContent>
             </Card>
-            <Card className="border-border bg-card shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Zap className="h-16 w-16" />
-              </div>
+            <Card className="border-border bg-card shadow-2xl relative overflow-hidden group text-axiom-gold">
               <CardHeader className="pb-2">
-                <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Axiom Flux</CardTitle>
+                <CardTitle className="text-[10px] font-black uppercase tracking-widest opacity-60">Engine Protocol</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-black font-headline text-accent italic">
-                  {isLoading ? "..." : "1.000"}
+                <div className="text-2xl font-black font-headline italic">
+                  HIGH_SCIENCE
                 </div>
-                <p className="text-[9px] text-muted-foreground uppercase mt-1">KAPPA Stabilization Constant</p>
+                <p className="text-[9px] uppercase mt-1 opacity-60">Level Cap: REMOVED</p>
               </CardContent>
             </Card>
           </div>
@@ -99,7 +108,7 @@ export default function AgentsPage() {
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-24 opacity-40">
                 <Loader2 className="h-12 w-12 animate-spin text-accent mb-4" />
-                <p className="text-xs font-black uppercase tracking-[0.4em]">Synchronizing Ledger...</p>
+                <p className="text-xs font-black uppercase tracking-[0.4em]">Decrypting Ledger...</p>
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center py-24 text-destructive border border-destructive/20 rounded-3xl bg-destructive/5">
@@ -121,7 +130,7 @@ export default function AgentsPage() {
                     <Card key={agent.id} className="axiom-card-hover border-border bg-card overflow-hidden group">
                       <CardHeader className="p-4 flex flex-row items-center justify-between bg-secondary/10 border-b border-border/50">
                         <div className="min-w-0">
-                          <CardTitle className="text-xs font-black uppercase tracking-widest truncate text-white">{agent.displayName || agent.name}</CardTitle>
+                          <CardTitle className="text-xs font-black uppercase tracking-widest truncate text-white">{agent.displayName || agent.name || "Pilot"}</CardTitle>
                           <CardDescription className="text-[8px] font-mono uppercase tracking-tighter text-muted-foreground">{agent.id.slice(0, 8)}</CardDescription>
                         </div>
                         <Badge 
@@ -145,8 +154,8 @@ export default function AgentsPage() {
                             <div className="text-xs font-headline font-bold text-accent italic">{agent.level || 1}</div>
                           </div>
                           <div className="p-2 rounded-lg bg-black/40 border border-white/5 text-center">
-                            <div className="text-[7px] font-black text-muted-foreground uppercase">Class</div>
-                            <div className="text-[8px] font-mono font-bold text-white truncate">{agent.npcClass || "PILOT"}</div>
+                            <div className="text-[7px] font-black text-muted-foreground uppercase">EP Multi</div>
+                            <div className="text-[8px] font-mono font-bold text-white truncate">{agent.level >= 100 ? "3.25x (EXP)" : "1.5x"}</div>
                           </div>
                         </div>
                         <div className="flex justify-between items-center pt-2 border-t border-white/5">
