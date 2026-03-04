@@ -160,7 +160,7 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
     <group ref={groupRef} position={[agent.position?.x || 0, 0, agent.position?.z || 0]}>
       <primitive object={model.group} />
       <Html position={[0, 6, 0]} center distanceFactor={15}>
-        <div className={`px-4 py-1.5 rounded-full bg-black/80 border-2 ${isLocal ? 'border-axiom-cyan shadow-[0_0_20px_rgba(31,184,184,0.8)]' : 'border-white/10'} text-white text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-md italic pointer-events-none whitespace-nowrap`}>
+        <div className={`px-4 py-1.5 rounded-full bg-black/80 border-2 ${isLocal ? 'border-axiom-cyan shadow-[0_0_20px_rgba(31,184,184,0.8)]' : 'border-white/10'} text-white text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-md italic pointer-events-none whitespace-nowrap shadow-xl`}>
           {agent.displayName || "Unknown Pilot"}
         </div>
       </Html>
@@ -258,10 +258,22 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
 }
 
 const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, localPlayerId?: string | null }) => {
+  const setTargetPosition = useStore(state => state.setTargetPosition);
+  const controlMode = useStore(state => state.controlMode);
+
   return (
     <div className="w-full h-full bg-[#010102] touch-none">
         <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Materializing Reality...</div>}>
-          <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows>
+          <Canvas 
+            gl={{ antialias: true, logarithmicDepthBuffer: true }} 
+            shadows
+            onPointerDown={(e) => {
+              if (controlMode === 'PUSH_TO_WALK') {
+                // Approximate floor intersection
+                setTargetPosition({ x: e.point.x, y: 0, z: e.point.z });
+              }
+            }}
+          >
               <PerspectiveCamera makeDefault position={[120, 120, 120]} fov={40} far={5000} />
               <OrbitControls 
                 makeDefault 

@@ -9,6 +9,7 @@ interface AppState {
   isAxiomAuthenticated: boolean;
   isMatrixOverseerOpen: boolean;
   userApiKey: string | null;
+  selectedAgentId: string | null;
   language: Language;
   githubConfig: {
     token: string;
@@ -26,11 +27,22 @@ interface AppState {
   virtualInput: { x: number; z: number };
   targetPosition: { x: number; y: number; z: number } | null;
   chatMessages: any[];
+  globalApiCooldown: number;
+  windowStates: Record<string, { isOpen: boolean; isMinimized: boolean }>;
+  controlledAgentId: string | null;
+  emergenceSettings: {
+    isEmergenceEnabled: boolean;
+    useHeuristicsOnly: boolean;
+    axiomaticWorldGeneration: boolean;
+    physicsBasedActivation: boolean;
+    showAxiomaticOverlay: boolean;
+  };
   
   setUser: (user: { id: string; name: string; email: string } | null) => void;
   setAxiomAuthenticated: (isAuth: boolean) => void;
   setMatrixOverseerOpen: (isOpen: boolean) => void;
   setUserApiKey: (key: string | null) => void;
+  selectAgent: (id: string | null) => void;
   setLanguage: (lang: Language) => void;
   setGithubConfig: (config: Partial<AppState['githubConfig']>) => void;
   setIsMobile: (isMobile: boolean) => void;
@@ -41,6 +53,11 @@ interface AppState {
   setChunks: (chunks: Chunk[]) => void;
   addLog: (message: string, logType: string) => void;
   clearChat: () => void;
+  toggleWindow: (window: string, isOpen: boolean) => void;
+  minimizeWindow: (window: string) => void;
+  takeControl: (id: string) => void;
+  releaseControl: () => void;
+  setEmergenceSetting: (key: string, value: boolean) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -50,6 +67,7 @@ export const useStore = create<AppState>((set) => ({
   isAxiomAuthenticated: false,
   isMatrixOverseerOpen: false,
   userApiKey: null,
+  selectedAgentId: null,
   language: 'EN' as Language,
   githubConfig: {
     token: "",
@@ -63,15 +81,31 @@ export const useStore = create<AppState>((set) => ({
     height: typeof window !== 'undefined' ? window.innerHeight : 1080,
     orientation: 'landscape'
   },
-  controlMode: 'KEYBOARD' as const,
+  controlMode: 'JOYSTICK' as const,
   virtualInput: { x: 0, z: 0 },
   targetPosition: null,
   chatMessages: [],
+  globalApiCooldown: 0,
+  windowStates: {
+    CHARACTER: { isOpen: false, isMinimized: false },
+    CHAT: { isOpen: true, isMinimized: false },
+    AUCTION: { isOpen: false, isMinimized: false },
+    QUESTS: { isOpen: false, isMinimized: false },
+  },
+  controlledAgentId: null,
+  emergenceSettings: {
+    isEmergenceEnabled: true,
+    useHeuristicsOnly: false,
+    axiomaticWorldGeneration: true,
+    physicsBasedActivation: true,
+    showAxiomaticOverlay: false,
+  },
 
   setUser: (user) => set({ user }),
   setAxiomAuthenticated: (isAuth) => set({ isAxiomAuthenticated: isAuth }),
   setMatrixOverseerOpen: (isOpen) => set({ isMatrixOverseerOpen: isOpen }),
-  setUserApiKey: (key) => set({ userApiKey: key }),
+  setUserApiKey: (key) => set({ userApiKey: key, selectedAgentId: key }),
+  selectAgent: (id) => set({ selectedAgentId: id }),
   setLanguage: (lang) => set({ language: lang }),
   setGithubConfig: (config) => set((state) => ({ githubConfig: { ...state.githubConfig, ...config } })),
   setIsMobile: (isMobile) => set((state) => ({ device: { ...state.device, isMobile } })),
@@ -81,7 +115,18 @@ export const useStore = create<AppState>((set) => ({
   setAgents: (agents) => set({ agents }),
   setChunks: (chunks) => set({ loadedChunks: chunks }),
   addLog: (message, logType) => set((state) => ({ 
-    chatMessages: [{ id: Math.random().toString(), content: message, type: logType, timestamp: Date.now() }, ...state.chatMessages].slice(0, 100) 
+    chatMessages: [{ id: Math.random().toString(), senderName: 'SYSTEM', content: message, channel: logType, timestamp: Date.now() }, ...state.chatMessages].slice(0, 100) 
   })),
   clearChat: () => set({ chatMessages: [] }),
+  toggleWindow: (window, isOpen) => set((state) => ({
+    windowStates: { ...state.windowStates, [window]: { ...state.windowStates[window], isOpen } }
+  })),
+  minimizeWindow: (window) => set((state) => ({
+    windowStates: { ...state.windowStates, [window]: { ...state.windowStates[window], isMinimized: !state.windowStates[window].isMinimized } }
+  })),
+  takeControl: (id) => set({ controlledAgentId: id }),
+  releaseControl: () => set({ controlledAgentId: null }),
+  setEmergenceSetting: (key, value) => set((state) => ({
+    emergenceSettings: { ...state.emergenceSettings, [key]: value }
+  })),
 }));

@@ -1,4 +1,6 @@
 {
   "/page": "app/page.js",
-  "/character-creator/page": "app/character-creator/page.js"
+  "/character-creator/page": "app/character-creator/page.js",
+  "/pilot-hub/page": "app/pilot-hub/page.js",
+  "/world-preview/page": "app/world-preview/page.js"
 }

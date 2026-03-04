@@ -1,31 +1,47 @@
+
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useStore } from "@/store"
 import { useFirestore, useDoc, useMemoFirebase, useUser } from "@/firebase"
 import { doc } from "firebase/firestore"
 import dynamic from 'next/dynamic'
 import { AgentState } from "@/types"
+import { AgentHUD } from "@/components/ui/AgentHUD"
+import { MobileControls } from "@/components/game/MobileControls"
+import { ChatConsole } from "@/components/ui/ChatConsole"
+import { AxiomaticOverlay } from "@/components/ui/AxiomaticOverlay"
 
 const World3D = dynamic(() => import('@/components/game/World3D'), { 
   ssr: false,
-  loading: () => <div className="w-full h-screen bg-black flex items-center justify-center text-axiom-cyan font-headline animate-pulse">LOADING WORLD ENGINE...</div>
+  loading: () => <div className="w-full h-screen bg-black flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">LOADING WORLD ENGINE...</div>
 })
 
 export default function WorldPreviewPage() {
   const { user } = useUser()
   const db = useFirestore()
-  const { setChunks, setAgents } = useStore()
+  const { setChunks, setAgents, agents, device, setIsMobile } = useStore()
   const initializedRef = useRef(false)
   
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
   const { data: worldState } = useDoc(worldRef)
 
+  // Explicit device detection for tablet controls
   useEffect(() => {
-    if (initializedRef.current) return;
+    const checkMobile = () => {
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      setIsMobile(isTouch);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [setIsMobile]);
+
+  useEffect(() => {
+    if (initializedRef.current || !user) return;
     initializedRef.current = true;
 
-    // Initialize with a mock chunk if none exists
+    // Initialize with a mock chunk if none exists to ensure buildings render
     const mockChunk = {
       id: "0_0", 
       x: 0, 
@@ -37,13 +53,15 @@ export default function WorldPreviewPage() {
       corruptionLevel: 0.01, 
       resourceData: {},
       logicField: [],
-      lastUpdate: new Date()
+      lastUpdate: new Date(),
+      logicString: "AXIOM_PRIME_NODE"
     };
     
     setChunks([mockChunk]);
 
     // Ensure there is at least one agent (the player)
-    if (user) {
+    const existingPlayer = agents.find(a => a.id === user.uid);
+    if (!existingPlayer) {
       setAgents([{
         id: user.uid,
         displayName: user.displayName || user.email?.split('@')[0] || "Pilot",
@@ -62,38 +80,69 @@ export default function WorldPreviewPage() {
         inventory: [],
         dnaHistory: [],
         memoryCache: [],
-        awakened: false,
+        awakened: true,
         lastUpdate: new Date(),
         appearance: {
           skinTone: '#c68642',
           hairStyle: 'short',
           bodyScale: 1.0
+        },
+        skills: {
+          mining: { level: 1, xp: 0 },
+          smithing: { level: 1, xp: 0 },
+          combat: { level: 1, xp: 0 },
+          reflection: { level: 1, xp: 0 }
         }
       }]);
     }
-  }, [user, setChunks, setAgents]);
+    
+    // Auto-select the player for the HUD
+    useStore.getState().setUserApiKey(user.uid); 
+  }, [user, setChunks, setAgents, agents]);
 
   return (
-    <div className="w-full h-screen bg-black overflow-hidden relative">
+    <div className="w-full h-screen bg-black overflow-hidden relative touch-none select-none">
       <World3D 
         tick={worldState?.tick || 0} 
         civilizationIndex={worldState?.civilizationIndex || 0} 
         localPlayerId={user?.uid} 
       />
       
-      {/* HUD Overlay */}
-      <div className="absolute top-8 left-8 z-10 pointer-events-none">
-        <div className="bg-black/60 backdrop-blur-xl border border-white/10 p-6 rounded-2xl space-y-2">
-          <div className="text-[10px] font-black text-axiom-cyan uppercase tracking-[0.3em] italic">Simulation Status</div>
-          <div className="text-3xl font-headline font-black text-white italic tracking-tighter uppercase">
+      {/* UI Layer: Movement Controls */}
+      <MobileControls />
+
+      {/* UI Layer: Player HUD & Matrix Info */}
+      <div className="absolute top-0 left-0 w-full p-6 pointer-events-none flex justify-between items-start z-40">
+        <div className="bg-black/60 backdrop-blur-xl border border-white/10 p-4 rounded-2xl space-y-1 pointer-events-auto shadow-2xl">
+          <div className="text-[8px] font-black text-axiom-cyan uppercase tracking-[0.3em] italic">Axiom Frontier Core</div>
+          <div className="text-xl font-headline font-black text-white italic tracking-tighter uppercase leading-none">
             CI: {worldState?.civilizationIndex?.toFixed(2) || "0.00"}
           </div>
           <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[9px] font-bold text-white/60 uppercase">Sync Active: Tick {worldState?.tick || 0}</span>
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[8px] font-bold text-white/60 uppercase">Sync: Tick {worldState?.tick || 0}</span>
           </div>
         </div>
       </div>
+
+      {/* UI Layer: Agent Information & Skills */}
+      <div className="absolute top-0 right-0 p-6 pointer-events-none z-40">
+        <AgentHUD />
+      </div>
+
+      {/* UI Layer: Chat & Social Console */}
+      <div className="absolute bottom-6 right-6 pointer-events-none z-40">
+        <ChatConsole />
+      </div>
+
+      {/* Debug/Matrix Overlay */}
+      <AxiomaticOverlay />
+
+      <style jsx global>{`
+        body {
+          overscroll-behavior-y: contain;
+        }
+      `}</style>
     </div>
   )
 }
