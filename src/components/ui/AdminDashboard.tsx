@@ -7,9 +7,6 @@ import { soundManager } from '@/services/SoundManager';
 import { Brain, X, Github, CloudUpload, Key, Loader2, CheckCircle2, AlertTriangle, Lock } from 'lucide-react';
 import { GitHubSyncService } from '@/services/GitHubSyncService';
 
-const ADMIN_EMAIL = 'pleyelp2@gmail.com';
-const UNIVERSAL_KEY = 'GENER4T1V33ALLACCESSNT1TYNPLU21P1K4TZE4I';
-
 /**
  * Safe serialization helper to avoid circular reference and complex object errors.
  * Prevents "Matrix JSON" / BigInt errors during synchronization.
@@ -22,7 +19,7 @@ const safeStringify = (obj: any) => {
       cache.add(value);
     }
     if (typeof value === 'bigint') return value.toString();
-    // Handle Firestore Timestamps or dates
+    // Handle Firestore Timestamps or complex date objects
     if (value && typeof value === 'object' && 'seconds' in value && 'nanoseconds' in value) {
       return new Date(value.seconds * 1000).toISOString();
     }
@@ -43,6 +40,9 @@ export const AdminDashboard = () => {
     const [isSyncing, setIsSyncing] = useState(false);
     const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
+    const ADMIN_EMAIL = 'pleyelp2@gmail.com';
+    const UNIVERSAL_KEY = 'GENER4T1V33ALLACCESSNT1TYNPLU21P1K4TZE4I';
+
     const hasAccess = useMemo(() => {
         return user?.email === ADMIN_EMAIL && isMatrixOverseerOpen;
     }, [user?.email, isMatrixOverseerOpen]);
@@ -59,24 +59,22 @@ export const AdminDashboard = () => {
     };
 
     const handleGitHubSync = async () => {
-        // Pull fresh state to ensure Owner/Repo fields are captured correctly from the global store
+        // Pull fresh state directly to ensure Owner/Repo fields are captured accurately
         const freshStoreState = useStore.getState();
-        const { token, owner, repo, branch } = freshStoreState.githubConfig;
+        const config = freshStoreState.githubConfig;
 
-        console.log(`[GITHUB_SYNC] Initiating push to ${owner}/${repo} on branch ${branch}`);
-        
-        if (!token?.trim()) {
-            setSyncMessage({ type: 'error', text: 'Auth Failure: Missing Personal Access Token.' });
+        if (!config.token?.trim()) {
+            setSyncMessage({ type: 'error', text: 'Protocol Error: Access Token required.' });
             soundManager.playUI('ERROR');
             return;
         }
-        if (!owner?.trim()) {
-            setSyncMessage({ type: 'error', text: 'Config Failure: Missing Repository Owner.' });
+        if (!config.owner?.trim()) {
+            setSyncMessage({ type: 'error', text: 'Protocol Error: Repository Owner required.' });
             soundManager.playUI('ERROR');
             return;
         }
-        if (!repo?.trim()) {
-            setSyncMessage({ type: 'error', text: 'Config Failure: Missing Repository Name.' });
+        if (!config.repo?.trim()) {
+            setSyncMessage({ type: 'error', text: 'Protocol Error: Repository Name required.' });
             soundManager.playUI('ERROR');
             return;
         }
@@ -86,24 +84,24 @@ export const AdminDashboard = () => {
         soundManager.playUI('CLICK');
 
         try {
-            // Serialize with safe routine to fix "Matrix JSON" error
+            // Snapshot serialization with safe routine to fix "Matrix JSON" error
             const snapshotData = {
                 timestamp: new Date().toISOString(),
                 agents: freshStoreState.agents,
                 chunks: freshStoreState.loadedChunks,
                 meta: { 
-                    version: '1.0.5', 
+                    version: '1.0.6', 
                     engine: 'Axiom Frontier',
-                    node: `${owner}/${repo}`
+                    node: `${config.owner}/${config.repo}`
                 }
             };
 
             const snapshot = {
                 'docs/matrix_state.json': safeStringify(snapshotData),
-                'docs/BACKUP_MANIFEST.md': `# Axiom Frontier Backup\nGenerated: ${new Date().toLocaleString()}\nRepository: ${repo}\nStatus: COMMITTED`
+                'docs/BACKUP_MANIFEST.md': `# Axiom Frontier Backup\nGenerated: ${new Date().toLocaleString()}\nRepository: ${config.repo}\nStatus: COMMITTED`
             };
 
-            const result = await GitHubSyncService.pushSnapshot(freshStoreState.githubConfig, snapshot);
+            const result = await GitHubSyncService.pushSnapshot(config, snapshot);
             
             if (result.errors.length > 0) {
                 setSyncMessage({ type: 'error', text: `Sync Failure: ${result.errors[0]}` });
@@ -192,6 +190,7 @@ export const AdminDashboard = () => {
                                                 value={githubConfig.owner} 
                                                 onChange={e => setGithubConfig({ owner: e.target.value })} 
                                                 className="w-full bg-black border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-emerald-500/50" 
+                                                placeholder="Username"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -201,6 +200,7 @@ export const AdminDashboard = () => {
                                                 value={githubConfig.repo} 
                                                 onChange={e => setGithubConfig({ repo: e.target.value })} 
                                                 className="w-full bg-black border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-emerald-500/50" 
+                                                placeholder="Repo-Name"
                                             />
                                         </div>
                                     </div>
@@ -229,12 +229,12 @@ export const AdminDashboard = () => {
                                 </h3>
                                 <div className="space-y-4">
                                     <div className="p-6 rounded-2xl border border-white/10 bg-black/40 text-[11px] text-gray-400 leading-relaxed italic">
-                                        Synchronize the current simulation state to GitHub. This includes all active neural agents and world chunks.
+                                        Synchronize the current simulation state to GitHub. This includes all active neural agents and world chunks in a safe JSON format.
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-center">
                                             <div className="text-[10px] text-gray-500 uppercase font-black mb-1">Entities</div>
-                                            <div className="text-2xl font-headline font-bold text-emerald-400 italic">{freshStoreState.agents.length}</div>
+                                            <div className="text-2xl font-headline font-bold text-emerald-400 italic">{useStore.getState().agents.length}</div>
                                         </div>
                                         <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-center">
                                             <div className="text-[10px] text-gray-500 uppercase font-black mb-1">Branch</div>

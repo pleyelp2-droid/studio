@@ -215,15 +215,15 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
           <Canvas gl={{ antialias: true, logarithmicDepthBuffer: false }} shadows>
               <PerspectiveCamera makeDefault position={[80, 80, 80]} fov={45} far={2000} />
               <OrbitControls makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.1} minDistance={10} maxDistance={600} />
-              <ambientLight intensity={0.3} />
+              <ambientLight intensity={0.4} />
               <directionalLight 
                 position={[50, 100, 50]} 
-                intensity={0.6} 
+                intensity={0.8} 
                 castShadow 
                 shadow-mapSize={[1024, 1024]}
-                shadow-bias={-0.0005}
+                shadow-bias={-0.0001}
               >
-                <orthographicCamera attach="shadow-camera" args={[-200, 200, 200, -200, 0.1, 1000]} />
+                <orthographicCamera attach="shadow-camera" args={[-300, 300, 300, -300, 0.1, 1000]} />
               </directionalLight>
               <WorldContent localPlayerId={localPlayerId} />
           </Canvas>

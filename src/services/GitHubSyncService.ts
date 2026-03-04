@@ -6,12 +6,12 @@ import { GitHubSyncConfig } from "@/store";
 export class GitHubSyncService {
   /**
    * Pushes a single file to GitHub using the contents API.
-   * Uses robust UTF-8 to Base64 encoding to prevent corruption.
+   * Uses robust UTF-8 to Base64 encoding to prevent "Invalid Content" errors.
    */
   private static async pushFile(config: GitHubSyncConfig, path: string, content: string, message: string) {
     const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}`;
     
-    console.log(`[GITHUB_SYNC] Syncing file: ${path} to ${config.owner}/${config.repo}`);
+    console.log(`[GITHUB_SYNC] Syncing file: ${path} to ${config.owner}/${config.repo} on branch ${config.branch}`);
     
     let sha: string | undefined;
     try {
@@ -30,8 +30,7 @@ export class GitHubSyncService {
       console.warn(`[GITHUB_SYNC] SHA fetch skipped for ${path} (likely new file)`);
     }
 
-    // Robust high-fidelity UTF-8 base64 encoding for the browser environment
-    // Using encodeURIComponent then unescape is a standard way to handle UTF-8 in btoa
+    // High-fidelity UTF-8 base64 encoding for the browser environment
     const base64Content = btoa(encodeURIComponent(content).replace(/%([0-9A-F]{2})/g, (match, p1) => {
         return String.fromCharCode(parseInt(p1, 16));
     }));
