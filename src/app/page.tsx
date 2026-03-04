@@ -16,7 +16,7 @@ import {
   Layers,
   Activity,
   Globe,
-  Zap
+  Zap 
 } from "lucide-react"
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
