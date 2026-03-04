@@ -1,13 +1,12 @@
 
 'use client';
 /**
- * @fileOverview Ouroboros Neural Texture Engine
- * Handles the registry, sorting, and mapping of uploaded textures to game subsystems.
- * Supports deterministic selection from a pool of active textures.
+ * @fileOverview Ouroboros Neural Texture Engine - Pro Edition
+ * Handles unlimited active texture pools with deterministic selection.
  */
 
 import * as THREE from 'three';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 
 const { firestore: db } = initializeFirebase();
@@ -28,7 +27,7 @@ class TextureEngine {
   private loader = new THREE.TextureLoader();
   private registry: Map<string, TextureSignature> = new Map();
   private cache: Map<string, THREE.Texture> = new Map();
-  private listeners: Set<(registry: Map<string, TextureSignature>) => void> = new Set();
+  private listeners: Set<() => void> = new Set();
 
   constructor() {
     this.init();
@@ -37,89 +36,64 @@ class TextureEngine {
   private async init() {
     if (typeof window === 'undefined' || !db) return;
 
-    // Real-time sync with the global asset ledger
     onSnapshot(collection(db, 'worldAssets'), (snap) => {
+      this.registry.clear();
       snap.docs.forEach(doc => {
         const data = doc.data();
-        const signature: TextureSignature = {
+        this.registry.set(doc.id, {
           id: doc.id,
-          name: data.name || 'Unknown_Signature',
+          name: data.name || 'Unnamed_Asset',
           url: data.url || '',
-          category: data.category || this.autoCategorize(data.name || '', data.tags || []),
+          category: data.category as TextureCategory,
           tags: data.tags || [],
           isActive: data.isActive || false,
           lastUpdate: data.createdAt?.toMillis() || Date.now()
-        };
-        this.registry.set(signature.id, signature);
+        });
       });
       this.notify();
     });
   }
 
-  private autoCategorize(name: string, tags: string[]): TextureCategory {
-    const combined = (name + tags.join(' ')).toLowerCase();
-    if (combined.match(/grass|dirt|soil|sand|rock|terrain|ground|snow|biome|floor_g/)) return 'TERRAIN';
-    if (combined.match(/wall|metal|architecture|structure|neon|door|concrete|tech_panel/)) return 'ARCHITECTURE';
-    if (combined.match(/skin|eye|hair|clothes|armor|ghost|pilot|npc/)) return 'CHARACTER';
-    if (combined.match(/icon|button|panel|border|hud|gui/)) return 'UI';
-    if (combined.match(/particle|glow|fire|smoke|pulse|laser|magic/)) return 'VFX';
-    return 'UNKNOWN';
-  }
-
-  async getTexture(idOrUrl: string): Promise<THREE.Texture | null> {
-    const signature = Array.from(this.registry.values()).find(s => s.id === idOrUrl || s.url === idOrUrl);
-    const url = signature ? signature.url : idOrUrl;
-
-    if (this.cache.has(url)) return this.cache.get(url)!;
+  async getTexture(id: string): Promise<THREE.Texture | null> {
+    const sig = this.registry.get(id);
+    if (!sig) return null;
+    if (this.cache.has(sig.url)) return this.cache.get(sig.url)!;
 
     return new Promise((resolve) => {
-      this.loader.load(url, (tex) => {
+      this.loader.load(sig.url, (tex) => {
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
         tex.anisotropy = 16;
-        this.cache.set(url, tex);
+        this.cache.set(sig.url, tex);
         resolve(tex);
       }, undefined, () => resolve(null));
     });
   }
 
   /**
-   * Returns all active textures for a specific category.
-   */
-  getPoolForCategory(cat: TextureCategory): TextureSignature[] {
-    return Array.from(this.registry.values()).filter(s => s.category === cat && s.isActive);
-  }
-
-  /**
-   * Deterministically picks a texture from the active pool using a seed.
+   * Returns a deterministically picked texture from the active pool.
    */
   async getProceduralTexture(cat: TextureCategory, seed: number): Promise<THREE.Texture | null> {
-    const pool = this.getPoolForCategory(cat);
+    const pool = Array.from(this.registry.values()).filter(s => s.category === cat && s.isActive);
     if (pool.length === 0) return null;
     const index = Math.abs(seed) % pool.length;
     return this.getTexture(pool[index].id);
   }
 
   getSortedRegistry(): Record<TextureCategory, TextureSignature[]> {
-    const result: Record<TextureCategory, TextureSignature[]> = {
-      TERRAIN: [],
-      ARCHITECTURE: [],
-      CHARACTER: [],
-      UI: [],
-      VFX: [],
-      UNKNOWN: []
+    const res: Record<TextureCategory, TextureSignature[]> = {
+      TERRAIN: [], ARCHITECTURE: [], CHARACTER: [], UI: [], VFX: [], UNKNOWN: []
     };
-    this.registry.forEach(s => result[s.category].push(s));
-    return result;
+    this.registry.forEach(s => res[s.category]?.push(s));
+    return res;
   }
 
-  subscribe(callback: (registry: Map<string, TextureSignature>) => void) {
-    this.listeners.add(callback);
-    callback(this.registry);
-    return () => this.listeners.delete(callback);
+  subscribe(cb: () => void) {
+    this.listeners.add(cb);
+    return () => this.listeners.delete(cb);
   }
 
   private notify() {
-    this.listeners.forEach(cb => cb(this.registry));
+    this.listeners.forEach(cb => cb());
   }
 }
 

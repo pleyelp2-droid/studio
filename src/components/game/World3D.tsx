@@ -36,6 +36,7 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
       }
     };
     const unsub = textureEngine.subscribe(updateTex);
+    updateTex();
     return unsub;
   }, [seed]);
 
@@ -78,6 +79,7 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
       }
     };
     const unsub = textureEngine.subscribe(updateTex);
+    updateTex();
     return unsub;
   }, [chunk.seed]);
 
@@ -113,7 +115,6 @@ const ResourceNodeMesh = ({ node }: { node: ResourceNode }) => {
 };
 
 const MonsterMesh = ({ monster }: { monster: Monster }) => {
-  const groupRef = useRef<THREE.Group>(null);
   const [model, setModel] = useState<any>(null);
   const [animController, setAnimController] = useState<any>(null);
 
@@ -141,10 +142,8 @@ const MonsterMesh = ({ monster }: { monster: Monster }) => {
           <meshStandardMaterial color={monster.color} emissive={monster.color} emissiveIntensity={0.5} />
         </mesh>
       )}
-      <Html position={[0, monster.scale + 10, 0]} center>
-        <div className="flex flex-col items-center gap-1">
-          <div className="text-[9px] font-black text-red-400 uppercase italic bg-black/80 px-2 py-0.5 rounded border border-red-500/20">{monster.name}</div>
-        </div>
+      <Html position={[0, monster.scale + 5, 0]} center distanceFactor={25}>
+        <div className="text-[9px] font-black text-red-400 uppercase italic bg-black/80 px-2 py-0.5 rounded border border-red-500/20">{monster.name}</div>
       </Html>
     </group>
   );
@@ -197,7 +196,7 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
   );
 };
 
-const CameraController = ({ targetPosition }: { targetPosition: { x: number, z: number } | null }) => {
+const CameraController = () => {
   const { camera } = useThree();
   const controlsRef = useRef<any>(null);
   const controlledAgentId = useStore(state => state.controlledAgentId);
@@ -207,19 +206,20 @@ const CameraController = ({ targetPosition }: { targetPosition: { x: number, z: 
   useFrame(() => {
     if (controlledAgent && controlledAgent.position) {
       const { x, z } = controlledAgent.position;
-      const idealOffset = new THREE.Vector3(0, 15, 40); 
-      const idealLookat = new THREE.Vector3(x, 8, z); 
-      const targetPos = new THREE.Vector3(x, 0, z).add(idealOffset);
+      const targetPos = new THREE.Vector3(x, 15, z + 40); 
+      const lookAtPos = new THREE.Vector3(x, 8, z); 
+      
       camera.position.lerp(targetPos, 0.1);
-      camera.lookAt(idealLookat);
+      camera.lookAt(lookAtPos);
+      
       if (controlsRef.current) {
-        controlsRef.current.target.lerp(idealLookat, 0.1);
+        controlsRef.current.target.lerp(lookAtPos, 0.1);
         controlsRef.current.update();
       }
     }
   });
 
-  return <OrbitControls ref={controlsRef} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.2} minDistance={10} maxDistance={200} />;
+  return <OrbitControls ref={controlsRef} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.2} minDistance={10} maxDistance={150} />;
 };
 
 const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
@@ -299,7 +299,7 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
       <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Materializing Reality...</div>}>
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[60, 40, 60]} fov={45} far={5000} />
-          <CameraController targetPosition={null} />
+          <CameraController />
           <ambientLight intensity={0.2} />
           <directionalLight position={[100, 200, 100]} intensity={1.2} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
           <Environment preset="night" />

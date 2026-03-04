@@ -3,57 +3,55 @@ import { Chunk, POI, Monster, ResourceNode, MONSTER_TEMPLATES } from '../types';
 
 export class WorldBuildingService {
   /**
-   * Generates procedural buildings, monsters, and resources for a chunk.
-   * Enhanced for dense cities and varied structures.
+   * Enhanced Procedural Content Generation
+   * Generates dense cities, active monsters, and resource fields.
    */
   static generateAxiomaticContent(chunk: Chunk) {
-    if (!chunk || isNaN(chunk.x) || isNaN(chunk.z)) return { pois: [], monsters: [], resources: [] };
+    if (!chunk) return { pois: [], monsters: [], resources: [] };
 
     const pois: POI[] = [];
     const monsters: Monster[] = [];
     const resources: ResourceNode[] = [];
 
-    const seed = chunk.seed || (chunk.x * 31 + chunk.z * 17);
-    const chunkOffsetX = (chunk.x || 0) * 400;
-    const chunkOffsetZ = (chunk.z || 0) * 400;
+    const seed = chunk.seed || (chunk.x * 1337 + chunk.z * 7331);
+    const chunkOffsetX = chunk.x * 400;
+    const chunkOffsetZ = chunk.z * 400;
 
     const pseudoRandom = (offset: number) => {
       const x = Math.sin(seed + offset) * 10000;
       return x - Math.floor(x);
     };
 
+    // 1. POI Manifestation
     if (chunk.biome === 'CITY') {
-      // Dense City Generation
-      // Main Center Spire
+      // Main Spire
       pois.push({
-        id: `city-center-${chunk.id}`,
+        id: `spire-${chunk.id}`,
         type: 'BUILDING',
         position: [chunkOffsetX, 0, chunkOffsetZ],
         rotationY: 0,
         isDiscovered: true
       });
 
-      // City Walls and Gates
+      // City Walls
       const wallCount = 8;
       for (let i = 0; i < wallCount; i++) {
         const angle = (i / wallCount) * Math.PI * 2;
-        const dist = 180;
         pois.push({
           id: `wall-${chunk.id}-${i}`,
           type: 'WALL',
           position: [
-            chunkOffsetX + Math.cos(angle) * dist,
+            chunkOffsetX + Math.cos(angle) * 180,
             0,
-            chunkOffsetZ + Math.sin(angle) * dist
+            chunkOffsetZ + Math.sin(angle) * 180
           ],
           rotationY: angle + Math.PI / 2,
           isDiscovered: true
         });
       }
 
-      // Procedural Houses / Units
-      const houseCount = 12;
-      for (let i = 0; i < houseCount; i++) {
+      // Houses
+      for (let i = 0; i < 10; i++) {
         const angle = pseudoRandom(i) * Math.PI * 2;
         const dist = 60 + pseudoRandom(i * 2) * 80;
         pois.push({
@@ -69,8 +67,8 @@ export class WorldBuildingService {
         });
       }
     } else {
-      // Wilderness Generation
-      if (pseudoRandom(1) > 0.6) {
+      // Wilderness POIs
+      if (pseudoRandom(1) > 0.7) {
         pois.push({
           id: `shrine-${chunk.id}`,
           type: 'SHRINE',
@@ -79,51 +77,46 @@ export class WorldBuildingService {
             0,
             chunkOffsetZ + (pseudoRandom(3) - 0.5) * 200
           ],
-          rotationY: pseudoRandom(4) * Math.PI * 2,
           isDiscovered: false
         });
       }
     }
 
-    // Generate Resources (Shared across all biomes but weighted)
-    const resourceTypes = ['IRON_ORE', 'WOOD', 'STONE', 'GOLD_ORE'];
-    const nodeCount = chunk.biome === 'CITY' ? 2 : 6 + Math.floor(pseudoRandom(5) * 8);
+    // 2. Resource Manifestation
+    const resTypes = ['IRON_ORE', 'WOOD', 'GOLD_ORE', 'STONE'];
+    const nodeCount = 5 + Math.floor(pseudoRandom(10) * 10);
     for (let i = 0; i < nodeCount; i++) {
-      const type = resourceTypes[Math.floor(pseudoRandom(i + 15) * resourceTypes.length)];
       resources.push({
         id: `res-${chunk.id}-${i}`,
-        type,
+        type: resTypes[Math.floor(pseudoRandom(i + 20) * resTypes.length)],
         position: [
-          chunkOffsetX + (pseudoRandom(i + 25) - 0.5) * 350,
+          chunkOffsetX + (pseudoRandom(i + 30) - 0.5) * 350,
           0,
-          chunkOffsetZ + (pseudoRandom(i + 35) - 0.5) * 350
+          chunkOffsetZ + (pseudoRandom(i + 40) - 0.5) * 350
         ],
-        amount: 100 + Math.floor(pseudoRandom(i + 45) * 500)
+        amount: 100
       });
     }
 
-    // Generate Autonomous Life (Monsters / NPCs)
-    const monsterKeys = Object.keys(MONSTER_TEMPLATES) as (keyof typeof MONSTER_TEMPLATES)[];
-    const lifeCount = chunk.biome === 'CITY' ? 8 : 3 + Math.floor(pseudoRandom(6) * 5);
+    // 3. Autonomous Life (NPCs / Monsters)
+    const lifeCount = chunk.biome === 'CITY' ? 6 : 3;
     for (let i = 0; i < lifeCount; i++) {
-      const typeKey = monsterKeys[Math.floor(pseudoRandom(i + 55) * monsterKeys.length)];
-      const template = MONSTER_TEMPLATES[typeKey];
-      
+      const type = pseudoRandom(i + 50) > 0.8 ? 'DRAGON' : (pseudoRandom(i + 51) > 0.5 ? 'ORC' : 'GOBLIN');
       monsters.push({
         id: `mob-${chunk.id}-${i}`,
-        type: typeKey,
-        name: chunk.biome === 'CITY' ? `City Watch ${i+1}` : `${typeKey} Sentinel`,
+        type,
+        name: chunk.biome === 'CITY' ? `City Watch ${i+1}` : `${type} Stalker`,
         position: [
-          chunkOffsetX + (pseudoRandom(i + 65) - 0.5) * 300,
+          chunkOffsetX + (pseudoRandom(i + 60) - 0.5) * 300,
           0,
-          chunkOffsetZ + (pseudoRandom(i + 75) - 0.5) * 300
+          chunkOffsetZ + (pseudoRandom(i + 70) - 0.5) * 300
         ],
-        rotationY: pseudoRandom(i + 85) * Math.PI * 2,
-        stats: template,
-        xpReward: template.xp || 100,
+        rotationY: pseudoRandom(i + 80) * Math.PI * 2,
+        stats: MONSTER_TEMPLATES[type as keyof typeof MONSTER_TEMPLATES],
+        xpReward: 100,
         state: 'IDLE',
-        color: chunk.biome === 'CITY' ? '#60D4FF' : (typeKey === 'DRAGON' ? '#ff4d4d' : '#7b4fd4'),
-        scale: (template.scale || 1) * 2.5,
+        color: type === 'DRAGON' ? '#ff4d4d' : '#7b4fd4',
+        scale: type === 'DRAGON' ? 5.0 : 1.2,
         targetId: null
       });
     }
