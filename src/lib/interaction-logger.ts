@@ -10,10 +10,10 @@ class InteractionLogger {
   private logs: InteractionLog[] = [];
 
   log(interaction: Interaction, trustDelta: number) {
-    this.logs.push({ 
-      interaction, 
-      trustDelta, 
-      timestamp: Date.now() 
+    this.logs.push({
+      interaction,
+      trustDelta,
+      timestamp: Date.now(),
     });
     // Limit history to maintain performance
     if (this.logs.length > 100) {
