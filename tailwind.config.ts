@@ -1,16 +1,9 @@
-import type {Config} from 'tailwindcss';
+import type { Config } from 'tailwindcss';
 
 /**
- * Tailwind CSS v4 transition: configuration is primarily handled in globals.css
- * via the @theme block. This file is kept minimal to avoid compiler conflicts
- * with Turbopack while allowing tool-specific extensions if required.
+ * Configuration is now primarily handled in src/app/globals.css via Tailwind CSS v4.
+ * This file is maintained for compatibility with tooling that requires a config file.
  */
 export default {
-  content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
+  content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
 } satisfies Config;

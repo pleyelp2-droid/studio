@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&family=JetBrains+Mono:wght@300;400;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=Rajdhani:wght@300;500;700&family=Inter:wght@400;700;900&display=swap');
 
 @plugin "tailwindcss-animate";
 
@@ -32,11 +33,6 @@
   --color-input: hsl(231 60% 20%);
   --color-ring: hsl(231 60% 44%);
 
-  /* Border Radii */
-  --radius-lg: 1rem;
-  --radius-md: calc(1rem - 2px);
-  --radius-sm: calc(1rem - 4px);
-
   /* Axiom Frontier Custom Colors */
   --color-arl-void: #020203;
   --color-arl-deep: #050508;
@@ -64,9 +60,15 @@
     100% { transform: translateY(100%); }
   }
 
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: .5; transform: scale(1.2); }
+  }
+
   --animate-gradient: gradient 8s ease infinite;
   --animate-marquee: marquee 30s linear infinite;
   --animate-matrix-scan: matrix-scan 4s linear infinite;
+  --animate-heartbeat: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @layer base {
@@ -110,11 +112,6 @@
   }
 
   .heartbeat-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    @apply animate-heartbeat;
   }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: .5; transform: scale(1.2); }
 }
