@@ -1,3 +1,5 @@
+export type InteractionType = 'talk' | 'trade' | 'proposeGroup';
+
 export interface Memory {
   event: string;
   timestamp: number;
@@ -17,7 +19,7 @@ export interface Task {
 }
 
 export interface Interaction {
-  type: 'talk' | 'trade' | 'proposeGroup';
+  type: InteractionType;
   senderId: string;
   receiverId: string;
   payload: any;

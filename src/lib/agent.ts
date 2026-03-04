@@ -55,14 +55,12 @@ export class Agent {
   // Heuristic learning: Adjusts internal needs/biases based on global interaction success
   learnFromLogs(logs: InteractionLog[]) {
     logs.forEach(log => {
-      if (log.interaction.senderId === this.id) return; // Don't learn from yourself here
+      if (log.interaction.senderId === this.id) return;
 
       const rel = this.relationships.get(log.interaction.senderId);
-      // If we trust the entity and their action was positive, we mimic or value that behavior
       if (rel && rel.trust > 20 && log.trustDelta > 0) {
         this.addMemory(`Learned from ${log.interaction.senderId}: ${log.interaction.type} was successful`, 1);
         if (log.interaction.type === 'trade') {
-          // Success in trading reduces our immediate social anxiety/resource pressure
           this.needs.hunger = Math.max(0, this.needs.hunger - 2);
         }
       }
@@ -70,12 +68,11 @@ export class Agent {
   }
 
   // Deterministic decision making based on needs, goals, and trust
-  decideAction(allAgents: any[]): Interaction | null {
+  decideAction(allAgents: Agent[]): Interaction | null {
     // 1. Goal-driven behavior (Primary)
     for (const goal of this.longTermGoals) {
       if (goal === 'gather_food' && this.needs.hunger > 40) {
-        const targets = allAgents.filter(a => a.id !== this.id && a.inventory && a.inventory['food'] > 0);
-        // Sort by highest trust
+        const targets = allAgents.filter(a => a.id !== this.id && a.inventory['food'] > 0);
         targets.sort((a, b) => (this.relationships.get(b.id)?.trust || 0) - (this.relationships.get(a.id)?.trust || 0));
         const target = targets[0];
         if (target) {

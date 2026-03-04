@@ -1,34 +1,28 @@
-
 'use client';
-/**
- * @fileOverview Central Interaction System for AI Agents.
- */
 
 import { Agent } from './agent';
-import { RobustnessEngine } from './axiomatic-engine';
+import { Interaction } from './types';
 
+/**
+ * @fileOverview Central Interaction System for AI Agents.
+ * Efficiently routes communications between neural entities using a Map-based lookup.
+ */
 export class InteractionManager {
-  private agents: Agent[];
+  private agents: Map<string, Agent> = new Map();
 
   constructor(agents: Agent[]) {
-    this.agents = agents;
+    agents.forEach(agent => this.agents.set(agent.id, agent));
   }
 
   /**
-   * Processes deterministic interactions between agents.
+   * Processes a deterministic interaction between agents.
+   * Finds the receiver in the Map and delegates the handling to their internal logic.
    */
-  processInteraction(interaction: { type: string; senderId: string; receiverId: string; payload?: any }): string {
-    return RobustnessEngine.wrap(() => {
-      const sender = this.agents.find(a => a.id === interaction.senderId);
-      const receiver = this.agents.find(a => a.id === interaction.receiverId);
-
-      if (!sender || !receiver) return "[system] Signal lost.";
-
-      if (interaction.type === 'talk') {
-        return `[neutral] ${receiver.displayName} says: ${interaction.payload?.message || "..."}`;
-      }
-
-      return `[system] Interaction processed: ${interaction.type}`;
-    }, "[system] Interaction failed.", "InteractionManager");
+  processInteraction(interaction: Interaction): string {
+    const receiver = this.agents.get(interaction.receiverId);
+    if (!receiver) {
+      return "Target neural signature not found.";
+    }
+    return receiver.handleInteraction(interaction);
   }
 }
