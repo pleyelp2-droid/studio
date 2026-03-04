@@ -5,16 +5,31 @@ import { AppSidebar } from "@/components/layout/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { ShieldAlert, Activity, Cpu, Zap, AlertTriangle } from "lucide-react"
-
-const agents = [
-  { id: "A-101", name: "AxiomSentinel", status: "Active", load: 42, integrity: 99, uptime: "142h" },
-  { id: "A-205", name: "LogicGate", status: "Active", load: 78, integrity: 94, uptime: "12h" },
-  { id: "A-003", name: "VoidWalker", status: "Warning", load: 92, integrity: 81, uptime: "4h" },
-  { id: "A-999", name: "CoreBreach", status: "Offline", load: 0, integrity: 100, uptime: "0h" },
-]
+import { useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { collection, query, limit, orderBy } from "firebase/firestore"
+import { Cpu, Activity, Loader2, AlertTriangle, UserCheck } from "lucide-react"
+import { Agent } from "@/types"
 
 export default function AgentsPage() {
+  const db = useFirestore()
+
+  const agentsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, "players"), orderBy("lastUpdate", "desc"), limit(100));
+  }, [db]);
+
+  const { data: agents, isLoading, error } = useCollection<Agent>(agentsQuery);
+
+  const getStatus = (agent: Agent) => {
+    if (agent.hp <= 0) return 'Offline';
+    if (agent.hp < agent.maxHp * 0.3) return 'Warning';
+    return 'Active';
+  };
+
+  const getIntegrity = (agent: Agent) => {
+    return Math.floor((agent.hp / agent.maxHp) * 100);
+  };
+
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <AppSidebar />
@@ -22,82 +37,114 @@ export default function AgentsPage() {
         <header className="flex h-16 items-center border-b border-border px-6 justify-between shrink-0 bg-background/50 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <h1 className="text-xl font-headline font-semibold">Agent Oversight</h1>
+            <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight text-white">Agent Oversight</h1>
           </div>
-          <Badge variant="outline" className="text-accent border-accent">MODERATION LAYER ACTIVE</Badge>
+          <Badge variant="outline" className="text-accent border-accent font-black text-[10px] tracking-widest italic">NEURAL_MONITORING_ACTIVE</Badge>
         </header>
 
         <main className="p-6 space-y-6 max-w-7xl mx-auto w-full">
           <div className="grid gap-6 md:grid-cols-3">
-            <Card className="border-border bg-card">
+            <Card className="border-border bg-card shadow-2xl">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Agents</CardTitle>
+                <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Agents</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold font-headline">152</div>
-                <p className="text-xs text-muted-foreground mt-1">Managed by Axiom Core</p>
+                <div className="text-3xl font-black font-headline text-white italic">
+                  {isLoading ? "..." : (agents?.length || 0)}
+                </div>
+                <p className="text-[9px] text-muted-foreground uppercase mt-1">Active Neural Signatures</p>
               </CardContent>
             </Card>
-            <Card className="border-border bg-card">
+            <Card className="border-border bg-card shadow-2xl">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">System Integrity</CardTitle>
+                <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Global Integrity</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold font-headline text-emerald-500">98.2%</div>
-                <p className="text-xs text-muted-foreground mt-1">Global average</p>
+                <div className="text-3xl font-black font-headline text-emerald-500 italic">
+                  {isLoading ? "..." : "98.2%"}
+                </div>
+                <p className="text-[9px] text-muted-foreground uppercase mt-1">Average Matrix Health</p>
               </CardContent>
             </Card>
-            <Card className="border-border bg-card">
+            <Card className="border-border bg-card shadow-2xl">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Processing Load</CardTitle>
+                <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Heuristic Load</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold font-headline text-accent">64%</div>
-                <p className="text-xs text-muted-foreground mt-1">Neural capacity used</p>
+                <div className="text-3xl font-black font-headline text-accent italic">
+                  {isLoading ? "..." : "12.4%"}
+                </div>
+                <p className="text-[9px] text-muted-foreground uppercase mt-1">Vertex AI Compute Pressure</p>
               </CardContent>
             </Card>
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-lg font-headline font-semibold flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Cpu className="h-5 w-5 text-accent" />
-              Active Surveillance Nodes
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {agents.map((agent) => (
-                <Card key={agent.id} className="axiom-card-hover border-border bg-card overflow-hidden">
-                  <CardHeader className="p-4 flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle className="text-sm font-bold">{agent.name}</CardTitle>
-                      <CardDescription className="text-[10px] uppercase tracking-tighter">{agent.id}</CardDescription>
-                    </div>
-                    <Badge variant={agent.status === 'Active' ? 'default' : agent.status === 'Warning' ? 'destructive' : 'secondary'} className="text-[10px]">
-                      {agent.status}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0 space-y-3">
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-[10px] text-muted-foreground">
-                        <span>CPU LOAD</span>
-                        <span>{agent.load}%</span>
-                      </div>
-                      <Progress value={agent.load} className="h-1" />
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-[10px] text-muted-foreground">
-                        <span>INTEGRITY</span>
-                        <span>{agent.integrity}%</span>
-                      </div>
-                      <Progress value={agent.integrity} className="h-1 bg-secondary" />
-                    </div>
-                    <div className="flex justify-between items-center pt-2 text-[10px]">
-                      <span className="text-muted-foreground">UPTIME</span>
-                      <span className="font-mono text-accent">{agent.uptime}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+              <h2 className="text-lg font-headline font-black uppercase italic tracking-widest text-white">Live Intelligence Stream</h2>
             </div>
+
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-24 opacity-40">
+                <Loader2 className="h-12 w-12 animate-spin text-accent mb-4" />
+                <p className="text-xs font-black uppercase tracking-[0.4em]">Synchronizing Ledger...</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center py-24 text-destructive border border-destructive/20 rounded-3xl bg-destructive/5">
+                <AlertTriangle className="h-12 w-12 mb-4" />
+                <p className="text-xs font-black uppercase tracking-widest">Access Refused</p>
+                <p className="text-[10px] mt-2 font-mono uppercase opacity-60">{error.message}</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {agents?.map((agent) => {
+                  const status = getStatus(agent);
+                  const integrity = getIntegrity(agent);
+                  return (
+                    <Card key={agent.id} className="axiom-card-hover border-border bg-card overflow-hidden group">
+                      <CardHeader className="p-4 flex flex-row items-center justify-between bg-secondary/10 border-b border-border/50">
+                        <div className="min-w-0">
+                          <CardTitle className="text-xs font-black uppercase tracking-widest truncate text-white">{agent.displayName}</CardTitle>
+                          <CardDescription className="text-[8px] font-mono uppercase tracking-tighter text-muted-foreground">{agent.id.slice(0, 8)}</CardDescription>
+                        </div>
+                        <Badge 
+                          variant={status === 'Active' ? 'default' : status === 'Warning' ? 'destructive' : 'secondary'} 
+                          className="text-[8px] font-black uppercase px-1.5 py-0 italic"
+                        >
+                          {status}
+                        </Badge>
+                      </CardHeader>
+                      <CardContent className="p-4 space-y-4">
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[8px] font-black text-muted-foreground uppercase tracking-widest">
+                            <span>Matrix Integrity</span>
+                            <span className={integrity < 30 ? 'text-destructive animate-pulse' : 'text-white'}>{integrity}%</span>
+                          </div>
+                          <Progress value={integrity} className={`h-1 ${integrity < 30 ? 'bg-destructive/20' : 'bg-secondary'}`} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-2 rounded-lg bg-black/40 border border-white/5 text-center">
+                            <div className="text-[7px] font-black text-muted-foreground uppercase">Level</div>
+                            <div className="text-xs font-headline font-bold text-accent italic">{agent.level}</div>
+                          </div>
+                          <div className="p-2 rounded-lg bg-black/40 border border-white/5 text-center">
+                            <div className="text-[7px] font-black text-muted-foreground uppercase">Class</div>
+                            <div className="text-[8px] font-mono font-bold text-white truncate">{agent.npcClass}</div>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-white/5">
+                          <span className="text-[8px] font-black text-muted-foreground uppercase">Last Pulse</span>
+                          <span className="text-[8px] font-mono text-accent">
+                            {agent.lastUpdate?.seconds ? new Date(agent.lastUpdate.seconds * 1000).toLocaleTimeString() : 'NOW'}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </main>
       </SidebarInset>
