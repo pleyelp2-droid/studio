@@ -1,4 +1,4 @@
-export type InteractionType = 'talk' | 'trade' | 'proposeGroup';
+'use client';
 
 export interface Memory {
   event: string;
@@ -9,7 +9,7 @@ export interface Memory {
 export interface Relationship {
   targetId: string;
   trust: number;
-  type: 'family' | 'friend' | 'neutral';
+  type: 'family' | 'friend' | 'neutral' | 'enemy';
 }
 
 export interface Task {
@@ -18,16 +18,23 @@ export interface Task {
   status: 'pending' | 'active' | 'done';
 }
 
-export interface Interaction {
-  type: InteractionType;
-  senderId: string;
-  receiverId: string;
-  payload: any;
+export interface EquipSlot {
+  slot: 'head' | 'chest' | 'legs';
+  itemId: string | null;
 }
 
 export interface SocialGroup {
   id: string;
   name: string;
-  type: 'guild' | 'party' | 'faction';
+  type: 'guild' | 'kingdom';
   members: string[];
+}
+
+export type InteractionType = 'talk' | 'trade' | 'proposeGroup';
+
+export interface Interaction {
+  type: InteractionType;
+  senderId: string;
+  receiverId: string;
+  payload: any;
 }

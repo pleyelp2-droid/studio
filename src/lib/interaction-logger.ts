@@ -1,3 +1,5 @@
+'use client';
+
 import { Interaction } from './types';
 
 export interface InteractionLog {
@@ -15,7 +17,7 @@ class InteractionLogger {
       trustDelta,
       timestamp: Date.now(),
     });
-    // Limit history to maintain performance
+    // Behalte nur die letzten 100 Logs für die Heuristik-Analyse
     if (this.logs.length > 100) {
       this.logs.shift();
     }
