@@ -2,5 +2,6 @@
   "/page": "app/page.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/godot/page": "app/godot/page.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js"
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/_not-found/page": "app/_not-found/page.js"
 }
