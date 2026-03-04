@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -15,7 +16,8 @@ import {
   Infinity,
   Layers,
   Activity,
-  Globe
+  Globe,
+  Zap
 } from "lucide-react"
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
