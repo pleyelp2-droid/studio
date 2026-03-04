@@ -51,8 +51,6 @@ export default function MMORPGPortal() {
 
   const getImg = (id: string) => PlaceHolderImages.find(img => img.id === id)
 
-  const isTablet = windowSize.width >= 768 && windowSize.width <= 1280;
-
   return (
     <div className="min-h-screen bg-[#020203] text-[#e8dfc8] selection:bg-accent selection:text-accent-foreground font-body overflow-x-hidden">
       {/* Cinematic Background */}
@@ -110,7 +108,6 @@ export default function MMORPGPortal() {
         </div>
       </nav>
 
-      {/* Mobile/Tablet Menu Overlay */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
