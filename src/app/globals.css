@@ -1,12 +1,10 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
-/* 
- * AXIOM FRONTIER - NEURAL STYLE ENGINE
- * Note: All @import/@plugin rules must precede all other rules.
- */
+/* 1. Google Fonts Imports (Must be at the very top) */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&family=JetBrains+Mono:wght@300;400;700&family=Inter:wght@400;700;900&display=swap');
 
-/* latin-ext */
+/* 2. Custom Font-Face Declarations (High Fidelity Fallbacks) */
 @font-face {
   font-family: 'Cinzel';
   font-style: normal;
@@ -15,53 +13,6 @@
   src: url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt7-GT7PkRXM8Xx.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
-/* latin */
-@font-face {
-  font-family: 'Cinzel';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt79mT7PkRXMw.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-/* latin-ext */
-@font-face {
-  font-family: 'Cinzel Decorative';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url(https://fonts.gstatic.com/s/cinzeldecorative/v19/daaHSScvJGqLYhG8nNt8KPPswUAPniZoadlKSTGplhXF7UU.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-/* latin */
-@font-face {
-  font-family: 'Cinzel Decorative';
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url(https://fonts.gstatic.com/s/cinzeldecorative/v19/daaHSScvJGqLYhG8nNt8KPPswUAPniZoadlESTGplhXF.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-/* latin */
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-/* latin */
-@font-face {
-  font-family: 'JetBrains Mono';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url(https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbV2o-flEEny0FZhsfKu5WU4xD7OwGtT0rU.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   /* Fonts */
@@ -114,7 +65,7 @@
     100% { transform: translateY(100%); }
   }
 
-  @keyframes pulse {
+  @keyframes heartbeat {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: .5; transform: scale(1.2); }
   }
@@ -127,7 +78,7 @@
   --animate-gradient: gradient 8s ease infinite;
   --animate-marquee: marquee 30s linear infinite;
   --animate-matrix-scan: matrix-scan 4s linear infinite;
-  --animate-heartbeat: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-heartbeat: heartbeat 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-scanline: scanline 8s linear infinite;
 }
 
