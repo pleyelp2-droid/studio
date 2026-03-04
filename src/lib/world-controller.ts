@@ -52,8 +52,9 @@ export class WorldController {
       if (newAgent.needs) {
         newAgent.needs = {
           ...newAgent.needs,
-          hunger: Math.min(100, newAgent.needs.hunger + 0.2),
-          social: Math.max(0, newAgent.needs.social - 0.1)
+          hunger: Math.min(100, (newAgent.needs.hunger || 0) + 0.2),
+          social: Math.max(0, (newAgent.needs.social || 50) - 0.1),
+          wealth: newAgent.needs.wealth || 50
         };
       }
 
