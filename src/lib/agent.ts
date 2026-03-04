@@ -3,13 +3,19 @@
 import { Memory, Relationship, Task, Interaction, SocialGroup } from './types';
 import { interactionLogger, InteractionLog } from './interaction-logger';
 
+export interface InventoryItem {
+  id: string;
+  name: string;
+  quantity: number;
+}
+
 export class Agent {
   id: string;
   name: string;
   memory: Memory[] = [];
   relationships: Map<string, Relationship> = new Map();
   tasks: Task[] = [];
-  inventory: Record<string, number> = {};
+  inventory: InventoryItem[] = [];
   needs: Record<string, number> = { hunger: 50, social: 50 };
   longTermGoals: string[] = [];
   groups: SocialGroup[] = [];
@@ -21,7 +27,34 @@ export class Agent {
     this.trustDecayRate = trustDecayRate;
   }
 
-  // Trust-Degradierung nutzt nun die konfigurierbare Rate
+  // Inventory management
+  addItem(item: InventoryItem) {
+    const existing = this.inventory.find(i => i.id === item.id);
+    if (existing) {
+      existing.quantity += item.quantity;
+    } else {
+      this.inventory.push({ ...item });
+    }
+  }
+
+  removeItem(itemId: string, quantity: number): boolean {
+    const item = this.inventory.find(i => i.id === itemId);
+    if (item && item.quantity >= quantity) {
+      item.quantity -= quantity;
+      if (item.quantity === 0) {
+        this.inventory = this.inventory.filter(i => i.id !== itemId);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  getInventoryQuantity(itemId: string): number {
+    const item = this.inventory.find(i => i.id === itemId);
+    return item ? item.quantity : 0;
+  }
+
+  // Trust decay logic
   decayTrust() {
     for (const [id, rel] of this.relationships) {
       rel.trust = Math.max(-100, rel.trust - this.trustDecayRate);
@@ -37,6 +70,11 @@ export class Agent {
   }
 
   // Task and Memory logic
+  addMemory(event: string, trustDelta: number) {
+    this.memory.push({ event, timestamp: Date.now(), trustDelta });
+    if (this.memory.length > 50) this.memory.shift();
+  }
+
   updateTasks() {
     this.tasks.forEach(task => {
       if (task.status === 'active') {
@@ -49,11 +87,6 @@ export class Agent {
     });
   }
 
-  addMemory(event: string, trustDelta: number) {
-    this.memory.push({ event, timestamp: Date.now(), trustDelta });
-    if (this.memory.length > 50) this.memory.shift();
-  }
-
   // Learn from interaction logs
   learnFromLogs(logs: InteractionLog[]) {
     logs.forEach(log => {
@@ -61,9 +94,8 @@ export class Agent {
       // If we trust the sender and it was a successful interaction
       if (rel && rel.trust > 20 && log.trustDelta > 0) {
         this.addMemory(`Learned from ${log.interaction.senderId}: ${log.interaction.type} was successful`, 1);
-        // Heuristic adjustment: increase tendency to trade if trading was successful
+        // Heuristic adjustment: success reinforces behavior
         if (log.interaction.type === 'trade') {
-          // In Ouroboros, success reinforces the behavior
           this.needs.hunger = Math.max(0, this.needs.hunger - 5);
         }
       }
@@ -74,7 +106,7 @@ export class Agent {
     // 1. Goal-driven behavior
     for (const goal of this.longTermGoals) {
       if (goal === 'gather_food' && this.needs.hunger > 40) {
-        const targets = allAgents.filter(a => a.id !== this.id && (a.inventory['food'] || 0) > 0);
+        const targets = allAgents.filter(a => a.id !== this.id && a.getInventoryQuantity('food') > 0);
         targets.sort((a, b) => (this.relationships.get(b.id)?.trust || 0) - (this.relationships.get(a.id)?.trust || 0));
         const target = targets[0];
         if (target) {
@@ -138,9 +170,7 @@ export class Agent {
 
   private handleTrade(interaction: Interaction): string {
     const { item, amount } = interaction.payload;
-    const currentAmount = this.inventory[item] || 0;
-    if (currentAmount >= amount) {
-      this.inventory[item] = currentAmount - amount;
+    if (this.removeItem(item, amount)) {
       this.updateTrust(interaction.senderId, 5); // Trading improves trust
       this.addMemory(`Traded ${item} to ${interaction.senderId}`, 5);
       interactionLogger.log(interaction, 5);
@@ -151,7 +181,7 @@ export class Agent {
     return `${this.name} does not have enough ${item}.`;
   }
 
-  // Gruppen-Management
+  // Group management
   joinGroup(group: SocialGroup) {
     if (!this.groups.find(g => g.id === group.id)) {
       this.groups.push(group);
