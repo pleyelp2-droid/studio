@@ -61,7 +61,7 @@ export const calculateUtility = (agent: Agent, action: AgentState): number => {
  */
 export const generateDialogue = (agent: Agent, target: Agent, intent: 'trade' | 'social' | 'combat'): string => {
   return RobustnessEngine.wrap(() => {
-    const rel = agent.relationships?.[target.id] || { trust: 0, type: 'neutral' as const };
+    const rel = (agent.relationships as any)?.[target.id] || { trust: 0, type: 'neutral' as const };
     const tone = rel.trust > 50 ? "warm" : rel.trust < -50 ? "kalt" : "neutral";
 
     const templates = {
@@ -82,7 +82,7 @@ export const generateDialogue = (agent: Agent, target: Agent, intent: 'trade' | 
       ]
     };
 
-    const options = templates[intent] || ["Hallo."];
+    const options = (templates as any)[intent] || ["Hallo."];
     return options[Math.floor(Math.random() * options.length)];
   }, "Hallo.", "DialogueGeneration");
 };
@@ -101,7 +101,7 @@ export const getXPForNextLevel = (currentLevel: number): number => {
         // High Science Era: 225% increase per level from level 100
         const xpAt99 = Math.floor(baseXP * Math.pow(1.5, 98));
         const levelsOver99 = currentLevel - 99;
-        // Total = prev * 3.25 (which is 225% more)
+        // Exponential difficulty: each level is 3.25x the previous (225% increase)
         return Math.floor(xpAt99 * Math.pow(3.25, levelsOver99));
     }
 };
@@ -130,7 +130,7 @@ export const summarizeNeurologicChoice = (
     }).sort((a, b) => b.utility - a.utility);
 
     const best = results[0];
-    const logic = `[HEURISTIC_AI]: ${best.choice} - Needs: H:${Math.floor(agent.needs?.hunger)} S:${Math.floor(agent.needs?.social)} W:${Math.floor(agent.needs?.wealth)}`;
+    const logic = `[HEURISTIC_AI]: ${best.choice} - Needs: H:${Math.floor(agent.needs?.hunger || 0)} S:${Math.floor(agent.needs?.social || 0)} W:${Math.floor(agent.needs?.wealth || 0)}`;
 
     return { ...best, logic };
 };

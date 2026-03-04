@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase"
 import { collection, query, limit, orderBy } from "firebase/firestore"
-import { Cpu, Activity, Loader2, AlertTriangle, UserCheck } from "lucide-react"
+import { Cpu, Activity, Loader2, AlertTriangle, UserCheck, Zap } from "lucide-react"
 import { Agent } from "@/types"
 
 export default function AgentsPage() {
@@ -27,7 +27,9 @@ export default function AgentsPage() {
   };
 
   const getIntegrity = (agent: Agent) => {
-    return Math.floor((agent.hp / agent.maxHp) * 100);
+    const max = agent.maxHp || 100;
+    const current = agent.hp || 0;
+    return Math.floor((current / max) * 100);
   };
 
   return (
@@ -44,7 +46,10 @@ export default function AgentsPage() {
 
         <main className="p-6 space-y-6 max-w-7xl mx-auto w-full">
           <div className="grid gap-6 md:grid-cols-3">
-            <Card className="border-border bg-card shadow-2xl">
+            <Card className="border-border bg-card shadow-2xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <UserCheck className="h-16 w-16" />
+              </div>
               <CardHeader className="pb-2">
                 <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Agents</CardTitle>
               </CardHeader>
@@ -55,26 +60,32 @@ export default function AgentsPage() {
                 <p className="text-[9px] text-muted-foreground uppercase mt-1">Active Neural Signatures</p>
               </CardContent>
             </Card>
-            <Card className="border-border bg-card shadow-2xl">
+            <Card className="border-border bg-card shadow-2xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <Activity className="h-16 w-16" />
+              </div>
               <CardHeader className="pb-2">
                 <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Global Integrity</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-black font-headline text-emerald-500 italic">
-                  {isLoading ? "..." : "98.2%"}
+                  {isLoading ? "..." : "99.9%"}
                 </div>
                 <p className="text-[9px] text-muted-foreground uppercase mt-1">Average Matrix Health</p>
               </CardContent>
             </Card>
-            <Card className="border-border bg-card shadow-2xl">
+            <Card className="border-border bg-card shadow-2xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                <Zap className="h-16 w-16" />
+              </div>
               <CardHeader className="pb-2">
-                <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Heuristic Load</CardTitle>
+                <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Axiom Flux</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-black font-headline text-accent italic">
-                  {isLoading ? "..." : "12.4%"}
+                  {isLoading ? "..." : "1.000"}
                 </div>
-                <p className="text-[9px] text-muted-foreground uppercase mt-1">Vertex AI Compute Pressure</p>
+                <p className="text-[9px] text-muted-foreground uppercase mt-1">KAPPA Stabilization Constant</p>
               </CardContent>
             </Card>
           </div>
@@ -96,6 +107,11 @@ export default function AgentsPage() {
                 <p className="text-xs font-black uppercase tracking-widest">Access Refused</p>
                 <p className="text-[10px] mt-2 font-mono uppercase opacity-60">{error.message}</p>
               </div>
+            ) : agents?.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 text-muted-foreground border-2 border-dashed border-border rounded-3xl opacity-40">
+                <UserCheck className="h-12 w-12 mb-4" />
+                <p className="text-xs font-black uppercase tracking-widest italic">No neural signatures detected.</p>
+              </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {agents?.map((agent) => {
@@ -105,7 +121,7 @@ export default function AgentsPage() {
                     <Card key={agent.id} className="axiom-card-hover border-border bg-card overflow-hidden group">
                       <CardHeader className="p-4 flex flex-row items-center justify-between bg-secondary/10 border-b border-border/50">
                         <div className="min-w-0">
-                          <CardTitle className="text-xs font-black uppercase tracking-widest truncate text-white">{agent.displayName}</CardTitle>
+                          <CardTitle className="text-xs font-black uppercase tracking-widest truncate text-white">{agent.displayName || agent.name}</CardTitle>
                           <CardDescription className="text-[8px] font-mono uppercase tracking-tighter text-muted-foreground">{agent.id.slice(0, 8)}</CardDescription>
                         </div>
                         <Badge 
@@ -126,11 +142,11 @@ export default function AgentsPage() {
                         <div className="grid grid-cols-2 gap-2">
                           <div className="p-2 rounded-lg bg-black/40 border border-white/5 text-center">
                             <div className="text-[7px] font-black text-muted-foreground uppercase">Level</div>
-                            <div className="text-xs font-headline font-bold text-accent italic">{agent.level}</div>
+                            <div className="text-xs font-headline font-bold text-accent italic">{agent.level || 1}</div>
                           </div>
                           <div className="p-2 rounded-lg bg-black/40 border border-white/5 text-center">
                             <div className="text-[7px] font-black text-muted-foreground uppercase">Class</div>
-                            <div className="text-[8px] font-mono font-bold text-white truncate">{agent.npcClass}</div>
+                            <div className="text-[8px] font-mono font-bold text-white truncate">{agent.npcClass || "PILOT"}</div>
                           </div>
                         </div>
                         <div className="flex justify-between items-center pt-2 border-t border-white/5">

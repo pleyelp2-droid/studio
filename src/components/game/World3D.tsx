@@ -45,21 +45,21 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
       <mesh position={[0, 15, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[2, 5, 30, 6]} />
         <meshStandardMaterial 
-          color={archTex ? "#ffffff" : ARL_COLORS.void} 
+          color={archTex ? "#ffffff" : ARL_COLORS.arcane} 
           map={archTex}
           metalness={0.9} 
           roughness={0.1} 
           emissive={color} 
-          emissiveIntensity={0.2} 
+          emissiveIntensity={0.5} 
         />
       </mesh>
       <Float speed={3} rotationIntensity={4} floatIntensity={2}>
         <mesh position={[0, 35, 0]} scale={3}>
           <octahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={2} toneMapped={false} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={5} toneMapped={false} />
         </mesh>
       </Float>
-      <pointLight position={[0, 35, 0]} intensity={2} color={color} distance={150} decay={2} />
+      <pointLight position={[0, 35, 0]} intensity={10} color={color} distance={150} decay={2} />
     </group>
   );
 };
@@ -88,7 +88,7 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[400, 400]} />
         <meshStandardMaterial 
-          color={terrainTex ? "#ffffff" : ARL_COLORS.ground} 
+          color={terrainTex ? "#ffffff" : "#111111"} 
           map={terrainTex}
           roughness={0.8} 
           metalness={0.2} 
@@ -110,7 +110,7 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
       const appearance = agent.appearance || { skinTone: '#c68642', bodyScale: 1.0 };
       const humanoid = createHumanoidModel({
         skinTone: appearance.skinTone,
-        bodyScale: (appearance.bodyScale || 1.0) * 8.0 
+        bodyScale: (appearance.bodyScale || 1.0) * 1.5 
       });
       if (humanoid) {
         setModel(humanoid);
@@ -134,22 +134,18 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
 
   if (!model) return null;
 
-  // Master Plan: Letzter Gedanke (Memory) wird als schwebender Text gerendert
-  const lastThought = agent.memory && agent.memory.length > 0 
-    ? agent.memory[agent.memory.length - 1] 
+  const lastThought = agent.memoryCache && agent.memoryCache.length > 0 
+    ? agent.memoryCache[agent.memoryCache.length - 1] 
     : agent.state === AgentState.IDLE ? "Berechne nächsten Zyklus..." : `Status: ${agent.state}`;
 
   return (
     <group ref={groupRef} position={[agent.position?.x || 0, 0, agent.position?.z || 0]}>
       <primitive object={model.group} />
-      <Html position={[0, 25, 0]} center distanceFactor={25}>
+      <Html position={[0, 3, 0]} center distanceFactor={15}>
         <div className="flex flex-col items-center gap-2 pointer-events-none">
-          {/* Gedanken-Blase (Master Plan) */}
           <div className="bg-black/80 backdrop-blur-md border border-axiom-cyan/40 px-3 py-1.5 rounded-2xl shadow-2xl animate-bounce">
-            <p className="text-[9px] font-medium text-axiom-cyan italic whitespace-nowrap">{lastThought}</p>
+            <p className="text-[9px] font-medium text-axiom-cyan italic whitespace-nowrap">{String(lastThought)}</p>
           </div>
-          
-          {/* Name & Status */}
           <div className={`px-4 py-1 rounded-full bg-black/60 border-2 ${isLocal ? 'border-axiom-cyan shadow-[0_0_15px_rgba(6,182,212,0.5)]' : 'border-white/10'} text-white text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-md italic whitespace-nowrap`}>
             {agent.displayName || "Pilot"}
           </div>
@@ -170,7 +166,7 @@ const CameraController = () => {
     if (controlledAgent && controlledAgent.position) {
       const { x, z } = controlledAgent.position;
       const targetPos = new THREE.Vector3(x, 15, z + 40); 
-      const lookAtPos = new THREE.Vector3(x, 8, z); 
+      const lookAtPos = new THREE.Vector3(x, 2, z); 
       
       camera.position.lerp(targetPos, 0.1);
       camera.lookAt(lookAtPos);
@@ -182,7 +178,7 @@ const CameraController = () => {
     }
   });
 
-  return <OrbitControls ref={controlsRef} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.2} minDistance={10} maxDistance={150} />;
+  return <OrbitControls ref={controlsRef} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.2} minDistance={5} maxDistance={300} />;
 };
 
 const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
@@ -218,7 +214,7 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
 
 const LocalPlayerController = ({ agent }: { agent: Agent }) => {
   const { virtualInput, controlMode, targetPosition, setAgents, agents } = useStore();
-  const moveSpeed = 6.0;
+  const moveSpeed = 0.5;
   useFrame(() => {
     if (!agent || !agent.position) return;
     let moving = false;
@@ -229,7 +225,7 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
       const diffX = targetPosition.x - agent.position.x;
       const diffZ = targetPosition.z - agent.position.z;
       const dist = Math.hypot(diffX, diffZ);
-      if (dist > 2.0) { dx = (diffX / dist) * moveSpeed; dz = (diffZ / dist) * moveSpeed; moving = true; }
+      if (dist > 0.5) { dx = (diffX / dist) * moveSpeed; dz = (diffZ / dist) * moveSpeed; moving = true; }
     }
     if (moving) {
       setAgents(agents.map(a => a.id === agent.id ? { ...a, position: { ...a.position, x: a.position.x + dx, z: a.position.z + dz }, state: AgentState.EXPLORING } : a));
@@ -249,11 +245,11 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[60, 40, 60]} fov={45} far={5000} />
           <CameraController />
-          <ambientLight intensity={0.2} />
-          <directionalLight position={[100, 200, 100]} intensity={1.2} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
+          <ambientLight intensity={0.5} />
+          <directionalLight position={[100, 200, 100]} intensity={2.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
           <Environment preset="night" />
           <WorldContent localPlayerId={localPlayerId} />
-          <fog attach="fog" args={["#010102", 100, 1500]} />
+          <fog attach="fog" args={["#010102", 50, 1000]} />
         </Canvas>
       </Suspense>
     </div>

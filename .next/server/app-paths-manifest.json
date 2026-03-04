@@ -4,5 +4,8 @@
   "/character-creator/page": "app/character-creator/page.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/agents/page": "app/agents/page.js",
-  "/players/page": "app/players/page.js"
+  "/players/page": "app/players/page.js",
+  "/admin/lore/page": "app/admin/lore/page.js",
+  "/npcs/page": "app/npcs/page.js",
+  "/admin/audit-logs/page": "app/admin/audit-logs/page.js"
 }

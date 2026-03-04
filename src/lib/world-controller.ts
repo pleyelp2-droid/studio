@@ -18,25 +18,26 @@ export class WorldController {
 
   /**
    * Processes one tick of simulation time.
+   * Returns a new array of updated agents (functional approach).
    */
   tick(): Agent[] {
     const updatedAgents = this.agents.map(agent => {
       const newAgent = { ...agent };
 
-      // 1. Decay Trust (Functional)
+      // 1. Functional Trust Decay
       if (newAgent.relationships) {
         const newRels = { ...newAgent.relationships };
         Object.keys(newRels).forEach(targetId => {
           const rel = newRels[targetId];
           newRels[targetId] = {
             ...rel,
-            trust: Math.max(-100, rel.trust - 0.1)
+            trust: Math.max(-100, (rel.trust || 0) - 0.1)
           };
         });
         newAgent.relationships = newRels;
       }
 
-      // 2. Update Tasks (Functional)
+      // 2. Functional Task Update
       if (newAgent.tasks) {
         newAgent.tasks = newAgent.tasks.map(task => {
           if (task.status === 'active' && Math.random() > 0.98) {
@@ -46,7 +47,7 @@ export class WorldController {
         });
       }
 
-      // 3. Update Needs
+      // 3. Update Needs (Functional)
       if (newAgent.needs) {
         newAgent.needs = {
           ...newAgent.needs,
@@ -57,25 +58,6 @@ export class WorldController {
       }
 
       return newAgent;
-    });
-
-    // 4. Peer-to-Peer Interactions
-    updatedAgents.forEach(agent => {
-      if (Math.random() > 0.95) {
-        const targets = updatedAgents.filter(a => a.id !== agent.id);
-        const target = targets[Math.floor(Math.random() * targets.length)];
-        
-        if (target) {
-          const interactionResult = this.interactionManager.processInteraction({
-            type: 'talk',
-            senderId: agent.id,
-            receiverId: target.id,
-            payload: { message: "The Spire rises today, doesn't it?" }
-          } as any);
-          
-          console.log(`[Simulation] ${agent.displayName} -> ${target.displayName}: ${interactionResult}`);
-        }
-      }
     });
 
     return updatedAgents;
