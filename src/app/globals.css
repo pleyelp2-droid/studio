@@ -6,26 +6,26 @@
 @tailwind utilities;
 
 :root {
-  /* Ouroboros Dark MMORPG Palette */
+  /* PRD Deep Space Blue / Dark Neutral Blue Palette */
   --arl-void:        #020203;
-  --arl-deep:        #060810;
-  --arl-surface:     #0a0d1a;
-  --arl-elevated:    #0f1524;
-  --arl-panel:       #141b30;
-  --arl-border:      #1e2a4a;
-  --arl-border-glow: #2a3d6e;
+  --arl-deep:        #1C1C21;
+  --arl-surface:     #2E2EB3;
+  --arl-elevated:    #1C1C21;
+  --arl-panel:       #1C1C21;
+  --arl-border:      #2E2EB3;
+  --arl-border-glow: #60D4FF;
 
   /* Accent spectrum */
   --arl-gold:        #c9a227;
   --arl-gold-dim:    #7a5f12;
   --arl-arcane:      #7b4fd4;
-  --arl-teal:        #1fb8b8;
+  --arl-teal:        #60D4FF;
   --arl-blood:       #c0392b;
 
   /* Typography */
   --font-display: 'Cinzel Decorative', serif;
   --font-heading: 'Cinzel', serif;
-  --font-body:    'Crimson Pro', serif;
+  --font-body:    'Inter', sans-serif;
   --font-code:    'JetBrains Mono', monospace;
 
   /* ShadCN UI Variables Bridge */
@@ -35,19 +35,19 @@
   --card-foreground: 45 40% 85%;
   --popover: 240 10% 2%;
   --popover-foreground: 45 40% 85%;
-  --primary: 260 60% 57%;
+  --primary: 231 60% 44%; /* #2E2EB3 */
   --primary-foreground: 45 40% 95%;
-  --secondary: 240 10% 8%;
+  --secondary: 240 10% 13%; /* #1C1C21 */
   --secondary-foreground: 45 40% 85%;
   --muted: 240 10% 8%;
   --muted-foreground: 220 20% 60%;
-  --accent: 180 70% 42%;
+  --accent: 196 100% 69%; /* #60D4FF */
   --accent-foreground: 240 10% 2%;
   --destructive: 0 65% 46%;
   --destructive-foreground: 45 40% 95%;
-  --border: 220 40% 15%;
-  --input: 220 40% 15%;
-  --ring: 260 60% 57%;
+  --border: 231 60% 20%;
+  --input: 231 60% 20%;
+  --ring: 231 60% 44%;
   --radius: 1rem;
 }
 
@@ -72,22 +72,22 @@
     background: #020203;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #1e2a4a;
+    background: #2E2EB3;
     border-radius: 3px;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #7b4fd4;
+    background: #60D4FF;
   }
 
   .axiom-gradient {
-    background: linear-gradient(135deg, var(--arl-arcane) 0%, var(--arl-teal) 100%);
+    background: linear-gradient(135deg, #2E2EB3 0%, #60D4FF 100%);
   }
 
   .axiom-card-hover {
     @apply transition-all duration-500 ease-in-out;
   }
   .axiom-card-hover:hover {
-    @apply border-accent/40 shadow-[0_0_30px_rgba(31,184,184,0.15)] scale-[1.02];
+    @apply border-accent/40 shadow-[0_0_30px_rgba(96,212,255,0.15)] scale-[1.02];
   }
 
   .heartbeat-pulse {

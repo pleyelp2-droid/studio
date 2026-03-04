@@ -18,7 +18,8 @@ import {
   Globe,
   Zap,
   Play,
-  Monitor
+  Monitor,
+  ShieldCheck
 } from "lucide-react"
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
@@ -75,7 +76,7 @@ export default function MMORPGPortal() {
           </div>
 
           <div className="hidden lg:flex items-center gap-12">
-            {["THE WORLD", "ARCHETYPES", "PLAYER ECONOMY", "CHRONICLES"].map((item) => (
+            {["THE WORLD", "ARCHETYPES", "ECONOMY", "CHRONICLES"].map((item) => (
               <Link 
                 key={item} 
                 href={`#${item.toLowerCase().replace(' ', '-')}`} 
@@ -143,7 +144,7 @@ export default function MMORPGPortal() {
             </span>
           </motion.div>
 
-          <h1 className="text-6xl md:text-9xl lg:text-[10rem] font-headline font-black leading-[0.85] text-white italic tracking-tighter mb-10 drop-shadow-[0_0_60px_rgba(31,184,184,0.4)] uppercase">
+          <h1 className="text-6xl md:text-9xl lg:text-[10rem] font-headline font-black leading-[0.85] text-white italic tracking-tighter mb-10 drop-shadow-[0_0_60px_rgba(96,212,255,0.4)] uppercase">
             Claim Your<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent via-white to-[#7b4fd4] animate-gradient">LEGACY.</span>
           </h1>
@@ -230,8 +231,8 @@ export default function MMORPGPortal() {
           <div className="max-w-7xl mx-auto grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             {[
               { title: "Persistence", icon: Layers, val: "IMMUTABLE", desc: "Every trade, every kill, recorded forever.", color: "text-accent" },
-              { title: "Neural NPC", icon: Zap, val: "AUTONOMOUS", desc: "Entities with unique memories and goals.", color: "text-axiom-purple" },
-              { title: "Economy", icon: Globe, val: "DECENTRALIZED", desc: "Player-driven trade and resource flow.", color: "text-axiom-gold" },
+              { title: "Neural NPC", icon: Zap, val: "AUTONOMOUS", desc: "Entities with unique memories and goals.", color: "text-[#7b4fd4]" },
+              { title: "Economy", icon: Globe, val: "DECENTRALIZED", desc: "Player-driven trade and resource flow.", color: "text-[#c9a227]" },
               { title: "Latency", icon: Activity, val: "ZERO_LAG", desc: "Instant sync between React and Godot.", color: "text-emerald-500" }
             ].map((stat, i) => (
               <div key={i} className="p-10 rounded-[3rem] bg-secondary/10 border border-white/10 backdrop-blur-sm axiom-card-hover flex flex-col items-center text-center">
