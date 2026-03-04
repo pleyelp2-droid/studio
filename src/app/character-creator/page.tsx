@@ -140,6 +140,16 @@ export default function CharacterCreatorPage() {
           bodyScale,
           hairStyle: 'short'
         },
+        thinkingMatrix: {
+          personality: neuralPrompt ? "Prompt Synthesized" : "Standard Axiomatic",
+          currentLongTermGoal: "Establishing Foundation",
+          alignment: 0.5,
+          languagePreference: "EN",
+          sociability: 0.5,
+          aggression: 0.5,
+          curiosity: 0.5,
+          frugality: 0.5
+        },
         lastUpdate: serverTimestamp(),
         createdAt: serverTimestamp(),
         npcClass: "PILOT"
@@ -230,7 +240,7 @@ export default function CharacterCreatorPage() {
                       disabled={!neuralPrompt || isSynthesizing}
                       className="absolute bottom-3 right-3 axiom-gradient h-10 px-4 text-[10px] font-black uppercase tracking-widest italic rounded-lg shadow-xl"
                     >
-                      {isSynthesizing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Sparkles className="h-3 w-3 mr-2" />}
+                      {isSynthesizing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
                       Synthesize Essence
                     </Button>
                   </div>

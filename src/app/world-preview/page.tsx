@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useRef } from "react"
@@ -89,6 +90,16 @@ export default function WorldPreviewPage() {
         },
         dnaHistory: [],
         memoryCache: [],
+        thinkingMatrix: {
+          personality: "Standard Axiomatic",
+          currentLongTermGoal: "Establishing Foundation",
+          alignment: 0.5,
+          languagePreference: "EN",
+          sociability: 0.5,
+          aggression: 0.5,
+          curiosity: 0.5,
+          frugality: 0.5
+        },
         awakened: true,
         lastUpdate: new Date(),
         appearance: {
