@@ -10,7 +10,7 @@ export class Agent {
   relationships: Map<string, Relationship> = new Map();
   tasks: Task[] = [];
   inventory: Record<string, number> = {};
-  needs: Record<string, number> = { hunger: 50 };
+  needs: Record<string, number> = { hunger: 50, social: 50 };
   longTermGoals: string[] = [];
   groups: SocialGroup[] = [];
 
@@ -35,8 +35,12 @@ export class Agent {
   updateTasks() {
     this.tasks.forEach(task => {
       if (task.status === 'active') {
-        task.status = 'done';
-        this.addMemory(`Completed task: ${task.goal}`, 10);
+        // Logic to potentially complete tasks based on world state
+        // For prototype, we complete them randomly
+        if (Math.random() > 0.95) {
+          task.status = 'done';
+          this.addMemory(`Completed task: ${task.goal}`, 10);
+        }
       }
     });
   }
@@ -59,39 +63,21 @@ export class Agent {
   }
 
   decideAction(allAgents: Agent[]): Interaction | null {
-    for (const goal of this.longTermGoals) {
-      if (goal === 'gather_food' && this.needs.hunger > 40) {
-        const targets = allAgents.filter(a => a.id !== this.id && (a.inventory['food'] || 0) > 0);
-        targets.sort((a, b) => (this.relationships.get(b.id)?.trust || 0) - (this.relationships.get(a.id)?.trust || 0));
-        const target = targets[0];
-        if (target) {
-          return { type: 'trade', senderId: this.id, receiverId: target.id, payload: { item: 'food', amount: 1 } };
-        }
+    // Basic heuristic decision making
+    if (this.needs.hunger > 60) {
+      const target = allAgents.find(a => a.id !== this.id && (a.inventory['food'] || 0) > 0);
+      if (target) {
+        return { type: 'trade', senderId: this.id, receiverId: target.id, payload: { item: 'food', amount: 1 } };
       }
     }
 
-    const potentialPartner = allAgents.find(a => a.id !== this.id && (this.relationships.get(a.id)?.trust || 0) > 80);
-    if (potentialPartner) {
-        return {
-            type: 'proposeGroup',
-            senderId: this.id,
-            receiverId: potentialPartner.id,
-            payload: { groupName: `${this.name}'s Guild`, type: 'guild' }
-        };
+    if (this.needs.social < 40) {
+      const target = allAgents[Math.floor(Math.random() * allAgents.length)];
+      if (target && target.id !== this.id) {
+        return { type: 'talk', senderId: this.id, receiverId: target.id, payload: { message: "The Spire rises today, doesn't it?" } };
+      }
     }
 
-    const positiveInteractions = this.memory.filter(m => m.trustDelta > 0);
-    if (positiveInteractions.length > 0) {
-        const target = allAgents[Math.floor(Math.random() * allAgents.length)];
-        if (target && target.id !== this.id) {
-            return {
-                type: 'talk',
-                senderId: this.id,
-                receiverId: target.id,
-                payload: { message: "The Spire rises today, doesn't it?" }
-            };
-        }
-    }
     return null;
   }
 
@@ -101,36 +87,21 @@ export class Agent {
         this.updateTrust(interaction.senderId, 2);
         this.addMemory(`Talked to ${interaction.senderId}`, 2);
         interactionLogger.log(interaction, 2);
-        return this.handleTalk(interaction);
+        return `[warm] ${this.name} says: ${interaction.payload.message}`;
       case 'trade':
-        return this.handleTrade(interaction);
-      case 'proposeGroup':
-        this.updateTrust(interaction.senderId, 10);
-        this.addMemory(`Accepted group proposal from ${interaction.senderId}`, 10);
-        interactionLogger.log(interaction, 10);
-        return `${this.name} joined ${interaction.payload.groupName}.`;
+        const { item, amount } = interaction.payload;
+        if ((this.inventory[item] || 0) >= amount) {
+          this.inventory[item] -= amount;
+          this.updateTrust(interaction.senderId, 5);
+          this.addMemory(`Traded ${item} to ${interaction.senderId}`, 5);
+          interactionLogger.log(interaction, 5);
+          return `${this.name} traded ${amount} ${item} to ${interaction.senderId}.`;
+        }
+        this.updateTrust(interaction.senderId, -5);
+        interactionLogger.log(interaction, -5);
+        return `${this.name} does not have enough ${item}.`;
       default:
-        return "I don't understand that interaction.";
+        return "Unknown interaction.";
     }
-  }
-
-  private handleTalk(interaction: Interaction): string {
-    const rel = this.relationships.get(interaction.senderId) || { targetId: interaction.senderId, trust: 0, type: 'neutral' };
-    const tone = rel.trust > 50 ? "warm" : rel.trust < -50 ? "cold" : "neutral";
-    return `[${tone}] ${this.name} says: ${interaction.payload.message}`;
-  }
-
-  private handleTrade(interaction: Interaction): string {
-    const { item, amount } = interaction.payload;
-    if ((this.inventory[item] || 0) >= amount) {
-      this.inventory[item] -= amount;
-      this.updateTrust(interaction.senderId, 5);
-      this.addMemory(`Traded ${item} to ${interaction.senderId}`, 5);
-      interactionLogger.log(interaction, 5);
-      return `${this.name} traded ${amount} ${item} to ${interaction.senderId}.`;
-    }
-    this.updateTrust(interaction.senderId, -5);
-    interactionLogger.log(interaction, -5);
-    return `${this.name} does not have enough ${item}.`;
   }
 }

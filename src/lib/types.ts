@@ -18,6 +18,11 @@ export interface Task {
   status: 'pending' | 'active' | 'done';
 }
 
+export interface EquipSlot {
+  slot: 'head' | 'chest' | 'legs';
+  itemId: string | null;
+}
+
 export interface SocialGroup {
   id: string;
   name: string;
@@ -32,9 +37,4 @@ export interface Interaction {
   senderId: string;
   receiverId: string;
   payload: any;
-}
-
-export interface EquipSlot {
-  slot: 'head' | 'chest' | 'legs';
-  itemId: string | null;
 }
