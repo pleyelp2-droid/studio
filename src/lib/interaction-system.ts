@@ -11,14 +11,10 @@ export class InteractionManager {
   }
 
   processInteraction(interaction: Interaction): string {
-    const receiver = this.agents.get(receiverIdFromInteraction(interaction));
+    const receiver = this.agents.get(interaction.receiverId);
     if (!receiver) {
-      return "Target not found.";
+      return "Target neural signature not found.";
     }
     return receiver.handleInteraction(interaction);
   }
-}
-
-function receiverIdFromInteraction(interaction: Interaction): string {
-  return interaction.receiverId;
 }

@@ -17,7 +17,7 @@ class InteractionLogger {
       trustDelta,
       timestamp: Date.now(),
     });
-    // Keep only the last 100 logs for heuristic analysis
+    // Limit log size for performance
     if (this.logs.length > 100) {
       this.logs.shift();
     }

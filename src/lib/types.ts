@@ -18,11 +18,6 @@ export interface Task {
   status: 'pending' | 'active' | 'done';
 }
 
-export interface EquipSlot {
-  slot: 'head' | 'chest' | 'legs';
-  itemId: string | null;
-}
-
 export interface SocialGroup {
   id: string;
   name: string;
