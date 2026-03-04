@@ -70,7 +70,7 @@ export const DEFAULT_APPEARANCE: AppearanceConfig = {
 export interface Agent {
   id: string;
   displayName: string;
-  name?: string; // Compatibility with user snippets
+  name?: string;
   npcClass: string;
   level: number;
   hp: number;
@@ -83,14 +83,14 @@ export interface Agent {
   position: { x: number; y: number; z: number };
   visionRange: number;
   state: AgentState;
-  inventory: any[]; // Complex items
-  resourceInventory: Record<string, number>; // Simple resources like 'food', 'wood'
+  inventory: any[];
+  resourceInventory: Record<string, number>;
   bank: any[];
   needs: AgentNeeds;
-  memory: string[]; // Floating thoughts
-  memoryEvents: Memory[]; // Structured history
-  relationships: Record<string, Relationship>; // Trust Matrix
-  tasks: Task[]; // Active goals
+  memory: string[];
+  memoryEvents: Memory[];
+  relationships: Record<string, Relationship>;
+  tasks: Task[];
   dnaHistory: any[];
   memoryCache: any[];
   awakened: boolean;
@@ -122,7 +122,7 @@ export interface Chunk {
   resourceData: any;
   logicField: any[];
   lastUpdate: any;
-  logicString?: string;
+  logicString?: string; // The "logical chunk string" (F:|R:|C:|X:|D:)
 }
 
 export type POIType = 'SHRINE' | 'FORGE' | 'MARKET_STALL' | 'BANK_VAULT' | 'GATE' | 'WALL' | 'HOUSE' | 'TREE' | 'DUNGEON' | 'RUIN' | 'NEST' | 'BUILDING' | 'MINE' | 'FOREST';
