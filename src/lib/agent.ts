@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Memory, Relationship, Task, Interaction, SocialGroup } from './types';
@@ -30,17 +29,7 @@ export class Agent {
   updateTrust(targetId: string, delta: number) {
     const rel = this.relationships.get(targetId) || { targetId, trust: 0, type: 'neutral' };
     rel.trust = Math.max(-100, Math.min(100, rel.trust + delta));
-    
-    if (rel.trust > 50) rel.type = 'friend';
-    else if (rel.trust < -50) rel.type = 'enemy';
-    else rel.type = 'neutral';
-
     this.relationships.set(targetId, rel);
-  }
-
-  addMemory(event: string, trustDelta: number) {
-    this.memory.push({ event, timestamp: Date.now(), trustDelta });
-    if (this.memory.length > 50) this.memory.shift();
   }
 
   updateTasks() {
@@ -52,12 +41,16 @@ export class Agent {
     });
   }
 
+  addMemory(event: string, trustDelta: number) {
+    this.memory.push({ event, timestamp: Date.now(), trustDelta });
+    if (this.memory.length > 50) this.memory.shift();
+  }
+
   learnFromLogs(logs: InteractionLog[]) {
     logs.forEach(log => {
-      if (log.interaction.senderId === this.id) return;
       const rel = this.relationships.get(log.interaction.senderId);
       if (rel && rel.trust > 20 && log.trustDelta > 0) {
-        this.addMemory(`Learned from ${log.interaction.senderId}: ${log.interaction.type} successful`, 1);
+        this.addMemory(`Learned from ${log.interaction.senderId}: ${log.interaction.type} was successful`, 1);
         if (log.interaction.type === 'trade') {
           this.needs.hunger = Math.max(0, this.needs.hunger - 5);
         }
@@ -68,7 +61,7 @@ export class Agent {
   decideAction(allAgents: Agent[]): Interaction | null {
     for (const goal of this.longTermGoals) {
       if (goal === 'gather_food' && this.needs.hunger > 40) {
-        const targets = allAgents.filter(a => a.id !== this.id && (a.inventory['food'] || 0) > 0);
+        const targets = allAgents.filter(a => a.id !== this.id && a.inventory['food'] > 0);
         targets.sort((a, b) => (this.relationships.get(b.id)?.trust || 0) - (this.relationships.get(a.id)?.trust || 0));
         const target = targets[0];
         if (target) {
@@ -78,7 +71,7 @@ export class Agent {
     }
 
     const potentialPartner = allAgents.find(a => a.id !== this.id && (this.relationships.get(a.id)?.trust || 0) > 80);
-    if (potentialPartner && Math.random() > 0.9) {
+    if (potentialPartner) {
       return {
         type: 'proposeGroup',
         senderId: this.id,
@@ -88,7 +81,7 @@ export class Agent {
     }
 
     const positiveInteractions = this.memory.filter(m => m.trustDelta > 0);
-    if (positiveInteractions.length > 0 && Math.random() > 0.7) {
+    if (positiveInteractions.length > 0) {
       const target = allAgents[Math.floor(Math.random() * allAgents.length)];
       if (target && target.id !== this.id) {
         return {
@@ -117,7 +110,7 @@ export class Agent {
         interactionLogger.log(interaction, 10);
         return `${this.name} joined ${interaction.payload.groupName}.`;
       default:
-        return "Unknown protocol.";
+        return "I don't understand that interaction.";
     }
   }
 
@@ -129,7 +122,7 @@ export class Agent {
 
   private handleTrade(interaction: Interaction): string {
     const { item, amount } = interaction.payload;
-    if ((this.inventory[item] || 0) >= amount) {
+    if (this.inventory[item] >= amount) {
       this.inventory[item] -= amount;
       this.updateTrust(interaction.senderId, 5);
       this.addMemory(`Traded ${item} to ${interaction.senderId}`, 5);
@@ -138,6 +131,6 @@ export class Agent {
     }
     this.updateTrust(interaction.senderId, -5);
     interactionLogger.log(interaction, -5);
-    return `${this.name} lacks ${item}.`;
+    return `${this.name} does not have enough ${item}.`;
   }
 }

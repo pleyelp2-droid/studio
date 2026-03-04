@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Interaction } from './types';
@@ -18,10 +17,7 @@ class InteractionLogger {
       trustDelta,
       timestamp: Date.now(),
     });
-    // Limit log size for performance
-    if (this.logs.length > 100) {
-      this.logs.shift();
-    }
+    if (this.logs.length > 100) this.logs.shift();
   }
 
   getLogs(): InteractionLog[] {
