@@ -8,33 +8,36 @@ export const KAPPA = 1000;
 export interface ChunkData {
   id: string;
   x: number;
-  y: number;
+  z: number;
+  seed: number;
   biome: string;
   resources: Record<string, number>;
   fieldString: string;
 }
 
 export const Axioms = {
-  Continuity: (x: number, y: number) => Math.sin(x / KAPPA) + Math.cos(y / KAPPA),
-  ResourceDensity: (x: number, y: number) => (Math.abs(x) + Math.abs(y)) % 100,
-  Connectivity: (x: number, y: number) => (x + y) % 2 === 0 ? "path" : "wall",
-  Complexity: (x: number, y: number) => Math.sqrt(x * x + y * y) / KAPPA,
-  Determinism: (seed: number, x: number, y: number) => (x * 31 + y * 37 + seed) % 1000,
+  Continuity: (x: number, z: number) => Math.sin(x / KAPPA) + Math.cos(z / KAPPA),
+  ResourceDensity: (x: number, z: number) => (Math.abs(x) + Math.abs(z)) % 100,
+  Connectivity: (x: number, z: number) => (x + z) % 2 === 0 ? "path" : "wall",
+  Complexity: (x: number, z: number) => Math.sqrt(x * x + z * z) / KAPPA,
+  Determinism: (seed: number, x: number, z: number) => (x * 31 + z * 37 + seed) % 1000,
 };
 
-export function generateChunk(x: number, y: number, seed: number): ChunkData {
-  const continuity = Axioms.Continuity(x, y);
-  const resourceDensity = Axioms.ResourceDensity(x, y);
-  const connectivity = Axioms.Connectivity(x, y);
-  const complexity = Axioms.Complexity(x, y);
-  const determinism = Axioms.Determinism(seed, x, y);
+export function generateChunk(x: number, z: number, seed: number): ChunkData {
+  const continuity = Axioms.Continuity(x, z);
+  const resourceDensity = Axioms.ResourceDensity(x, z);
+  const connectivity = Axioms.Connectivity(x, z);
+  const complexity = Axioms.Complexity(x, z);
+  const determinism = Axioms.Determinism(seed, x, z);
 
+  // Field Theory Logic: Constructing the logical chunk string
   const fieldString = `F:${continuity.toFixed(2)}|R:${resourceDensity}|C:${connectivity}|X:${complexity.toFixed(2)}|D:${determinism}`;
 
   return {
-    id: `${x}:${y}`,
+    id: `${x}:${z}`,
     x,
-    y,
+    z,
+    seed,
     biome: continuity > 0 ? "forest" : "desert",
     resources: {
       gold: resourceDensity > 80 ? 10 : 0,
