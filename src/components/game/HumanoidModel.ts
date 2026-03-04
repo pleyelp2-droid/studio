@@ -1,9 +1,11 @@
+
 import * as THREE from 'three';
 
 export interface HumanoidAppearance {
   skinTone: string;
   hairStyle: 'bald' | 'short' | 'long' | 'mohawk' | 'ponytail';
   bodyScale: number;
+  heightScale?: number;
 }
 
 export interface HumanoidBones {
@@ -37,6 +39,7 @@ const DEFAULT_APPEARANCE: HumanoidAppearance = {
   skinTone: '#c68642',
   hairStyle: 'short',
   bodyScale: 1.0,
+  heightScale: 1.0
 };
 
 function createBone(name: string, length: number): THREE.Bone {
@@ -46,35 +49,36 @@ function createBone(name: string, length: number): THREE.Bone {
   return bone;
 }
 
-function buildSkeleton(): { bones: HumanoidBones; allBones: THREE.Bone[] } {
+function buildSkeleton(heightScale: number): { bones: HumanoidBones; allBones: THREE.Bone[] } {
   const root = new THREE.Bone();
   root.name = 'root';
   root.position.set(0, 0, 0);
 
+  // Apply height scale to vertical bone lengths
   const spine = createBone('spine', 0.0);
-  const chest = createBone('chest', 0.45);
-  const neck = createBone('neck', 0.4);
-  const head = createBone('head', 0.15);
+  const chest = createBone('chest', 0.45 * heightScale);
+  const neck = createBone('neck', 0.4 * heightScale);
+  const head = createBone('head', 0.15 * heightScale);
 
   const upperArmL = createBone('upperArmL', 0.0);
-  upperArmL.position.set(-0.35, 0.35, 0);
+  upperArmL.position.set(-0.35, 0.35 * heightScale, 0);
   const forearmL = createBone('forearmL', -0.3);
   const handL = createBone('handL', -0.25);
 
   const upperArmR = createBone('upperArmR', 0.0);
-  upperArmR.position.set(0.35, 0.35, 0);
+  upperArmR.position.set(0.35, 0.35 * heightScale, 0);
   const forearmR = createBone('forearmR', -0.3);
   const handR = createBone('handR', -0.25);
 
   const upperLegL = createBone('upperLegL', 0.0);
   upperLegL.position.set(-0.15, 0.0, 0);
-  const lowerLegL = createBone('lowerLegL', -0.35);
-  const footL = createBone('footL', -0.35);
+  const lowerLegL = createBone('lowerLegL', -0.35 * heightScale);
+  const footL = createBone('footL', -0.35 * heightScale);
 
   const upperLegR = createBone('upperLegR', 0.0);
   upperLegR.position.set(0.15, 0.0, 0);
-  const lowerLegR = createBone('lowerLegR', -0.35);
-  const footR = createBone('footR', -0.35);
+  const lowerLegR = createBone('lowerLegR', -0.35 * heightScale);
+  const footR = createBone('footR', -0.35 * heightScale);
 
   root.add(spine);
   spine.add(chest);
@@ -122,47 +126,47 @@ interface BodyPart {
   offset: THREE.Vector3;
 }
 
-function createBodyParts(): BodyPart[] {
+function createBodyParts(heightScale: number): BodyPart[] {
   const parts: BodyPart[] = [];
 
-  // Spine/Torso
+  // Torso
   parts.push({
-    geometry: new THREE.BoxGeometry(0.4, 0.45, 0.25),
+    geometry: new THREE.BoxGeometry(0.4, 0.45 * heightScale, 0.25),
     boneIndex: 1,
-    offset: new THREE.Vector3(0, 0.225, 0),
+    offset: new THREE.Vector3(0, 0.225 * heightScale, 0),
   });
 
   // Chest
   parts.push({
-    geometry: new THREE.BoxGeometry(0.5, 0.4, 0.3),
+    geometry: new THREE.BoxGeometry(0.5, 0.4 * heightScale, 0.3),
     boneIndex: 2,
-    offset: new THREE.Vector3(0, 0.2, 0),
+    offset: new THREE.Vector3(0, 0.2 * heightScale, 0),
   });
 
   // Neck
   parts.push({
-    geometry: new THREE.CylinderGeometry(0.08, 0.08, 0.15, 6),
+    geometry: new THREE.CylinderGeometry(0.08, 0.08, 0.15 * heightScale, 6),
     boneIndex: 3,
-    offset: new THREE.Vector3(0, 0.075, 0),
+    offset: new THREE.Vector3(0, 0.075 * heightScale, 0),
   });
 
   // Head
   parts.push({
     geometry: new THREE.SphereGeometry(0.18, 12, 12),
     boneIndex: 4,
-    offset: new THREE.Vector3(0, 0.1, 0),
+    offset: new THREE.Vector3(0, 0.1 * heightScale, 0),
   });
 
   // Arms L
   parts.push({
-    geometry: new THREE.CylinderGeometry(0.06, 0.07, 0.3, 6),
+    geometry: new THREE.CylinderGeometry(0.06, 0.07, 0.3 * heightScale, 6),
     boneIndex: 5,
-    offset: new THREE.Vector3(0, -0.15, 0),
+    offset: new THREE.Vector3(0, -0.15 * heightScale, 0),
   });
   parts.push({
-    geometry: new THREE.CylinderGeometry(0.05, 0.06, 0.25, 6),
+    geometry: new THREE.CylinderGeometry(0.05, 0.06, 0.25 * heightScale, 6),
     boneIndex: 6,
-    offset: new THREE.Vector3(0, -0.125, 0),
+    offset: new THREE.Vector3(0, -0.125 * heightScale, 0),
   });
   parts.push({
     geometry: new THREE.BoxGeometry(0.06, 0.06, 0.08),
@@ -172,14 +176,14 @@ function createBodyParts(): BodyPart[] {
 
   // Arms R
   parts.push({
-    geometry: new THREE.CylinderGeometry(0.06, 0.07, 0.3, 6),
+    geometry: new THREE.CylinderGeometry(0.06, 0.07, 0.3 * heightScale, 6),
     boneIndex: 8,
-    offset: new THREE.Vector3(0, -0.15, 0),
+    offset: new THREE.Vector3(0, -0.15 * heightScale, 0),
   });
   parts.push({
-    geometry: new THREE.CylinderGeometry(0.05, 0.06, 0.25, 6),
+    geometry: new THREE.CylinderGeometry(0.05, 0.06, 0.25 * heightScale, 6),
     boneIndex: 9,
-    offset: new THREE.Vector3(0, -0.125, 0),
+    offset: new THREE.Vector3(0, -0.125 * heightScale, 0),
   });
   parts.push({
     geometry: new THREE.BoxGeometry(0.06, 0.06, 0.08),
@@ -189,14 +193,14 @@ function createBodyParts(): BodyPart[] {
 
   // Legs L
   parts.push({
-    geometry: new THREE.CylinderGeometry(0.08, 0.07, 0.35, 6),
+    geometry: new THREE.CylinderGeometry(0.08, 0.07, 0.35 * heightScale, 6),
     boneIndex: 11,
-    offset: new THREE.Vector3(0, -0.175, 0),
+    offset: new THREE.Vector3(0, -0.175 * heightScale, 0),
   });
   parts.push({
-    geometry: new THREE.CylinderGeometry(0.06, 0.07, 0.35, 6),
+    geometry: new THREE.CylinderGeometry(0.06, 0.07, 0.35 * heightScale, 6),
     boneIndex: 12,
-    offset: new THREE.Vector3(0, -0.175, 0),
+    offset: new THREE.Vector3(0, -0.175 * heightScale, 0),
   });
   parts.push({
     geometry: new THREE.BoxGeometry(0.1, 0.05, 0.16),
@@ -206,14 +210,14 @@ function createBodyParts(): BodyPart[] {
 
   // Legs R
   parts.push({
-    geometry: new THREE.CylinderGeometry(0.08, 0.07, 0.35, 6),
+    geometry: new THREE.CylinderGeometry(0.08, 0.07, 0.35 * heightScale, 6),
     boneIndex: 14,
-    offset: new THREE.Vector3(0, -0.175, 0),
+    offset: new THREE.Vector3(0, -0.175 * heightScale, 0),
   });
   parts.push({
-    geometry: new THREE.CylinderGeometry(0.06, 0.07, 0.35, 6),
+    geometry: new THREE.CylinderGeometry(0.06, 0.07, 0.35 * heightScale, 6),
     boneIndex: 15,
-    offset: new THREE.Vector3(0, -0.175, 0),
+    offset: new THREE.Vector3(0, -0.175 * heightScale, 0),
   });
   parts.push({
     geometry: new THREE.BoxGeometry(0.1, 0.05, 0.16),
@@ -276,17 +280,17 @@ function mergeAndSkin(parts: BodyPart[], boneCount: number): { geometry: THREE.B
 export function createHumanoidModel(config?: Partial<HumanoidAppearance>): HumanoidModel {
   const appearance: HumanoidAppearance = { ...DEFAULT_APPEARANCE, ...config };
   const scale = appearance.bodyScale;
+  const hScale = appearance.heightScale || 1.0;
 
-  const { bones, allBones } = buildSkeleton();
+  const { bones, allBones } = buildSkeleton(hScale);
   const skeleton = new THREE.Skeleton(allBones);
 
-  const parts = createBodyParts();
+  const parts = createBodyParts(hScale);
 
   bones.root.updateWorldMatrix(true, true);
 
   const { geometry } = mergeAndSkin(parts, allBones.length);
 
-  // Production-grade PBR Material
   const material = new THREE.MeshStandardMaterial({
     color: appearance.skinTone,
     roughness: 0.6,

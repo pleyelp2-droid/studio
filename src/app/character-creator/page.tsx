@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, Suspense } from "react"
 import { useFirestore, useUser } from "@/firebase"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -22,12 +22,44 @@ import {
   ShieldCheck,
   BrainCircuit,
   Zap,
-  Target,
-  Pickaxe
+  Download,
+  Eye,
+  Maximize2
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import { AIService } from "@/services/AIService"
+import { Canvas, useFrame } from "@react-three/fiber"
+import { createHumanoidModel } from "@/components/game/HumanoidModel"
+import * as THREE from "three"
+import { CharacterExportService } from "@/services/CharacterExportService"
+
+function CharacterPreview({ appearance }: { appearance: any }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const modelRef = useRef<any>(null);
+
+  useFrame(() => {
+    if (!groupRef.current) return;
+    
+    const key = `${appearance.skinTone}-${appearance.heightScale}-${appearance.bodyScale}`;
+    if (groupRef.current.userData.lastKey !== key) {
+      if (modelRef.current) {
+        groupRef.current.remove(modelRef.current.group);
+      }
+      const model = createHumanoidModel({
+        skinTone: appearance.skinTone,
+        heightScale: appearance.heightScale,
+        bodyScale: appearance.bodyScale * 2.0
+      });
+      modelRef.current = model;
+      groupRef.current.add(model.group);
+      groupRef.current.userData.lastKey = key;
+      groupRef.current.userData.modelGroup = model.group;
+    }
+    groupRef.current.rotation.y += 0.005;
+  });
+
+  return <group ref={groupRef} position={[0, -1.5, 0]} />;
+}
 
 export default function CharacterCreatorPage() {
   const { user } = useUser()
@@ -37,19 +69,24 @@ export default function CharacterCreatorPage() {
   
   const [loading, setLoading] = useState(false)
   const [isSynthesizing, setIsSynthesizing] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
   const [name, setName] = useState("")
   const [neuralPrompt, setNeuralPrompt] = useState("")
   const [skinTone, setSkinTone] = useState("#d1a37c")
+  const [heightScale, setHeightScale] = useState(1.0)
+  const [bodyScale, setBodyScale] = useState(1.0)
   const [stats, setStats] = useState({ str: 10, agi: 10, int: 10, vit: 10 })
-  const [skills, setSkills] = useState({ mining: 1, smithing: 1, combat: 1, reflection: 1 })
+  
+  const previewRef = useRef<THREE.Group>(null);
 
   const handleSynthesize = async () => {
     if (!neuralPrompt) return
     setIsSynthesizing(true)
     try {
-      // In a real scenario, this would call our Genkit flow
-      // For now, we simulate the "Axiom Synthesis"
       await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      const rngHeight = 0.8 + Math.random() * 0.4;
+      setHeightScale(rngHeight);
       
       setStats({
         str: 10 + Math.floor(Math.random() * 5),
@@ -69,6 +106,25 @@ export default function CharacterCreatorPage() {
     }
   }
 
+  const handleExport = async () => {
+    // In a real Three.js / React context, we'd need to find the specific model in the scene
+    // For this prototype, we re-generate it for export
+    setIsExporting(true);
+    try {
+      const model = createHumanoidModel({
+        skinTone,
+        heightScale,
+        bodyScale: bodyScale * 2.0
+      });
+      await CharacterExportService.exportToGLB(model.group, `${name || 'pilot'}_manifest.glb`);
+      toast({ title: "GLB Manifest Extracted", description: "Procedural character model is ready for external engines." });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Export Error", description: e.message });
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   const handleCreate = async () => {
     if (!db || !user || !name) return
     setLoading(true)
@@ -81,7 +137,6 @@ export default function CharacterCreatorPage() {
         maxHp: stats.vit * 10,
         exp: 0,
         ...stats,
-        skills,
         position: { x: Math.random() * 20, y: 0, z: Math.random() * 20 },
         visionRange: 50,
         state: 'IDLE',
@@ -91,8 +146,9 @@ export default function CharacterCreatorPage() {
         awakened: !!neuralPrompt,
         appearance: {
           skinTone,
-          hairStyle: 'short',
-          bodyScale: 1.0
+          heightScale,
+          bodyScale,
+          hairStyle: 'short'
         },
         lastUpdate: serverTimestamp(),
         createdAt: serverTimestamp()
@@ -115,12 +171,46 @@ export default function CharacterCreatorPage() {
             <SidebarTrigger />
             <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight text-white">Neural Manifestation</h1>
           </div>
-          <Badge variant="outline" className="text-accent border-accent font-black text-[10px] tracking-widest italic">CLASSLESS_SYSTEM_V1.2</Badge>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleExport}
+              disabled={isExporting || !name}
+              className="border-accent/30 text-accent font-black text-[10px] tracking-widest italic"
+            >
+              {isExporting ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Download className="h-3 w-3 mr-2" />}
+              Extract GLB
+            </Button>
+            <Badge variant="outline" className="text-accent border-accent font-black text-[10px] tracking-widest italic">PROCEDURAL_GEN_V2</Badge>
+          </div>
         </header>
 
         <main className="p-6 grid gap-8 lg:grid-cols-12 max-w-7xl mx-auto w-full">
           {/* AI Neural Imprinting */}
           <div className="lg:col-span-7 space-y-8">
+            <div className="aspect-video w-full rounded-[2rem] bg-black/40 border border-white/5 relative overflow-hidden group shadow-2xl">
+              <div className="absolute inset-0 z-0">
+                <Canvas camera={{ position: [0, 0, 5], fov: 40 }}>
+                  <ambientLight intensity={0.5} />
+                  <pointLight position={[10, 10, 10]} intensity={1.5} color="#60D4FF" />
+                  <pointLight position={[-10, -10, -10]} intensity={0.5} color="#7b4fd4" />
+                  <Suspense fallback={null}>
+                    <CharacterPreview appearance={{ skinTone, heightScale, bodyScale }} />
+                  </Suspense>
+                </Canvas>
+              </div>
+              <div className="absolute top-6 left-6 z-10">
+                <Badge className="bg-black/60 backdrop-blur-md border-white/10 text-axiom-cyan font-black italic uppercase text-[9px] tracking-[0.3em]">
+                  Real-time Neural Render
+                </Badge>
+              </div>
+              <div className="absolute bottom-6 right-6 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button variant="ghost" size="icon" className="rounded-full bg-black/40 backdrop-blur-xl border border-white/10 text-white">
+                  <Maximize2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
             <Card className="border-border bg-card shadow-2xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
                 <BrainCircuit className="h-64 w-64" />
@@ -155,7 +245,7 @@ export default function CharacterCreatorPage() {
                     <Button 
                       onClick={handleSynthesize}
                       disabled={!neuralPrompt || isSynthesizing}
-                      className="absolute bottom-3 right-3 axiom-gradient h-10 px-4 text-[10px] font-black uppercase tracking-widest italic rounded-lg"
+                      className="absolute bottom-3 right-3 axiom-gradient h-10 px-4 text-[10px] font-black uppercase tracking-widest italic rounded-lg shadow-xl"
                     >
                       {isSynthesizing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Sparkles className="h-3 w-3 mr-2" />}
                       Synthesize Essence
@@ -163,17 +253,33 @@ export default function CharacterCreatorPage() {
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <Label className="text-[10px] font-black uppercase tracking-[0.3em] italic text-accent">Starting Pigmentation</Label>
-                  <div className="flex gap-4">
-                    {['#d1a37c', '#8d5524', '#c68642', '#e0ac69', '#3d1e11'].map(c => (
-                      <button 
-                        key={c} 
-                        onClick={() => setSkinTone(c)}
-                        className={`h-10 w-10 rounded-full border-4 transition-all ${skinTone === c ? 'border-accent scale-110 shadow-[0_0_15px_rgba(96,212,255,0.5)]' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                        style={{ backgroundColor: c }}
+                <div className="grid md:grid-cols-2 gap-10">
+                  <div className="space-y-6">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.3em] italic text-accent">Neural Height</Label>
+                    <div className="flex items-center gap-4">
+                      <Slider 
+                        value={[heightScale]} 
+                        min={0.7} 
+                        max={1.4} 
+                        step={0.01} 
+                        onValueChange={([v]) => setHeightScale(v)}
+                        className="flex-1"
                       />
-                    ))}
+                      <span className="text-[10px] font-mono text-white/60">{heightScale.toFixed(2)}m</span>
+                    </div>
+                  </div>
+                  <div className="space-y-6">
+                    <Label className="text-[10px] font-black uppercase tracking-[0.3em] italic text-accent">Pigmentation</Label>
+                    <div className="flex gap-3">
+                      {['#d1a37c', '#8d5524', '#c68642', '#e0ac69', '#3d1e11'].map(c => (
+                        <button 
+                          key={c} 
+                          onClick={() => setSkinTone(c)}
+                          className={`h-8 w-8 rounded-full border-2 transition-all ${skinTone === c ? 'border-accent scale-110 shadow-[0_0_15px_rgba(96,212,255,0.5)]' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                          style={{ backgroundColor: c }}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -204,15 +310,15 @@ export default function CharacterCreatorPage() {
                   </div>
                 ))}
                 
-                <div className="pt-6 border-t border-border/50 space-y-4">
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-accent mb-4">Initial Skill Imprints</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {Object.entries(skills).map(([skill, level]) => (
-                      <div key={skill} className="p-3 rounded-xl bg-secondary/20 border border-border/50 flex flex-col items-center">
-                        <div className="text-[8px] font-black text-muted-foreground uppercase mb-1">{skill}</div>
-                        <div className="text-lg font-headline font-black text-white italic">LVL {level}</div>
-                      </div>
-                    ))}
+                <div className="pt-6 border-t border-border/50">
+                  <div className="p-6 rounded-2xl bg-accent/5 border border-accent/10 space-y-4 shadow-xl">
+                    <div className="flex items-center gap-3 text-accent">
+                      <ShieldCheck className="h-5 w-5" />
+                      <span className="text-[10px] font-black uppercase tracking-widest italic">Persistence Verified</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground italic leading-relaxed">
+                      By manifesting, you establish an immutable neural signature. Every skill gained and resource gathered is permanent in the Ouroboros engine.
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -226,16 +332,6 @@ export default function CharacterCreatorPage() {
                 </Button>
               </CardFooter>
             </Card>
-
-            <div className="p-8 rounded-2xl bg-accent/5 border border-accent/10 space-y-4 shadow-xl">
-              <div className="flex items-center gap-3 text-accent">
-                <ShieldCheck className="h-5 w-5" />
-                <span className="text-[10px] font-black uppercase tracking-widest italic">Axiomatic Persistence Verified</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground italic leading-relaxed">
-                By manifesting, you establish an immutable neural signature in the simulation. Every skill gained and resource gathered is permanent.
-              </p>
-            </div>
           </div>
         </main>
       </SidebarInset>
