@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useFirestore, useUser } from "@/firebase"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -57,11 +58,13 @@ export default function CharacterCreatorPage() {
     if (!neuralPrompt) return
     setIsSynthesizing(true)
     try {
+      // Simulate neural synthesis based on the RuneScape-style classless logic
       await new Promise(resolve => setTimeout(resolve, 2000))
       
       const rngHeight = 0.8 + Math.random() * 0.4;
       setHeightScale(rngHeight);
       
+      // Starting stats influenced by the "essence" prompt
       setStats({
         str: 10 + Math.floor(Math.random() * 5),
         agi: 10 + Math.floor(Math.random() * 5),
@@ -123,7 +126,8 @@ export default function CharacterCreatorPage() {
           hairStyle: 'short'
         },
         lastUpdate: serverTimestamp(),
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        npcClass: "PILOT" // Classless system: Everyone starts as a generic Pilot
       })
       toast({ title: "Neural Link Established", description: "Consciousness has been imprinted on the Ouroboros collective." })
       router.push("/pilot-hub")

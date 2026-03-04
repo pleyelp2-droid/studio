@@ -10,7 +10,7 @@ function CharacterModel({ appearance }: { appearance: any }) {
   const groupRef = useRef<THREE.Group>(null);
   const modelRef = useRef<any>(null);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (!groupRef.current) return;
     
     const key = `${appearance.skinTone}-${appearance.heightScale}-${appearance.bodyScale}`;
