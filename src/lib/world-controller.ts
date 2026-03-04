@@ -25,7 +25,7 @@ export class WorldController {
     const updatedAgents = this.agents.map(agent => {
       const newAgent = { ...agent };
 
-      // 1. Decay Trust (Functional implementation of trust decay)
+      // 1. Decay Trust (Functional implementation)
       if (newAgent.relationships) {
         const newRels = { ...newAgent.relationships };
         Object.keys(newRels).forEach(targetId => {
