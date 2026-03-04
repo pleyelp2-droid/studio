@@ -17,7 +17,7 @@ import {
   Code
 } from 'lucide-react';
 import { useStore } from '@/store';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const AxiomDebugger = () => {
   const showDebugger = useStore(state => state.showDebugger);
@@ -154,11 +154,7 @@ export const AxiomDebugger = () => {
               )}
 
               {diagnosticReport && !isScanning && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-8"
-                >
+                <div className="space-y-8">
                   {/* Status Banner */}
                   <div className={`p-6 rounded-[2rem] border flex items-center gap-6 ${
                     diagnosticReport.status === 'HEALTHY' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
@@ -220,7 +216,7 @@ export const AxiomDebugger = () => {
                       </ul>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               )}
             </div>
           </div>

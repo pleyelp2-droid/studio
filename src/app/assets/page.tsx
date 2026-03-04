@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
@@ -10,46 +10,29 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog"
-import { 
-  Database, 
-  Search, 
-  Download, 
-  Eye, 
-  Filter, 
-  FileCode, 
-  Image as ImageIcon, 
-  Box, 
-  HardDrive,
-  Activity,
-  Terminal,
-  Cpu,
-  Fingerprint,
-  Zap,
-  Upload,
-  Layers,
-  ArrowRight
+  Upload, 
+  Zap, 
+  ArrowRight, 
+  Loader2, 
+  FileArchive,
+  ImageIcon,
+  ShieldCheck
 } from "lucide-react"
 import Image from "next/image"
-import { PlaceHolderImages } from "@/lib/placeholder-images"
 import { useToast } from "@/hooks/use-toast"
 import { textureEngine, TextureSignature, TextureCategory } from "@/services/TextureEngine"
 import { collection, addDoc, serverTimestamp } from "firebase/firestore"
 import { initializeFirebase } from "@/firebase"
+import JSZip from "jszip"
 
 const { firestore: db } = initializeFirebase();
 
 export default function AssetHubPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedAsset, setSelectedAsset] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
   const [registry, setRegistry] = useState<Record<TextureCategory, TextureSignature[]>>({
     TERRAIN: [], ARCHITECTURE: [], CHARACTER: [], UI: [], VFX: [], UNKNOWN: []
   })
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -59,22 +42,90 @@ export default function AssetHubPage() {
     return unsub;
   }, []);
 
-  const handleUploadSim = async () => {
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const processFile = async (file: File) => {
     if (!db) return;
-    // For prototype purposes, we simulate the upload by adding a record to Firestore
-    // In a real app, this would use Firebase Storage
-    const mockUrl = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1000";
-    try {
-      await addDoc(collection(db, 'worldAssets'), {
-        name: `Neural_Terrain_${Math.floor(Math.random() * 1000)}.jpg`,
-        url: mockUrl,
-        tags: ['terrain', 'grass', 'custom'],
-        createdAt: serverTimestamp()
-      });
-      toast({ title: "Texture Manifested", description: "The Ouroboros Engine is auto-sorting your asset." });
-    } catch (e: any) {
-      toast({ variant: "destructive", title: "Upload Failed", description: e.message });
+
+    // Handle ZIP files
+    if (file.name.endsWith('.zip')) {
+      try {
+        setLoading(true);
+        toast({ title: "Extracting Archive", description: "Ouroboros is parsing your texture pack..." });
+        
+        const zip = new JSZip();
+        const content = await zip.loadAsync(file);
+        let extractedCount = 0;
+
+        for (const [filename, zipEntry] of Object.entries(content.files)) {
+          if (zipEntry.dir) continue;
+          
+          const isImage = /\.(jpg|jpeg|png|webp)$/i.test(filename);
+          if (isImage) {
+            const blob = await zipEntry.async("blob");
+            const reader = new FileReader();
+            
+            await new Promise((resolve) => {
+              reader.onloadend = async () => {
+                const base64 = reader.result as string;
+                await addDoc(collection(db, 'worldAssets'), {
+                  name: filename.split('/').pop(),
+                  url: base64, // In production, upload to Firebase Storage first
+                  tags: [filename.includes('terrain') ? 'terrain' : 'architecture', 'extracted'],
+                  createdAt: serverTimestamp()
+                });
+                extractedCount++;
+                resolve(null);
+              };
+              reader.readAsDataURL(blob);
+            });
+          }
+        }
+
+        toast({ 
+          title: "Archive Deciphered", 
+          description: `Successfully extracted and sorted ${extractedCount} neural textures.` 
+        });
+      } catch (e: any) {
+        toast({ variant: "destructive", title: "Extraction Failed", description: e.message });
+      } finally {
+        setLoading(false);
+      }
+      return;
     }
+
+    // Handle direct images
+    const isImage = /\.(jpg|jpeg|png|webp)$/i.test(file.name);
+    if (isImage) {
+      setLoading(true);
+      try {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64 = reader.result as string;
+          await addDoc(collection(db, 'worldAssets'), {
+            name: file.name,
+            url: base64,
+            tags: ['direct_upload'],
+            createdAt: serverTimestamp()
+          });
+          toast({ title: "Texture Manifested", description: "Asset has been synchronized with the core engine." });
+          setLoading(false);
+        };
+        reader.readAsDataURL(file);
+      } catch (e: any) {
+        toast({ variant: "destructive", title: "Upload Failed", description: e.message });
+        setLoading(false);
+      }
+    } else {
+      toast({ variant: "destructive", title: "Protocol Violation", description: "Only .zip or image files are accepted by the Neural Engine." });
+    }
+  }
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
   }
 
   return (
@@ -87,11 +138,20 @@ export default function AssetHubPage() {
             <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight text-white">Neural Asset Engine</h1>
           </div>
           <div className="flex items-center gap-4">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              accept=".zip,image/*" 
+              onChange={onFileChange}
+            />
             <Button 
-              onClick={handleUploadSim}
+              onClick={handleUploadClick}
+              disabled={loading}
               className="axiom-gradient text-white h-10 px-6 font-black italic uppercase text-[10px] tracking-widest shadow-lg hover:scale-105 transition-transform"
             >
-              <Upload className="h-4 w-4 mr-2" /> Upload Texture
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+              {loading ? "Processing..." : "Upload ZIP / Image"}
             </Button>
           </div>
         </header>
@@ -101,7 +161,9 @@ export default function AssetHubPage() {
           <div className="grid gap-6 md:grid-cols-3">
             <Card className="bg-secondary/10 border-border">
               <CardHeader className="pb-2">
-                <CardTitle className="text-[10px] font-black uppercase text-accent tracking-widest">Terrain Layers</CardTitle>
+                <CardTitle className="text-[10px] font-black uppercase text-accent tracking-widest flex items-center gap-2">
+                  <ImageIcon className="h-3 w-3" /> Terrain Layers
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-black font-headline text-white">{registry.TERRAIN.length}</div>
@@ -110,20 +172,24 @@ export default function AssetHubPage() {
             </Card>
             <Card className="bg-secondary/10 border-border">
               <CardHeader className="pb-2">
-                <CardTitle className="text-[10px] font-black uppercase text-axiom-purple tracking-widest">Architectural Solids</CardTitle>
+                <CardTitle className="text-[10px] font-black uppercase text-axiom-purple tracking-widest flex items-center gap-2">
+                  <FileArchive className="h-3 w-3" /> Archive Extraction
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-black font-headline text-white">{registry.ARCHITECTURE.length}</div>
-                <p className="text-[9px] text-muted-foreground uppercase mt-1">Ready for city-subsystem injection</p>
+                <div className="text-3xl font-black font-headline text-white">ZIP_READY</div>
+                <p className="text-[9px] text-muted-foreground uppercase mt-1">JSZip Protocol v3.10 Stable</p>
               </CardContent>
             </Card>
             <Card className="bg-secondary/10 border-border">
               <CardHeader className="pb-2">
-                <CardTitle className="text-[10px] font-black uppercase text-emerald-500 tracking-widest">Engine Status</CardTitle>
+                <CardTitle className="text-[10px] font-black uppercase text-emerald-500 tracking-widest flex items-center gap-2">
+                  <ShieldCheck className="h-3 w-3" /> Engine Status
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-black font-headline text-emerald-500">LIVE</div>
-                <p className="text-[9px] text-muted-foreground uppercase mt-1">Real-time sync protocol stable</p>
+                <p className="text-[9px] text-muted-foreground uppercase mt-1">Auto-sorting heuristics active</p>
               </CardContent>
             </Card>
           </div>
