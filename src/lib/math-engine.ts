@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Axiom Frontier - Deterministic Math Engine (Axiomatic Edition)
  * Provides the mathematical foundations for world generation based on KAPPA = 1000

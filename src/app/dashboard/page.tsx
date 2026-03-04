@@ -1,10 +1,11 @@
+
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
-import { doc } from "firebase/firestore"
+import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase"
+import { doc, collection, query, limit, orderBy } from "firebase/firestore"
 import { 
   Globe, 
   Clock,
@@ -14,14 +15,23 @@ import {
   Zap,
   CheckCircle2,
   Box,
-  Layers
+  Layers,
+  Map as MapIcon
 } from "lucide-react"
 import { getAxiomCompliance } from "@/services/ComplianceManager"
+import WorldMap from "@/components/ui/WorldMap"
 
 export default function DashboardPage() {
   const db = useFirestore()
+  
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
   const { data: worldState, isLoading } = useDoc(worldRef)
+
+  const chunksQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, "chunks"), orderBy("lastUpdate", "desc"), limit(100));
+  }, [db]);
+  const { data: chunks } = useCollection(chunksQuery);
 
   const compliance = getAxiomCompliance(!!db, !!worldState?.tick)
 
@@ -31,7 +41,7 @@ export default function DashboardPage() {
         <Card className="axiom-card-hover border-border bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Civilization Index</CardTitle>
-            <Globe className="h-4 w-4 text-accent" />
+            <Globe className="h-4 w-4 text-axiom-cyan" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black font-headline text-white italic">
@@ -47,7 +57,7 @@ export default function DashboardPage() {
         <Card className="axiom-card-hover border-border bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Current Tick</CardTitle>
-            <Clock className="h-4 w-4 text-accent" />
+            <Clock className="h-4 w-4 text-axiom-cyan" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black font-headline text-white italic">
@@ -60,7 +70,7 @@ export default function DashboardPage() {
         <Card className="axiom-card-hover border-border bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Matrix Load</CardTitle>
-            <Layers className="h-4 w-4 text-accent" />
+            <Layers className="h-4 w-4 text-axiom-cyan" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black font-headline text-white italic">
@@ -73,13 +83,13 @@ export default function DashboardPage() {
         <Card className="axiom-card-hover border-border bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Graphics Layer</CardTitle>
-            <Box className="h-4 w-4 text-accent" />
+            <Box className="h-4 w-4 text-axiom-cyan" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black font-headline text-white italic">
               PBR_V1
             </div>
-            <div className="flex items-center gap-1 text-[10px] font-bold text-accent mt-1 uppercase tracking-wider">
+            <div className="flex items-center gap-1 text-[10px] font-bold text-axiom-cyan mt-1 uppercase tracking-wider">
               <CheckCircle2 className="h-3 w-3" />
               <span>Skeletal Active</span>
             </div>
@@ -87,11 +97,20 @@ export default function DashboardPage() {
         </Card>
       </div>
 
+      {/* World Map Section */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <MapIcon className="h-5 w-5 text-axiom-cyan" />
+          <h2 className="text-lg font-headline font-black uppercase italic tracking-widest text-white">Neural Sektor Oversight</h2>
+        </div>
+        <WorldMap chunks={chunks || []} />
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-7">
         <Card className="lg:col-span-4 border-border bg-card">
           <CardHeader className="bg-secondary/10 border-b border-border/50">
             <CardTitle className="font-headline font-black italic uppercase text-sm tracking-widest flex items-center gap-2">
-              <Zap className="h-4 w-4 text-accent" /> WebGL MMO Compliance Matrix
+              <Zap className="h-4 w-4 text-axiom-cyan" /> WebGL MMO Compliance Matrix
             </CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-tight">Authoritative Subsystem Verification.</CardDescription>
           </CardHeader>
@@ -116,7 +135,7 @@ export default function DashboardPage() {
                     <TableCell><Badge variant="outline" className={`text-[8px] px-1 py-0 ${row.duality === 'PASS' ? 'text-emerald-500' : 'text-orange-500'}`}>{row.duality}</Badge></TableCell>
                     <TableCell><Badge variant="outline" className="text-[8px] px-1 py-0 text-emerald-500">PASS</Badge></TableCell>
                     <TableCell className="text-right">
-                      <span className={`text-[9px] font-black uppercase ${row.status === 'COMPLIANT' ? 'text-emerald-500' : 'text-accent'}`}>{row.status}</span>
+                      <span className={`text-[9px] font-black uppercase ${row.status === 'COMPLIANT' ? 'text-emerald-500' : 'text-axiom-cyan'}`}>{row.status}</span>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -127,19 +146,19 @@ export default function DashboardPage() {
 
         <Card className="lg:col-span-3 border-border bg-card">
           <CardHeader className="bg-secondary/10 border-b border-border/50">
-            <CardTitle className="font-headline font-black italic uppercase text-sm tracking-widest">Logic Core Events</CardTitle>
+            <CardTitle className="font-headline font-black italic uppercase text-sm tracking-widest text-white">Logic Core Events</CardTitle>
             <CardDescription className="text-[10px] uppercase font-bold tracking-tight">Stream from the AxiomEnforcer.</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="space-y-4">
               {worldState?.tick ? (
                 <>
-                  <div className="flex gap-3 text-[11px] items-start p-3 rounded-xl bg-accent/5 border border-accent/10">
-                    <Activity className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                  <div className="flex gap-3 text-[11px] items-start p-3 rounded-xl bg-axiom-cyan/5 border border-axiom-cyan/10">
+                    <Activity className="h-4 w-4 text-axiom-cyan shrink-0 mt-0.5" />
                     <div className="flex-1">
                       <p className="font-black text-white uppercase italic tracking-wider">Heartbeat Signal Detected</p>
                       <p className="text-muted-foreground mt-0.5 font-bold">Tick {worldState.tick} finalized by Ouroboros Core.</p>
-                      <span className="text-[9px] text-accent/50 font-black uppercase mt-1 block tracking-[0.2em]">Deterministic Sync</span>
+                      <span className="text-[9px] text-axiom-cyan/50 font-black uppercase mt-1 block tracking-[0.2em]">Deterministic Sync</span>
                     </div>
                   </div>
                 </>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Memory, Relationship, Task, Interaction, SocialGroup } from './types';
