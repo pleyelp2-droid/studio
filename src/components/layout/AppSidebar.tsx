@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -9,23 +10,20 @@ import {
   ShieldAlert, 
   ScrollText, 
   UserPlus, 
-  ShoppingBag, 
   Database, 
   Settings,
-  Activity,
   Zap,
-  Home,
   MonitorPlay,
   BrainCircuit,
   BookOpen,
-  Atom,
   HardDriveDownload,
   Wifi,
-  FileJson,
   LogIn,
   LogOut,
   User as UserIcon,
-  ClipboardList
+  ClipboardList,
+  ShieldCheck,
+  Github
 } from "lucide-react"
 
 import {
@@ -44,6 +42,7 @@ import {
 import { useUser, useAuth } from "@/firebase"
 import { AuthModal } from "@/components/auth/AuthModal"
 import { signOut } from "firebase/auth"
+import { useStore } from "@/store"
 
 const mainItems = [
   { title: "Oversight", icon: LayoutDashboard, url: "/dashboard" },
@@ -53,54 +52,77 @@ const mainItems = [
   { title: "Audit Logs", icon: ClipboardList, url: "/admin/audit-logs" },
 ]
 
-const godotItems = [
-  { title: "Bridge Protocol", icon: HardDriveDownload, url: "/godot" },
-  { title: "Project Sync", icon: Wifi, url: "/godot#sync" },
-  { title: "Export Data", icon: FileJson, url: "/godot#export" },
-]
-
 const contentItems = [
   { title: "Content Brain", icon: BrainCircuit, url: "/admin/content" },
   { title: "Quest Engine", icon: ScrollText, url: "/quests" },
   { title: "NPC Architect", icon: UserPlus, url: "/npcs" },
   { title: "Lore Archives", icon: BookOpen, url: "/admin/lore" },
-  { title: "Molecule Explorer", icon: Atom, url: "/dashboard/molecules" },
   { title: "Asset Hub", icon: Database, url: "/assets" },
 ]
 
-const commerceItems = [
-  { title: "Axiom Store", icon: ShoppingBag, url: "/store" },
-  { title: "Economy Stats", icon: Activity, url: "/economy" },
+const godotItems = [
+  { title: "Bridge Protocol", icon: HardDriveDownload, url: "/godot" },
+  { title: "Project Sync", icon: Wifi, url: "/godot#sync" },
 ]
+
+const ADMIN_EMAIL = 'pleyelp2@gmail.com';
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const { user, isUserLoading } = useUser()
+  const { user } = useUser()
   const auth = useAuth()
   const [authModalOpen, setAuthModalOpen] = React.useState(false)
+  const setMatrixOverseerOpen = useStore(state => state.setMatrixOverseerOpen)
 
   const handleLogout = () => {
-    signOut(auth)
+    if (auth) signOut(auth)
   }
+
+  const isAdmin = user?.email === ADMIN_EMAIL;
 
   return (
     <>
       <Sidebar collapsible="icon" className="border-r border-border">
         <SidebarHeader className="p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg axiom-gradient">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg axiom-gradient shadow-lg">
               <Zap className="h-6 w-6 text-white" />
             </div>
             <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-              <span className="text-lg font-headline font-bold leading-none">AXIOM</span>
-              <span className="text-xs text-muted-foreground">FRONTIER</span>
+              <span className="text-lg font-headline font-bold leading-none text-white uppercase italic">AXIOM</span>
+              <span className="text-[10px] text-accent tracking-[0.2em] font-black">CORE_FRONTIER</span>
             </div>
           </div>
         </SidebarHeader>
         <SidebarSeparator />
         <SidebarContent>
+          {isAdmin && (
+            <SidebarGroup>
+              <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-emerald-500 font-black tracking-widest italic uppercase flex items-center gap-2 mb-2">
+                <ShieldCheck className="h-3 w-3" /> Master Control
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      onClick={() => setMatrixOverseerOpen(true)}
+                      className="text-white bg-emerald-600 hover:bg-emerald-500 border-0 h-16 shadow-xl group hover:scale-[1.02] transition-all rounded-xl relative overflow-hidden mb-2"
+                      tooltip="SYNC TO GITHUB"
+                    >
+                      <Github className="h-6 w-6 shrink-0" />
+                      <div className="flex flex-col items-start ml-2 group-data-[collapsible=icon]:hidden">
+                        <span className="font-black text-[11px] tracking-widest uppercase italic">SYNC TO GITHUB</span>
+                        <span className="text-[8px] font-bold text-white/60 uppercase">Manual Snapshot v1.0.4</span>
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+
           <SidebarGroup>
-            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">User</SidebarGroupLabel>
+            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Session</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {user ? (
@@ -108,14 +130,14 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild isActive={pathname === '/profile'} tooltip="Profile">
                         <Link href="/profile">
-                          <UserIcon />
-                          <span>{user.displayName || user.email?.split('@')[0] || 'Pilot'}</span>
+                          <UserIcon className="h-4 w-4" />
+                          <span>{user.displayName || user.email?.split('@')[0]}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton onClick={handleLogout} tooltip="Sign Out">
-                        <LogOut />
+                        <LogOut className="h-4 w-4" />
                         <span>Sign Out</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -123,7 +145,7 @@ export function AppSidebar() {
                 ) : (
                   <SidebarMenuItem>
                     <SidebarMenuButton onClick={() => setAuthModalOpen(true)} tooltip="Sign In">
-                      <LogIn />
+                      <LogIn className="h-4 w-4" />
                       <span>Sign In</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -133,14 +155,14 @@ export function AppSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Control Center</SidebarGroupLabel>
+            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Navigation</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {mainItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
                       <Link href={item.url}>
-                        <item.icon />
+                        <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -151,32 +173,14 @@ export function AppSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Godot Bridge</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {godotItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
-                      <Link href={item.url}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Dynamic Content</SidebarGroupLabel>
+            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Assets & Logic</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {contentItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
                       <Link href={item.url}>
-                        <item.icon />
+                        <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -187,35 +191,19 @@ export function AppSidebar() {
           </SidebarGroup>
 
           <SidebarGroup>
-            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">E-Commerce</SidebarGroupLabel>
+            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Integration</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {commerceItems.map((item) => (
+                {godotItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
                       <Link href={item.url}>
-                        <item.icon />
+                        <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Public Access</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Landing Page">
-                    <Link href="/">
-                      <Home />
-                      <span>Public Landing</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -226,8 +214,8 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <SidebarMenuButton asChild tooltip="Settings" isActive={pathname === '/settings'}>
                 <Link href="/settings">
-                  <Settings />
-                  <span>Global Settings</span>
+                  <Settings className="h-4 w-4" />
+                  <span>Global Config</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

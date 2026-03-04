@@ -1,3 +1,4 @@
+
 "use client"
 
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -5,6 +6,9 @@ import { AppSidebar } from "@/components/layout/AppSidebar"
 import { Badge } from "@/components/ui/badge"
 import { useDoc, useFirestore, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
+import { AxiomHandshakeModal } from "@/components/game/AxiomHandshakeModal"
+import { useState } from "react"
+import { useStore } from "@/store"
 
 export default function DashboardLayout({
   children,
@@ -14,6 +18,8 @@ export default function DashboardLayout({
   const db = useFirestore()
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
   const { data: worldState } = useDoc(worldRef)
+  const isAxiomAuthenticated = useStore(state => state.isAxiomAuthenticated)
+  const [handshakeOpen, setHandshakeOpen] = useState(!isAxiomAuthenticated)
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
@@ -22,7 +28,7 @@ export default function DashboardLayout({
         <header className="flex h-16 items-center border-b border-border px-6 justify-between shrink-0 bg-background/50 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight">Ouroboros Oversight</h1>
+            <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight text-white">Ouroboros Oversight</h1>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-[10px] font-black border border-border tracking-widest">
@@ -34,6 +40,8 @@ export default function DashboardLayout({
         </header>
         {children}
       </SidebarInset>
+      
+      {handshakeOpen && <AxiomHandshakeModal onClose={() => setHandshakeOpen(false)} />}
     </div>
   )
 }

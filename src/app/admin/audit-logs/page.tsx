@@ -1,62 +1,64 @@
+
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { useFirestore, useCollection, useMemoFirebase, useUser } from "@/firebase"
 import { collection, query, limit, orderBy } from "firebase/firestore"
-import { ClipboardList, Shield, Search, Filter, Loader2, AlertCircle } from "lucide-react"
+import { ClipboardList, Search, Filter, ShieldAlert, Loader2 } from "lucide-react"
 import { AdminAuditLog } from "@/types"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+
+const ADMIN_EMAIL = 'pleyelp2@gmail.com';
 
 export default function AuditLogsPage() {
+  const { user, isUserLoading } = useUser()
   const db = useFirestore()
   const [searchQuery, setSearchQuery] = useState("")
 
   const logsQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    // SECURITY: Only request logs if user is definitively the admin and logged in
+    if (!db || !user || user.email !== ADMIN_EMAIL) return null;
     return query(
       collection(db, "adminAuditLogs"), 
       orderBy("timestamp", "desc"),
       limit(50)
     );
-  }, [db]);
+  }, [db, user]);
 
-  const { data: logs, isLoading, error } = useCollection(logsQuery);
+  const { data: logs, isLoading: isLogsLoading, error } = useCollection(logsQuery);
 
-  // Fallback mock data if none exists in Firestore
-  const mockLogs: AdminAuditLog[] = [
-    {
-      id: "1",
-      adminId: "system-auto",
-      action: "google.devtools.cloudbuild.v1.CloudBuild.CreateBuild",
-      targetType: "DEPLOYMENT",
-      targetId: "build-001",
-      ipAddress: "127.0.0.1",
-      timestamp: { seconds: Date.now() / 1000 },
-      details: { principal_email: "service-419112240411@gcp-sa-firebaseapphosting.iam.gserviceaccount.com" }
-    },
-    {
-      id: "2",
-      adminId: "admin-user",
-      action: "WORLD_PARAMETER_UPDATE",
-      targetType: "WORLD_STATE",
-      targetId: "global",
-      ipAddress: "192.168.1.1",
-      timestamp: { seconds: (Date.now() - 3600000) / 1000 },
-      details: { change: "Increased Civilization Index" }
-    }
-  ];
+  if (isUserLoading) {
+    return (
+      <div className="flex h-screen w-full bg-background overflow-hidden items-center justify-center">
+        <Loader2 className="h-12 w-12 text-accent animate-spin" />
+      </div>
+    );
+  }
 
-  const displayedLogs = (logs && logs.length > 0) ? logs : mockLogs;
+  if (!user || user.email !== ADMIN_EMAIL) {
+    return (
+      <div className="flex h-screen w-full bg-background overflow-hidden">
+        <AppSidebar />
+        <SidebarInset className="flex flex-col items-center justify-center p-12 text-center">
+          <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
+          <h2 className="text-2xl font-headline font-bold uppercase italic">Restricted Access</h2>
+          <p className="text-muted-foreground mt-2 max-w-sm">
+            Only authorized administrators may access the system audit ledger.
+          </p>
+        </SidebarInset>
+      </div>
+    );
+  }
 
-  const filteredLogs = displayedLogs.filter(log => 
-    log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.adminId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (log.details?.principal_email && log.details.principal_email.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredLogs = (logs || []).filter(log => 
+    log.action?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    log.adminId?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -96,42 +98,52 @@ export default function AuditLogsPage() {
               <CardDescription className="text-[10px] uppercase font-bold tracking-tight">System-wide administrative and automated actions.</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-secondary/5 hover:bg-transparent border-none">
-                    <TableHead className="text-[10px] font-black uppercase tracking-widest italic text-accent w-[200px]">Timestamp</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase tracking-widest italic">Action / Method</TableHead>
-                    <TableHead className="text-[10px] font-black uppercase tracking-widest italic">Principal</TableHead>
-                    <TableHead className="text-right text-[10px] font-black uppercase tracking-widest italic">IP Address</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredLogs.map((log) => (
-                    <TableRow key={log.id} className="border-border/30 hover:bg-accent/5">
-                      <TableCell className="font-mono text-[10px] text-muted-foreground">
-                        {new Date(log.timestamp.seconds * 1000).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-[11px] font-bold text-white uppercase tracking-tight">{log.action.split('.').pop()}</span>
-                          <span className="text-[9px] text-muted-foreground font-mono">{log.action}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-[11px] font-bold text-white">{log.adminId}</span>
-                          {log.details?.principal_email && (
-                            <span className="text-[9px] text-accent font-mono">{log.details.principal_email}</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-[10px] text-muted-foreground">
-                        {log.ipAddress}
-                      </TableCell>
+              {isLogsLoading ? (
+                <div className="p-12 text-center text-xs font-mono uppercase tracking-widest text-muted-foreground animate-pulse">
+                  Decrypting Ledger...
+                </div>
+              ) : error ? (
+                <div className="p-12 text-center text-xs font-mono uppercase text-destructive">
+                  Protocol Failure: {error.message}
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-secondary/5 hover:bg-transparent border-none">
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest italic text-accent w-[200px]">Timestamp</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest italic">Action / Method</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest italic">Principal</TableHead>
+                      <TableHead className="text-right text-[10px] font-black uppercase tracking-widest italic">IP Address</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredLogs.map((log) => (
+                      <TableRow key={log.id} className="border-border/30 hover:bg-accent/5">
+                        <TableCell className="font-mono text-[10px] text-muted-foreground">
+                          {log.timestamp?.seconds ? new Date(log.timestamp.seconds * 1000).toLocaleString() : 'PENDING'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-bold text-white uppercase tracking-tight">{log.action?.split('.').pop()}</span>
+                            <span className="text-[9px] text-muted-foreground font-mono">{log.action}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="text-[11px] font-bold text-white">{log.adminId}</span>
+                            {log.details?.principal_email && (
+                              <span className="text-[9px] text-accent font-mono">{log.details.principal_email}</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-[10px] text-muted-foreground">
+                          {log.ipAddress}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </main>

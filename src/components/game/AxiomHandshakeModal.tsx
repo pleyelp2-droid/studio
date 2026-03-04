@@ -5,8 +5,8 @@ import React, { useState } from 'react';
 import { Key, BrainCircuit, Lock, AlertTriangle, X } from 'lucide-react';
 import { useStore } from '@/store';
 
-const UNIVERSAL_KEY = 'GENER4T1V33ALLACCESSNT1TYNPLU21P1P1K4TZE4I';
-const ADMIN_EMAIL = 'projectouroboroscollective@gmail.com';
+const UNIVERSAL_KEY = 'GENER4T1V33ALLACCESSNT1TYNPLU21P1K4TZE4I';
+const ADMIN_EMAIL = 'pleyelp2@gmail.com';
 
 interface AxiomHandshakeModalProps {
   onClose: () => void;

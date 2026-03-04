@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -112,9 +113,11 @@ export default {
         'arl-arcane-glow-lg': '0 0 20px var(--arl-arcane-glow)',
       },
       transitionDuration: {
-        'fast': 'var(--t-fast)',
-        'mid': 'var(--t-mid)',
-        'slow': 'var(--t-slow)',
+        '300': '300ms',
+        '700': '700ms',
+        '1000': '1000ms',
+        '2000': '2000ms',
+        '40000': '40000ms',
       },
     },
   },

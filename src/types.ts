@@ -4,8 +4,17 @@ export enum AgentState {
   GATHERING = 'GATHERING',
   EXPLORING = 'EXPLORING',
   COMBAT = 'COMBAT',
-  TRADING = 'TRADING'
+  TRADING = 'TRADING',
+  QUESTING = 'QUESTING',
+  BANKING = 'BANKING',
+  CRAFTING = 'CRAFTING',
+  BUILDING = 'BUILDING',
+  ASCENDING = 'ASCENDING',
+  MARKETING = 'MARKETING',
+  ALLIANCE_FORMING = 'ALLIANCE_FORMING'
 }
+
+export type SkillCategory = 'COMBAT' | 'GATHERING' | 'CRAFTING' | 'UTILITY';
 
 export interface ThinkingMatrix {
   personality: string;
@@ -22,7 +31,15 @@ export interface AppearanceConfig {
   skinTone: string;
   hairStyle: string;
   bodyScale: number;
+  baseModel?: string;
 }
+
+export const DEFAULT_APPEARANCE: AppearanceConfig = {
+  skinTone: '#c68642',
+  hairStyle: 'short',
+  bodyScale: 1.0,
+  baseModel: 'humanoid'
+};
 
 export interface Agent {
   id: string;
@@ -43,9 +60,35 @@ export interface Agent {
   dnaHistory: any[];
   memoryCache: any[];
   awakened: boolean;
-  thinkingMatrix: ThinkingMatrix;
+  thinkingMatrix?: ThinkingMatrix;
   appearance?: AppearanceConfig;
   lastUpdate: any;
+  name?: string;
+  xp?: number;
+  isAwakened?: boolean;
+  lastScanTime?: number;
+  apiQuotaExceeded?: boolean;
+  unspentStatPoints?: number;
+  lastDecision?: any;
+  skills?: any;
+  bank?: any[];
+  energy?: number;
+  maxEnergy?: number;
+  integrity?: number;
+  consciousnessLevel?: number;
+  awakeningProgress?: number;
+  insightPoints?: number;
+  faction?: string;
+  dna?: any;
+  emergentBehaviorLog?: any[];
+  economicDesires?: any;
+  equipment?: {
+    head?: any;
+    chest?: any;
+    legs?: any;
+    mainHand?: any;
+    offHand?: any;
+  };
 }
 
 export interface Chunk {
@@ -53,21 +96,28 @@ export interface Chunk {
   x: number;
   z: number;
   seed: number;
-  biome: 'CITY' | 'FOREST' | 'MOUNTAIN' | 'DESERT' | 'TUNDRA';
+  biome: 'CITY' | 'FOREST' | 'MOUNTAIN' | 'DESERT' | 'TUNDRA' | 'PLAINS';
   entropy: number;
   stabilityIndex: number;
   corruptionLevel: number;
   resourceData: any;
   logicField: any[];
   lastUpdate: any;
+  logicString?: string;
 }
+
+export type POIType = 'SHRINE' | 'FORGE' | 'MARKET_STALL' | 'BANK_VAULT' | 'GATE' | 'WALL' | 'HOUSE' | 'TREE' | 'DUNGEON' | 'RUIN' | 'NEST' | 'BUILDING' | 'MINE' | 'FOREST';
 
 export interface POI {
   id: string;
-  type: 'SHRINE' | 'FORGE' | 'MARKET_STALL' | 'BANK_VAULT' | 'GATE' | 'WALL' | 'HOUSE' | 'TREE' | 'DUNGEON' | 'RUIN' | 'NEST' | 'BUILDING';
+  type: POIType;
   position: [number, number, number];
   rotationY?: number;
   isDiscovered: boolean;
+  discoveryRadius?: number;
+  rewardInsight?: number;
+  loreFragment?: string;
+  threatLevel?: number;
 }
 
 export interface ResourceNode {
@@ -121,14 +171,16 @@ export interface LoreEntry {
   createdAt: any;
 }
 
-export type ItemRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'AXIOMATIC';
+export type ItemRarity = 'COMMON' | 'UNCOMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'SET' | 'AXIOMATIC';
 export type ItemType = 'WEAPON' | 'OFFHAND' | 'HELM' | 'CHEST' | 'LEGS' | 'RELIC';
 
 export interface ItemStats {
   atk?: number;
   def?: number;
-  hp?: number;
-  mana?: number;
+  str?: number;
+  agi?: number;
+  int?: number;
+  vit?: number;
 }
 
 export interface Item {
@@ -137,14 +189,146 @@ export interface Item {
   type: ItemType;
   subtype?: string;
   rarity: ItemRarity;
-  stats?: ItemStats;
-  value?: number;
-  description?: string;
+  stats: ItemStats;
+  value: number;
+  description: string;
   setName?: string;
   emissiveGlow?: boolean;
-  affixes?: Array<{
-    name: string;
-    type: 'prefix' | 'suffix';
-    statBonuses: ItemStats;
-  }>;
+  affixes?: Array<{ name: string; type: 'prefix' | 'suffix'; statBonuses: Record<string, number> }>;
+}
+
+export type Language = 'EN' | 'DE' | 'RU' | 'TR' | 'FR' | 'ES' | 'ZH' | 'GR' | 'AR';
+
+export type ChatChannel = 'GLOBAL' | 'LOCAL' | 'THOUGHT' | 'SYSTEM';
+
+export interface QuestLine {
+  id: string;
+  title: string;
+  description: string;
+  requiredLevel: number;
+  xpReward: number;
+  goldReward: number;
+  status: 'draft' | 'active' | 'archived';
+  npc_id: string;
+  quest_steps: Array<{ type: string; description: string; target?: string; count?: number }>;
+}
+
+export interface NPCDialog {
+  id: string;
+  questLineId: string;
+  speaker: string;
+  text: string;
+  dialogKey?: string;
+  npc_id?: string;
+  options?: any[];
+}
+
+export interface CombatResult {
+  attackerUid: string;
+  defenderUid: string;
+  defenderType: 'AGENT' | 'MONSTER';
+  damageDealt: number;
+  damageReceived: number;
+  skillUsed: string;
+  result: string;
+  lootDropped: any[];
+}
+
+export interface ComplianceMatrixEntry {
+  subsystem: string;
+  energy: string;
+  erosion: string;
+  punctuation: string;
+  recursion: string;
+  duality: string;
+  status: string;
+}
+
+export interface Faction {
+  id: string;
+  name: string;
+  entityType: string;
+  leaderUid: string;
+  members: string[];
+  level: number;
+  influence: number;
+  territory: any[];
+  infrastructure: string[];
+  createdAt: any;
+  lastUpdate: any;
+}
+
+export interface GeneratedItem {
+  name: string;
+  type: string;
+  rarity: string;
+  stats: Record<string, number>;
+  level: number;
+  value: number;
+}
+
+export type TrustContext = 'COMBAT_ATTACK' | 'COMBAT_KILL' | 'TRADE' | 'QUEST_TOGETHER' | 'GUILD_JOIN' | 'BETRAYAL' | 'HEAL' | 'GIFT';
+
+export interface TrustRecord {
+  agentAId: string;
+  agentBId: string;
+  positiveInteractions: number;
+  negativeInteractions: number;
+  lastInteractionTick: number;
+  lastInteractionType: TrustContext | 'NEUTRAL';
+  trustScore: number;
+  reputationWeight: number;
+  updatedAt: any;
+}
+
+export interface TrustEffect {
+  tradePriceModifier: number;
+  combatAggressionModifier: number;
+  questRewardModifier: number;
+  label: string;
+}
+
+export interface StoreProduct {
+  id: string;
+  name: string;
+  description: string;
+  priceEUR: number;
+  energy: number;
+}
+
+export const MATRIX_ENERGY_PRODUCTS: StoreProduct[] = [
+  { id: 'ENERGY_100', name: '100 Matrix Energy', description: 'Quick boost for small constructs.', priceEUR: 0.99, energy: 100 },
+  { id: 'ENERGY_500', name: '500 Matrix Energy', description: 'Standard pack for pilots.', priceEUR: 3.99, energy: 500 },
+  { id: 'ENERGY_2000', name: '2000 Matrix Energy', description: 'High-density logic supply.', priceEUR: 9.99, energy: 2000 }
+];
+
+export const STRUCTURE_COSTS: Record<string, number> = {
+  SHRINE: 150,
+  FORGE: 250,
+  MARKET_STALL: 100,
+  HOUSE: 200,
+  CITADEL: 1500
+};
+
+export const GAME_SKILLS: Record<string, { name: string; category: SkillCategory; icon: string }> = {
+  mining: { name: 'Axiom Mining', category: 'GATHERING', icon: 'Pickaxe' },
+  smithing: { name: 'Logic Forging', category: 'CRAFTING', icon: 'Hammer' },
+  combat: { name: 'Neural Combat', category: 'COMBAT', icon: 'Swords' },
+  reflection: { name: 'Deep Thinking', category: 'UTILITY', icon: 'Brain' }
+};
+
+export type StatName = 'strength' | 'dexterity' | 'agility' | 'stamina' | 'health' | 'mana' | 'intelligence';
+
+export const STAT_DESCRIPTIONS: Record<StatName, string> = {
+  strength: 'Affects physical damage and carry capacity.',
+  dexterity: 'Increases accuracy and critical hit chance.',
+  agility: 'Boosts movement speed and evasion.',
+  stamina: 'Higher stamina allows for longer combat durations.',
+  health: 'Increases max integrity (HP).',
+  mana: 'Necessary for executing neural abilities.',
+  intelligence: 'Improves logic efficiency and reflection speed.'
+};
+
+export function getUnlockedActions(skill: string, level: number): Array<{ name: string; description: string }> {
+  return [];
 }

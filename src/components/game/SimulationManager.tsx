@@ -1,61 +1,74 @@
-
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useStore } from '@/store';
 import { AIService } from '@/services/AIService';
 import { syncAgentsBatch } from '@/services/AgentManager';
-import { useFirestore } from '@/firebase';
-import { collection, query, limit, getDocs } from 'firebase/firestore';
 
+/**
+ * Handles background simulation loops like emergent behavior and persistence.
+ * Uses stable references to prevent memory leaks and interval multiplication.
+ */
 export const SimulationManager = () => {
-  const db = useFirestore();
-  const { agents, addLog, userApiKey } = useStore();
+  const addLog = useStore(state => state.addLog);
+  const socialIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const emergentIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Social Interaction Loop (Every 15s)
   useEffect(() => {
-    const interval = setInterval(() => {
-      const activeAgents = agents.filter(a => a.hp > 0);
+    // Initial cleanup to be double sure
+    const cleanup = () => {
+      if (socialIntervalRef.current) clearInterval(socialIntervalRef.current);
+      if (emergentIntervalRef.current) clearInterval(emergentIntervalRef.current);
+      if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
+    };
+
+    cleanup();
+
+    // Neural Resonance Loop
+    socialIntervalRef.current = setInterval(() => {
+      const state = useStore.getState();
+      const activeAgents = state.agents.filter(a => a && a.hp > 0);
       if (activeAgents.length > 1) {
         const a1 = activeAgents[Math.floor(Math.random() * activeAgents.length)];
-        const a2 = activeAgents.find(a => a.id !== a1.id);
+        const a2 = activeAgents.find(a => a && a.id !== a1.id);
         if (a2) {
           addLog(`Neural Resonance: ${a1.displayName} acknowledge ${a2.displayName}.`, 'SYSTEM');
         }
       }
-    }, 15000);
-    return () => clearInterval(interval);
-  }, [agents, addLog]);
+    }, 30000); // 30s
 
-  // Emergent Behavior Loop (Every 30s)
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      if (!userApiKey) return;
+    // Emergent Behavior Loop
+    emergentIntervalRef.current = setInterval(async () => {
+      const state = useStore.getState();
+      const activeAgents = state.agents.filter(a => a && a.npcClass !== 'SYSTEM');
       
-      const activeAgents = agents.filter(a => a.npcClass !== 'SYSTEM');
       if (activeAgents.length > 0) {
         const agent = activeAgents[Math.floor(Math.random() * activeAgents.length)];
         try {
           const behavior = await AIService.generateEmergentAction(agent, activeAgents, []);
           addLog(`[EMERGENT] ${agent.displayName}: ${behavior.action}`, 'SYSTEM');
         } catch (e) {
-          console.error('Emergent behavior fail', e);
+          console.warn('[SIM_MANAGER] Emergent action failed', e);
         }
       }
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [agents, addLog, userApiKey]);
+    }, 60000); // 60s
 
-  // World Events & Periodic Sync (Every 60s)
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      if (agents.length > 0) {
-        await syncAgentsBatch(agents);
-        addLog('Deterministic state committed to neural ledger.', 'SYSTEM');
+    // Persistence Sync Loop
+    syncIntervalRef.current = setInterval(async () => {
+      const state = useStore.getState();
+      if (state.agents.length > 0) {
+        try {
+          await syncAgentsBatch(state.agents.filter(a => !!a));
+          addLog('Deterministic state committed to neural ledger.', 'SYSTEM');
+        } catch (e) {
+          console.error('[SIM_MANAGER] Sync failed', e);
+        }
       }
-    }, 60000);
-    return () => clearInterval(interval);
-  }, [agents, addLog]);
+    }, 120000); // 120s
 
-  return null; // Headless component
+    return cleanup;
+  }, [addLog]);
+
+  return null;
 };

@@ -4,11 +4,30 @@
 import './globals.css';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
-import { FirebaseClientProvider } from '@/firebase';
+import { FirebaseClientProvider, useUser } from '@/firebase';
 import { SimulationManager } from '@/components/game/SimulationManager';
+import { AdminDashboard } from '@/components/ui/AdminDashboard';
 import { useEffect } from 'react';
 import { useStore } from '@/store';
-import { AIService } from '@/services/AIService';
+
+function UserStateSync() {
+  const setUser = useStore(state => state.setUser);
+  const { user: firebaseUser } = useUser();
+
+  useEffect(() => {
+    if (firebaseUser) {
+      setUser({
+        id: firebaseUser.uid,
+        name: firebaseUser.displayName || '',
+        email: firebaseUser.email || ''
+      });
+    } else {
+      setUser(null);
+    }
+  }, [firebaseUser, setUser]);
+
+  return null;
+}
 
 export default function RootLayout({
   children,
@@ -17,13 +36,10 @@ export default function RootLayout({
 }>) {
   const addLog = useStore(state => state.addLog);
 
-  // Global Error Listener for "Matrix Corruption"
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
       console.error("Matrix Corruption Detected:", event.error);
       addLog(`Corruption: ${event.message}`, 'ERROR');
-      // Trigger deep diagnostics if possible
-      AIService.diagnose('RUNTIME_ERROR', event.error?.stack);
     };
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
@@ -38,8 +54,10 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-background text-foreground">
         <FirebaseClientProvider>
+          <UserStateSync />
           <SidebarProvider>
             <SimulationManager />
+            <AdminDashboard />
             {children}
           </SidebarProvider>
           <Toaster />

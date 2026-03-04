@@ -1,89 +1,50 @@
-'use client';
 
-import { Html, Sky, PerspectiveCamera, Environment, ContactShadows, Float, OrbitControls } from '@react-three/drei';
-import { Canvas, useFrame } from '@react-three/fiber';
-import React, { useMemo, useRef, useState, useEffect } from 'react';
-import * as THREE from 'three';
-import { useStore } from '../../store';
-import { POI, Agent, AgentState } from '../../types';
-import { axiomFragmentShader, axiomVertexShader } from './AxiomShader';
-import { createHumanoidModel } from './HumanoidModel';
-import { AnimationController, createAnimationClips } from './AnimationSystem';
-import { WorldBuildingService } from '@/services/WorldBuildingService';
+"use client"
+
+import { Html, PerspectiveCamera, Float, OrbitControls } from "@react-three/drei"
+import { Canvas, useFrame } from "@react-three/fiber"
+import React, { useMemo, useRef, useState, useEffect, Suspense } from "react"
+import * as THREE from "three"
+import { useStore } from "../../store"
+import { POI, Agent, AgentState } from "../../types"
+import { createHumanoidModel } from "./HumanoidModel"
+import { AnimationController, createAnimationClips } from "./AnimationSystem"
+import { WorldBuildingService } from "@/services/WorldBuildingService"
 
 const ARL_COLORS = {
-  void: "#2a2a4e",
+  void: "#0a0d1a",
   arcane: "#9b6fff",
   teal: "#2fffff",
   gold: "#ffcc00",
   blood: "#ff4d4d",
-  border: "#4a5d8e",
-  white: "#ffffff"
-};
+  border: "#1e2a4a",
+  white: "#ffffff",
+  ground: "#020205"
+}
 
 const HighScienceSpire = ({ position, rotationY, color }: { position: [number, number, number], rotationY: number, color: string }) => {
-  const ring1Ref = useRef<THREE.Group>(null);
-  const coreRef = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
-    if (ring1Ref.current) ring1Ref.current.rotation.y = t * 0.3;
-    if (coreRef.current) {
-      coreRef.current.position.y = Math.sin(t * 1.2) * 0.1 + 8.5;
-      coreRef.current.rotation.z = t * 0.4;
-    }
-  });
+  const safePos = useMemo(() => {
+    return [
+      Number.isFinite(position[0]) ? position[0] : 0,
+      Number.isFinite(position[1]) ? position[1] : 0,
+      Number.isFinite(position[2]) ? position[2] : 0
+    ] as [number, number, number];
+  }, [position]);
 
   return (
-    <group position={position} rotation={[0, rotationY, 0]}>
-      {/* Base Foundation */}
-      <mesh position={[0, 0.75, 0]} receiveShadow>
-        <cylinderGeometry args={[5, 6, 1.5, 6]} />
-        <meshStandardMaterial color={ARL_COLORS.border} metalness={0.8} roughness={0.2} />
+    <group position={safePos} rotation={[0, rotationY || 0, 0]}>
+      <mesh position={[0, 5, 0]} castShadow receiveShadow>
+        <boxGeometry args={[4, 10, 4]} />
+        <meshStandardMaterial color={color} metalness={0.9} roughness={0.1} emissive={color} emissiveIntensity={0.1} />
       </mesh>
-      {/* Main Spire Body */}
-      <mesh position={[0, 12, 0]}>
-        <cylinderGeometry args={[0.4, 2.5, 24, 6]} />
-        <meshStandardMaterial color={ARL_COLORS.border} metalness={1} roughness={0.1} />
-      </mesh>
-      {/* Floating Core */}
-      <mesh ref={coreRef} position={[0, 8.5, 0]} scale={1.2}>
-        <octahedronGeometry args={[1, 0]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={6} />
-      </mesh>
-      {/* Energy Ring */}
-      <group position={[0, 19.2, 0]} ref={ring1Ref}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[5.0, 0.06, 6, 12]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={4} transparent opacity={0.6} />
+      <Float speed={2.5} rotationIntensity={2} floatIntensity={2}>
+        <mesh position={[0, 15, 0]} scale={2}>
+          <octahedronGeometry args={[1, 0]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
         </mesh>
-      </group>
+      </Float>
+      <pointLight position={[0, 15, 0]} intensity={0.5} color={color} distance={100} />
     </group>
-  );
-};
-
-const POILayer = ({ pois }: { pois: POI[] }) => {
-  return (
-    <>
-      {pois.map(p => {
-        if (p.type === 'BUILDING' || p.type === 'HOUSE') {
-          return <HighScienceSpire key={p.id} position={p.position} rotationY={p.rotationY || 0} color={p.type === 'BUILDING' ? ARL_COLORS.arcane : ARL_COLORS.teal} />;
-        }
-        if (p.type === 'SHRINE') {
-          return (
-            <Float key={p.id} speed={1.2} rotationIntensity={0.4} floatIntensity={0.4}>
-              <group position={[p.position[0], 3.0, p.position[2]]}>
-                <mesh scale={1.8} castShadow>
-                  <octahedronGeometry args={[1, 0]} />
-                  <meshStandardMaterial color={ARL_COLORS.void} metalness={1} roughness={0.1} emissive={ARL_COLORS.teal} emissiveIntensity={5} />
-                </mesh>
-              </group>
-            </Float>
-          );
-        }
-        return null;
-      })}
-    </>
   );
 };
 
@@ -93,45 +54,67 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
   const [animController, setAnimController] = useState<any>(null);
 
   useEffect(() => {
-    const humanoid = createHumanoidModel({
-      skinTone: agent.appearance?.skinTone || '#c68642',
-      bodyScale: (agent.appearance?.bodyScale || 1.0) + (agent.level * 0.01)
-    });
-    
-    if (humanoid) {
-      setModel(humanoid);
-      const clips = createAnimationClips(humanoid.bones);
-      const controller = new AnimationController(humanoid.mesh, clips);
-      setAnimController(controller);
+    if (!agent) return;
+    let humanoid: any = null;
+    let controller: any = null;
+
+    try {
+      const appearance = agent.appearance || { skinTone: '#c68642', bodyScale: 1.0 };
+      const baseScale = Number.isFinite(appearance.bodyScale) && appearance.bodyScale > 0 ? appearance.bodyScale : 1.0;
       
-      return () => {
-        if (controller) controller.dispose();
-      };
+      humanoid = createHumanoidModel({
+        skinTone: appearance.skinTone,
+        bodyScale: baseScale * 1.5
+      });
+      
+      if (humanoid) {
+        setModel(humanoid);
+        const clips = createAnimationClips(humanoid.bones);
+        controller = new AnimationController(humanoid.mesh, clips);
+        setAnimController(controller);
+      }
+    } catch (e) {
+      console.error("[WORLD_3D] Model creation failed", e);
     }
-  }, [agent.id, agent.appearance, agent.level]);
+
+    return () => {
+      if (controller) controller.dispose();
+      if (humanoid?.mesh) {
+        humanoid.mesh.geometry?.dispose();
+        if (Array.isArray(humanoid.mesh.material)) humanoid.mesh.material.forEach((m: any) => m.dispose());
+        else humanoid.mesh.material?.dispose();
+      }
+    };
+  }, [agent.id, agent.appearance?.skinTone, agent.appearance?.bodyScale]);
 
   useEffect(() => {
-    if (animController) {
-      animController.playForState(agent.state || AgentState.IDLE);
+    if (animController && agent.state) {
+      animController.playForState(agent.state);
     }
   }, [agent.state, animController]);
 
   useFrame((_state, delta) => {
-    if (animController) animController.update(delta);
-    if (groupRef.current && !isLocal) {
-      const targetPos = new THREE.Vector3(agent.position.x, agent.position.y || 0, agent.position.z);
-      groupRef.current.position.lerp(targetPos, 0.1);
+    if (animController && Number.isFinite(delta)) {
+      animController.update(delta);
+    }
+    if (groupRef.current && !isLocal && agent.position) {
+      const tx = Number.isFinite(agent.position.x) ? agent.position.x : 0;
+      const tz = Number.isFinite(agent.position.z) ? agent.position.z : 0;
+      groupRef.current.position.lerp(new THREE.Vector3(tx, 0, tz), 0.1);
     }
   });
 
   if (!model) return null;
 
+  const px = Number.isFinite(agent.position?.x) ? agent.position.x : 0;
+  const pz = Number.isFinite(agent.position?.z) ? agent.position.z : 0;
+
   return (
-    <group ref={groupRef} position={[agent.position.x, agent.position.y || 0, agent.position.z]}>
-      {model && <primitive object={model.group} />}
-      <Html position={[0, 3.5, 0]} center distanceFactor={15}>
-        <div className={`px-2 py-0.5 rounded bg-black/80 border ${isLocal ? 'border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]' : 'border-white/10'} text-white text-[8px] font-black uppercase tracking-widest whitespace-nowrap backdrop-blur-md`}>
-          {agent.displayName}
+    <group ref={groupRef} position={[px, 0, pz]}>
+      <primitive object={model.group} />
+      <Html position={[0, 4, 0]} center distanceFactor={20}>
+        <div className={`px-3 py-1 rounded-lg bg-black/95 border-2 ${isLocal ? 'border-axiom-cyan shadow-[0_0_15px_rgba(31,184,184,1)]' : 'border-white/20'} text-white text-[10px] font-black uppercase tracking-widest backdrop-blur-md italic pointer-events-none`}>
+          {agent.displayName || "Pilot"}
         </div>
       </Html>
     </group>
@@ -139,164 +122,114 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
 };
 
 const LocalPlayerController = ({ agent }: { agent: Agent }) => {
-  const db = useFirestore();
-  const { virtualInput, controlMode, targetPosition, setTargetPosition } = useStore();
-  const moveSpeed = 0.7;
-  const updateInterval = 800;
-  const lastUpdateRef = useRef(0);
-  const keys = useRef<{ [key: string]: boolean }>({});
+  const { virtualInput, controlMode, targetPosition, setAgents, agents } = useStore();
+  const moveSpeed = 2.5;
 
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => (keys.current[e.key.toLowerCase()] = true);
-    const up = (e: KeyboardEvent) => (keys.current[e.key.toLowerCase()] = false);
-    window.addEventListener('keydown', down);
-    window.addEventListener('keyup', up);
-    return () => {
-      window.removeEventListener('keydown', down);
-      window.removeEventListener('keyup', up);
-    };
-  }, []);
-
-  useFrame((state) => {
+  useFrame(() => {
+    if (!agent || !agent.position) return;
     let moving = false;
-    const newPos = { ...agent.position };
+    let deltaX = 0;
+    let deltaZ = 0;
 
-    if (controlMode === 'KEYBOARD') {
-      if (keys.current['w']) { newPos.z -= moveSpeed; moving = true; }
-      if (keys.current['s']) { newPos.z += moveSpeed; moving = true; }
-      if (keys.current['a']) { newPos.x -= moveSpeed; moving = true; }
-      if (keys.current['d']) { newPos.x += moveSpeed; moving = true; }
-    } else if (controlMode === 'JOYSTICK') {
-      if (Math.abs(virtualInput.x) > 0.1 || Math.abs(virtualInput.z) > 0.1) {
-        newPos.x += virtualInput.x * moveSpeed;
-        newPos.z += virtualInput.z * moveSpeed;
-        moving = true;
-      }
-    }
-
-    if (moving && targetPosition) setTargetPosition(null);
-
-    if (!moving && targetPosition && controlMode === 'PUSH_TO_WALK') {
+    if ((controlMode === 'JOYSTICK' || controlMode === 'KEYBOARD') && (Math.abs(virtualInput.x) > 0.1 || Math.abs(virtualInput.z) > 0.1)) {
+      deltaX = virtualInput.x * moveSpeed;
+      deltaZ = virtualInput.z * moveSpeed;
+      moving = true;
+    } else if (targetPosition && controlMode === 'PUSH_TO_WALK') {
       const dx = targetPosition.x - agent.position.x;
       const dz = targetPosition.z - agent.position.z;
       const dist = Math.hypot(dx, dz);
-      if (dist > 0.8) {
-        newPos.x += (dx / dist) * moveSpeed;
-        newPos.z += (dz / dist) * moveSpeed;
+      if (dist > 1.5) {
+        deltaX = (dx / dist) * moveSpeed;
+        deltaZ = (dz / dist) * moveSpeed;
         moving = true;
-      } else {
-        setTargetPosition(null);
       }
     }
 
     if (moving) {
-      agent.position.x = newPos.x;
-      agent.position.z = newPos.z;
-      
-      const now = Date.now();
-      if (now - lastUpdateRef.current > updateInterval) {
-        lastUpdateRef.current = now;
-        if (db) {
-          const ref = doc(db, 'players', agent.id);
-          const { lastUpdate, ...rest } = agent;
-          setDoc(ref, { 
-            ...rest,
-            position: { x: newPos.x, y: 0, z: newPos.z },
-            lastUpdate: serverTimestamp() 
-          }, { merge: true });
-        }
+      const nextX = agent.position.x + deltaX;
+      const nextZ = agent.position.z + deltaZ;
+      if (Number.isFinite(nextX) && Number.isFinite(nextZ)) {
+        setAgents(agents.map(a => a.id === agent.id ? { 
+          ...a, 
+          position: { ...a.position, x: nextX, z: nextZ },
+          state: AgentState.EXPLORING 
+        } : a));
       }
-    }
-
-    const controls = (state as any).controls;
-    if (controls) {
-      controls.target.x = THREE.MathUtils.lerp(controls.target.x, agent.position.x, 0.15);
-      controls.target.z = THREE.MathUtils.lerp(controls.target.z, agent.position.z, 0.15);
-      controls.update();
+    } else if (agent.state !== AgentState.IDLE) {
+      setAgents(agents.map(a => a.id === agent.id ? { ...a, state: AgentState.IDLE } : a));
     }
   });
 
   return <AgentModelWrapper agent={agent} isLocal />;
 };
 
-const Terrain = ({ civilizationIndex }: { civilizationIndex: number }) => {
-    const materialRef = useRef<THREE.ShaderMaterial>(null);
-    const setTargetPosition = useStore(state => state.setTargetPosition);
-    const controlMode = useStore(state => state.controlMode);
-    
-    const uniforms = useMemo(() => ({
-        uTime: { value: 0 },
-        uAwakeningDensity: { value: civilizationIndex / 1000 },
-        uBiome: { value: civilizationIndex >= 800 ? 0.0 : civilizationIndex < 400 ? 1.0 : 2.0 },
-        uCameraPosition: { value: new THREE.Vector3() },
-        uFogColor: { value: new THREE.Color('#060810') },
-        uFogNear: { value: 100.0 },
-        uFogFar: { value: 350.0 }
-    }), [civilizationIndex]);
+const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
+  const agents = useStore(state => state.agents) || [];
+  const chunks = useStore(state => state.loadedChunks) || [];
+  
+  const otherAgents = useMemo(() => agents.filter(a => a && a.id !== localPlayerId), [agents, localPlayerId]);
+  const localAgent = useMemo(() => agents.find(a => a && a.id === localPlayerId), [agents, localPlayerId]);
 
-    useFrame((state) => {
-        if (materialRef.current) {
-            materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
-            materialRef.current.uniforms.uCameraPosition.value.copy(state.camera.position);
-        }
+  const pois = useMemo(() => {
+    const all: POI[] = [];
+    chunks.forEach(c => {
+      if (!c) return;
+      const content = WorldBuildingService.generateAxiomaticContent(c);
+      if (content?.pois) all.push(...content.pois);
     });
+    return all;
+  }, [chunks]);
 
-    return (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow onPointerDown={(e) => {
-          if (controlMode === 'PUSH_TO_WALK') setTargetPosition({ x: e.point.x, y: 0, z: e.point.z });
-        }}>
-            <planeGeometry args={[1000, 1000, 128, 128]} />
-            <shaderMaterial ref={materialRef} vertexShader={axiomVertexShader} fragmentShader={axiomFragmentShader} uniforms={uniforms} side={THREE.DoubleSide} />
-        </mesh>
-    );
-};
+  return (
+    <>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
+        <planeGeometry args={[2000, 2000]} />
+        <meshStandardMaterial color="#020205" roughness={1} metalness={0.1} />
+      </mesh>
+      <gridHelper args={[2000, 100, "#1e2a4a", "#0a0d1a"]} position={[0, -0.05, 0]} />
+      {localAgent && <LocalPlayerController agent={localAgent} />}
+      {otherAgents.map(a => <AgentModelWrapper key={a.id} agent={a} />)}
+      {pois.map(p => {
+        const px = Number.isFinite(p.position[0]) ? p.position[0] : 0;
+        const pz = Number.isFinite(p.position[2]) ? p.position[2] : 0;
+        if (p.type === 'BUILDING') return <HighScienceSpire key={p.id} position={[px, 0, pz]} rotationY={p.rotationY || 0} color={ARL_COLORS.arcane} />;
+        if (p.type === 'SHRINE') return (
+          <Float key={p.id} speed={2} rotationIntensity={1} floatIntensity={1}>
+            <mesh key={`shrine-mesh-${p.id}`} position={[px, 5, pz]} scale={1.5}>
+              <octahedronGeometry args={[1, 0]} />
+              <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={0.5} />
+            </mesh>
+          </Float>
+        );
+        return null;
+      })}
+    </>
+  );
+}
 
-export const World3D: React.FC<{ tick: number; civilizationIndex: number; localPlayerId?: string | null }> = ({ civilizationIndex, localPlayerId }) => {
-    const agents = useStore(state => state.agents);
-    const chunks = useStore(state => state.loadedChunks);
-    
-    const otherAgents = useMemo(() => agents.filter(a => a.id !== localPlayerId), [agents, localPlayerId]);
-    const localAgent = useMemo(() => agents.find(a => a.id === localPlayerId), [agents, localPlayerId]);
+const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, localPlayerId?: string | null }) => {
+  return (
+    <div className="w-full h-full bg-[#010102] touch-none">
+        <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-widest">Synchronizing Matrix...</div>}>
+          <Canvas gl={{ antialias: true, logarithmicDepthBuffer: false }} shadows>
+              <PerspectiveCamera makeDefault position={[80, 80, 80]} fov={45} far={2000} />
+              <OrbitControls makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.1} minDistance={10} maxDistance={600} />
+              <ambientLight intensity={0.3} />
+              <directionalLight 
+                position={[50, 100, 50]} 
+                intensity={0.6} 
+                castShadow 
+                shadow-mapSize={[1024, 1024]}
+                shadow-bias={-0.0005}
+              >
+                <orthographicCamera attach="shadow-camera" args={[-200, 200, 200, -200, 0.1, 1000]} />
+              </directionalLight>
+              <WorldContent localPlayerId={localPlayerId} />
+          </Canvas>
+        </Suspense>
+    </div>
+  );
+}
 
-    const pois = useMemo(() => {
-      const all: POI[] = [];
-      chunks.forEach(c => {
-        const content = WorldBuildingService.generateAxiomaticContent(c);
-        all.push(...content.pois);
-      });
-      return all;
-    }, [chunks]);
-
-    return (
-        <div className="w-full h-full bg-black touch-none">
-            <Canvas shadows dpr={[1, 2]} gl={{ antialias: false, powerPreference: 'high-performance' }}>
-                <PerspectiveCamera makeDefault position={[50, 40, 50]} fov={45} />
-                
-                <OrbitControls 
-                  makeDefault 
-                  enableDamping 
-                  dampingFactor={0.05} 
-                  maxPolarAngle={Math.PI / 2.1} 
-                  minDistance={15} 
-                  maxDistance={150} 
-                  enablePan={false}
-                  rotateSpeed={0.8}
-                />
-
-                <Sky sunPosition={[100, 15, 100]} turbidity={0.02} rayleigh={0.2} />
-                <Environment preset="night" />
-                <ambientLight intensity={2.0} />
-                <pointLight position={[10, 20, 10]} intensity={5} color="#ffffff" />
-                
-                <gridHelper args={[1000, 100, 0x4a5d8e, 0x1e2a4a]} position={[0, -0.05, 0]} />
-                
-                <Terrain civilizationIndex={civilizationIndex} />
-                {localAgent && <LocalPlayerController agent={localAgent} />}
-                {otherAgents.map(a => <AgentModelWrapper key={a.id} agent={a} />)}
-                <POILayer pois={pois} />
-                
-                <ContactShadows frames={1} resolution={512} scale={100} blur={2} opacity={0.35} far={10} color="#000000" />
-            </Canvas>
-        </div>
-    );
-};
+export default World3D;
