@@ -1,20 +1,30 @@
+
 "use client"
 
 import { useState } from "react"
 import Link from "next/link"
-import { Infinity, Menu, X, ArrowRight, Zap } from "lucide-react"
+import { Infinity, Menu, X, ArrowRight, Zap, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
+import { useUser } from "@/firebase"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { user } = useUser()
 
-  const navItems = [
+  const publicItems = [
     { name: "HOME", href: "/" },
     { name: "ABOUT", href: "/about" },
-    { name: "DASHBOARD", href: "/dashboard" },
     { name: "CONTACT", href: "/contact" }
   ]
+
+  const secureItems = [
+    { name: "NEXUS", href: "/dashboard" },
+    { name: "WORLD", href: "/world-preview" },
+    { name: "PILOT HUB", href: "/pilot-hub" }
+  ]
+
+  const navItems = user ? [...publicItems, ...secureItems] : publicItems
 
   return (
     <nav className="fixed top-0 w-full z-[100] bg-black/80 backdrop-blur-2xl border-b border-white/5 px-6 lg:px-12 py-4">
@@ -42,12 +52,20 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3 md:gap-4">
-          <Button variant="ghost" className="hidden sm:flex text-[10px] font-black tracking-widest uppercase text-white/60 hover:text-white border border-white/5 hover:bg-white/5" asChild>
-            <Link href="/dashboard">CONSOLE</Link>
-          </Button>
+          {user ? (
+            <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/10 border border-accent/20">
+              <ShieldCheck className="h-3 w-3 text-accent" />
+              <span className="text-[9px] font-black text-accent uppercase tracking-widest italic">Link Active</span>
+            </div>
+          ) : (
+            <Button variant="ghost" className="hidden sm:flex text-[10px] font-black tracking-widest uppercase text-white/60 hover:text-white border border-white/5 hover:bg-white/5" asChild>
+              <Link href="/dashboard">LOGIN_TERMINAL</Link>
+            </Button>
+          )}
+          
           <Button className="axiom-gradient text-white border-0 px-6 md:px-8 h-10 md:h-12 font-black text-[10px] md:text-[11px] tracking-widest shadow-2xl rounded-xl uppercase italic group" asChild>
-            <Link href="/character-creator">
-              START_JOURNEY <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+            <Link href={user ? "/world-preview" : "/character-creator"}>
+              {user ? "ENTER_SIMULATION" : "START_JOURNEY"} <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
             </Link>
           </Button>
           <button className="lg:hidden p-2 text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
