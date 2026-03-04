@@ -3,6 +3,7 @@
 /**
  * @fileOverview Ouroboros Neural Texture Engine
  * Handles the registry, sorting, and mapping of uploaded textures to game subsystems.
+ * Supports deterministic selection from a pool of active textures.
  */
 
 import * as THREE from 'three';
@@ -81,8 +82,21 @@ class TextureEngine {
     });
   }
 
-  getActiveForCategory(cat: TextureCategory): TextureSignature | undefined {
-    return Array.from(this.registry.values()).find(s => s.category === cat && s.isActive);
+  /**
+   * Returns all active textures for a specific category.
+   */
+  getPoolForCategory(cat: TextureCategory): TextureSignature[] {
+    return Array.from(this.registry.values()).filter(s => s.category === cat && s.isActive);
+  }
+
+  /**
+   * Deterministically picks a texture from the active pool using a seed.
+   */
+  async getProceduralTexture(cat: TextureCategory, seed: number): Promise<THREE.Texture | null> {
+    const pool = this.getPoolForCategory(cat);
+    if (pool.length === 0) return null;
+    const index = Math.abs(seed) % pool.length;
+    return this.getTexture(pool[index].id);
   }
 
   getSortedRegistry(): Record<TextureCategory, TextureSignature[]> {

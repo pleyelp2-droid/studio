@@ -6,7 +6,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import React, { useMemo, useRef, useState, useEffect, Suspense } from "react"
 import * as THREE from "three"
 import { useStore } from "../../store"
-import { POI, Agent, AgentState, ResourceNode, Monster } from "../../types"
+import { POI, Agent, AgentState, ResourceNode, Monster, Chunk } from "../../types"
 import { createHumanoidModel } from "./HumanoidModel"
 import { AnimationController, createAnimationClips } from "./AnimationSystem"
 import { WorldBuildingService } from "@/services/WorldBuildingService"
@@ -23,34 +23,24 @@ const ARL_COLORS = {
   ground: "#050508"
 }
 
-const HighScienceSpire = ({ position, rotationY, color }: { position: [number, number, number], rotationY: number, color: string }) => {
+const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [number, number, number], rotationY: number, color: string, seed: number }) => {
   const [archTex, setArchTex] = useState<THREE.Texture | null>(null);
 
   useEffect(() => {
-    const unsub = textureEngine.subscribe(async (registry) => {
-      const activeArch = textureEngine.getActiveForCategory('ARCHITECTURE');
-      if (activeArch) {
-        const tex = await textureEngine.getTexture(activeArch.id);
-        if (tex) {
-          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-          tex.repeat.set(2, 8);
-          setArchTex(tex);
-        }
+    const updateTex = async () => {
+      const tex = await textureEngine.getProceduralTexture('ARCHITECTURE', seed);
+      if (tex) {
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(2, 8);
+        setArchTex(tex);
       }
-    });
+    };
+    const unsub = textureEngine.subscribe(updateTex);
     return unsub;
-  }, []);
-
-  const safePos = useMemo(() => {
-    return [
-      Number.isFinite(position[0]) ? position[0] : 0,
-      Number.isFinite(position[1]) ? position[1] : 0,
-      Number.isFinite(position[2]) ? position[2] : 0
-    ] as [number, number, number];
-  }, [position]);
+  }, [seed]);
 
   return (
-    <group position={safePos} rotation={[0, rotationY || 0, 0]}>
+    <group position={position} rotation={[0, rotationY || 0, 0]}>
       <mesh position={[0, 15, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[2, 5, 30, 6]} />
         <meshStandardMaterial 
@@ -62,51 +52,39 @@ const HighScienceSpire = ({ position, rotationY, color }: { position: [number, n
           emissiveIntensity={0.2} 
         />
       </mesh>
-      
       <Float speed={3} rotationIntensity={4} floatIntensity={2}>
         <mesh position={[0, 35, 0]} scale={3}>
           <octahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial 
-            color={color} 
-            emissive={color} 
-            emissiveIntensity={2} 
-            toneMapped={false}
-          />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={2} toneMapped={false} />
         </mesh>
       </Float>
-
       <pointLight position={[0, 35, 0]} intensity={2} color={color} distance={150} decay={2} />
-      
-      <mesh position={[0, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[8, 10, 32]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1} transparent opacity={0.5} />
-      </mesh>
     </group>
   );
 };
 
-const Terrain = () => {
+const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
   const [terrainTex, setTerrainTex] = useState<THREE.Texture | null>(null);
+  const chunkOffsetX = chunk.x * 400;
+  const chunkOffsetZ = chunk.z * 400;
 
   useEffect(() => {
-    const unsub = textureEngine.subscribe(async (registry) => {
-      const activeTerrain = textureEngine.getActiveForCategory('TERRAIN');
-      if (activeTerrain) {
-        const tex = await textureEngine.getTexture(activeTerrain.id);
-        if (tex) {
-          tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-          tex.repeat.set(100, 100);
-          setTerrainTex(tex);
-        }
+    const updateTex = async () => {
+      const tex = await textureEngine.getProceduralTexture('TERRAIN', chunk.seed);
+      if (tex) {
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(10, 10);
+        setTerrainTex(tex);
       }
-    });
+    };
+    const unsub = textureEngine.subscribe(updateTex);
     return unsub;
-  }, []);
+  }, [chunk.seed]);
 
   return (
-    <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
-        <planeGeometry args={[4000, 4000]} />
+    <group position={[chunkOffsetX, -0.1, chunkOffsetZ]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[400, 400]} />
         <meshStandardMaterial 
           color={terrainTex ? "#ffffff" : ARL_COLORS.ground} 
           map={terrainTex}
@@ -114,48 +92,58 @@ const Terrain = () => {
           metalness={0.2} 
         />
       </mesh>
-      <gridHelper args={[4000, 100, ARL_COLORS.border, "#050508"]} position={[0, -0.05, 0]} />
+      <gridHelper args={[400, 10, ARL_COLORS.border, "#050508"]} position={[0, 0.05, 0]} />
     </group>
   );
 };
 
 const ResourceNodeMesh = ({ node }: { node: ResourceNode }) => {
   const color = node.type === 'GOLD_ORE' ? ARL_COLORS.gold : node.type === 'IRON_ORE' ? '#71717a' : node.type === 'WOOD' ? '#78350f' : ARL_COLORS.teal;
-  
   return (
     <group position={[node.position[0], 0, node.position[2]]}>
       <mesh position={[0, 1, 0]} castShadow>
-        {node.type === 'WOOD' ? (
-          <cylinderGeometry args={[0.5, 1.5, 8, 8]} />
-        ) : (
-          <dodecahedronGeometry args={[2, 0]} />
-        )}
+        {node.type === 'WOOD' ? <cylinderGeometry args={[0.5, 1.5, 8, 8]} /> : <dodecahedronGeometry args={[2, 0]} />}
         <meshStandardMaterial color={color} metalness={0.6} roughness={0.4} />
       </mesh>
       <Html position={[0, 6, 0]} center>
-        <div className="text-[8px] font-black text-white/40 uppercase tracking-widest whitespace-nowrap bg-black/40 px-2 py-0.5 rounded">
-          {node.type} ({node.amount})
-        </div>
+        <div className="text-[8px] font-black text-white/40 uppercase tracking-widest bg-black/40 px-2 py-0.5 rounded">{node.type}</div>
       </Html>
     </group>
   );
 };
 
 const MonsterMesh = ({ monster }: { monster: Monster }) => {
+  const groupRef = useRef<THREE.Group>(null);
+  const [model, setModel] = useState<any>(null);
+  const [animController, setAnimController] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const humanoid = createHumanoidModel({ skinTone: monster.color, bodyScale: monster.scale * 4.0 });
+      if (humanoid) {
+        setModel(humanoid);
+        const clips = createAnimationClips(humanoid.bones);
+        const controller = new AnimationController(humanoid.mesh, clips);
+        setAnimController(controller);
+      }
+    } catch (e) {}
+  }, [monster.color, monster.scale]);
+
+  useFrame((_state, delta) => {
+    if (animController) animController.update(delta);
+  });
+
   return (
     <group position={[monster.position[0], 0, monster.position[2]]} rotation={[0, monster.rotationY, 0]}>
-      <mesh position={[0, 2, 0]} castShadow>
-        <boxGeometry args={[monster.scale, monster.scale, monster.scale]} />
-        <meshStandardMaterial color={monster.color} emissive={monster.color} emissiveIntensity={0.5} />
-      </mesh>
-      <Html position={[0, monster.scale + 2, 0]} center>
+      {model ? <primitive object={model.group} /> : (
+        <mesh position={[0, monster.scale, 0]} castShadow>
+          <boxGeometry args={[monster.scale, monster.scale, monster.scale]} />
+          <meshStandardMaterial color={monster.color} emissive={monster.color} emissiveIntensity={0.5} />
+        </mesh>
+      )}
+      <Html position={[0, monster.scale + 10, 0]} center>
         <div className="flex flex-col items-center gap-1">
-          <div className="w-12 h-1 bg-black/60 rounded-full overflow-hidden border border-white/10">
-            <div className="h-full bg-red-500" style={{ width: '100%' }} />
-          </div>
-          <div className="text-[9px] font-black text-red-400 uppercase italic tracking-tighter bg-black/80 px-2 py-0.5 rounded border border-red-500/20">
-            {monster.name}
-          </div>
+          <div className="text-[9px] font-black text-red-400 uppercase italic bg-black/80 px-2 py-0.5 rounded border border-red-500/20">{monster.name}</div>
         </div>
       </Html>
     </group>
@@ -169,45 +157,29 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
 
   useEffect(() => {
     if (!agent) return;
-    let humanoid: any = null;
-    let controller: any = null;
-
     try {
       const appearance = agent.appearance || { skinTone: '#c68642', bodyScale: 1.0 };
-      humanoid = createHumanoidModel({
+      const humanoid = createHumanoidModel({
         skinTone: appearance.skinTone,
         bodyScale: (appearance.bodyScale || 1.0) * 8.0 
       });
-      
       if (humanoid) {
         setModel(humanoid);
         const clips = createAnimationClips(humanoid.bones);
-        controller = new AnimationController(humanoid.mesh, clips);
+        const controller = new AnimationController(humanoid.mesh, clips);
         setAnimController(controller);
       }
-    } catch (e) {
-      console.error("[WORLD_3D] Model creation failed", e);
-    }
-
-    return () => {
-      if (controller) controller.dispose();
-    };
+    } catch (e) {}
   }, [agent.id, agent.appearance?.skinTone, agent.appearance?.bodyScale]);
 
   useEffect(() => {
-    if (animController && agent.state) {
-      animController.playForState(agent.state);
-    }
+    if (animController && agent.state) animController.playForState(agent.state);
   }, [agent.state, animController]);
 
   useFrame((_state, delta) => {
-    if (animController && Number.isFinite(delta)) {
-      animController.update(delta);
-    }
+    if (animController) animController.update(delta);
     if (groupRef.current && !isLocal && agent.position) {
-      const tx = Number.isFinite(agent.position.x) ? agent.position.x : 0;
-      const tz = Number.isFinite(agent.position.z) ? agent.position.z : 0;
-      groupRef.current.position.lerp(new THREE.Vector3(tx, 0, tz), 0.1);
+      groupRef.current.position.lerp(new THREE.Vector3(agent.position.x, 0, agent.position.z), 0.1);
     }
   });
 
@@ -217,8 +189,8 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
     <group ref={groupRef} position={[agent.position?.x || 0, 0, agent.position?.z || 0]}>
       <primitive object={model.group} />
       <Html position={[0, 15, 0]} center distanceFactor={25}>
-        <div className={`px-4 py-1.5 rounded-full bg-black/80 border-2 ${isLocal ? 'border-axiom-cyan shadow-[0_0_20px_rgba(31,184,184,0.8)]' : 'border-white/10'} text-white text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-md italic pointer-events-none whitespace-nowrap shadow-xl`}>
-          {agent.displayName || "Unknown Pilot"}
+        <div className={`px-4 py-1.5 rounded-full bg-black/80 border-2 ${isLocal ? 'border-axiom-cyan' : 'border-white/10'} text-white text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-md italic pointer-events-none whitespace-nowrap shadow-xl`}>
+          {agent.displayName || "Pilot"}
         </div>
       </Html>
     </group>
@@ -230,23 +202,16 @@ const CameraController = ({ targetPosition }: { targetPosition: { x: number, z: 
   const controlsRef = useRef<any>(null);
   const controlledAgentId = useStore(state => state.controlledAgentId);
   const agents = useStore(state => state.agents);
-  
-  const controlledAgent = useMemo(() => 
-    agents.find(a => a.id === controlledAgentId), 
-    [agents, controlledAgentId]
-  );
+  const controlledAgent = useMemo(() => agents.find(a => a.id === controlledAgentId), [agents, controlledAgentId]);
 
   useFrame(() => {
     if (controlledAgent && controlledAgent.position) {
       const { x, z } = controlledAgent.position;
       const idealOffset = new THREE.Vector3(0, 15, 40); 
       const idealLookat = new THREE.Vector3(x, 8, z); 
-
       const targetPos = new THREE.Vector3(x, 0, z).add(idealOffset);
-      
       camera.position.lerp(targetPos, 0.1);
       camera.lookAt(idealLookat);
-
       if (controlsRef.current) {
         controlsRef.current.target.lerp(idealLookat, 0.1);
         controlsRef.current.update();
@@ -254,159 +219,94 @@ const CameraController = ({ targetPosition }: { targetPosition: { x: number, z: 
     }
   });
 
-  return (
-    <OrbitControls 
-      ref={controlsRef}
-      makeDefault 
-      enableDamping 
-      dampingFactor={0.05} 
-      maxPolarAngle={Math.PI / 2.2} 
-      minDistance={10} 
-      maxDistance={200} 
-    />
-  );
-};
-
-const LocalPlayerController = ({ agent }: { agent: Agent }) => {
-  const { virtualInput, controlMode, targetPosition, setAgents, agents } = useStore();
-  const moveSpeed = 6.0;
-
-  useFrame((_state, delta) => {
-    if (!agent || !agent.position) return;
-    let moving = false;
-    let dx = 0;
-    let dz = 0;
-
-    if ((controlMode === 'JOYSTICK' || controlMode === 'KEYBOARD') && (Math.abs(virtualInput.x) > 0.1 || Math.abs(virtualInput.z) > 0.1)) {
-      dx = virtualInput.x * moveSpeed;
-      dz = virtualInput.z * moveSpeed;
-      moving = true;
-    } else if (targetPosition && controlMode === 'PUSH_TO_WALK') {
-      const diffX = targetPosition.x - agent.position.x;
-      const diffZ = targetPosition.z - agent.position.z;
-      const dist = Math.hypot(diffX, diffZ);
-      if (dist > 2.0) {
-        dx = (diffX / dist) * moveSpeed;
-        dz = (diffZ / dist) * moveSpeed;
-        moving = true;
-      }
-    }
-
-    if (moving) {
-      const nextX = agent.position.x + dx;
-      const nextZ = agent.position.z + dz;
-      setAgents(agents.map(a => a.id === agent.id ? { 
-        ...a, 
-        position: { ...a.position, x: nextX, z: nextZ },
-        state: AgentState.EXPLORING 
-      } : a));
-    } else if (agent.state !== AgentState.IDLE) {
-      setAgents(agents.map(a => a.id === agent.id ? { ...a, state: AgentState.IDLE } : a));
-    }
-  });
-
-  return <AgentModelWrapper agent={agent} isLocal />;
+  return <OrbitControls ref={controlsRef} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.2} minDistance={10} maxDistance={200} />;
 };
 
 const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
   const agents = useStore(state => state.agents) || [];
   const chunks = useStore(state => state.loadedChunks) || [];
-  
   const localAgent = useMemo(() => agents.find(a => a.id === localPlayerId), [agents, localPlayerId]);
   const otherAgents = useMemo(() => agents.filter(a => a.id !== localPlayerId), [agents, localPlayerId]);
 
   const { pois, monsters, resources } = useMemo(() => {
-    const allPois: POI[] = [];
+    const allPois: any[] = [];
     const allMonsters: Monster[] = [];
     const allResources: ResourceNode[] = [];
-
     chunks.forEach(c => {
       const content = WorldBuildingService.generateAxiomaticContent(c);
-      if (content?.pois) allPois.push(...content.pois);
-      if (content?.monsters) allMonsters.push(...content.monsters);
-      if (content?.resources) allResources.push(...content.resources);
+      content.pois.forEach(p => allPois.push({ ...p, seed: c.seed }));
+      allMonsters.push(...content.monsters);
+      allResources.push(...content.resources);
     });
-    
     return { pois: allPois, monsters: allMonsters, resources: allResources };
   }, [chunks]);
 
   return (
     <>
-      <Terrain />
       <Stars radius={300} depth={60} count={20000} factor={7} saturation={0} fade speed={1} />
       <Sky sunPosition={[100, 20, 100]} />
-      
+      {chunks.map(c => <ChunkTerrain key={c.id} chunk={c} />)}
       {localAgent && <LocalPlayerController agent={localAgent} />}
       {otherAgents.map(a => <AgentModelWrapper key={a.id} agent={a} />)}
-      
       {resources.map(r => <ResourceNodeMesh key={r.id} node={r} />)}
       {monsters.map(m => <MonsterMesh key={m.id} monster={m} />)}
-      
       {pois.map(p => {
-        const px = p.position[0] || 0;
-        const pz = p.position[2] || 0;
-        if (p.type === 'BUILDING') return <HighScienceSpire key={p.id} position={[px, 0, pz]} rotationY={p.rotationY || 0} color={ARL_COLORS.arcane} />;
+        if (p.type === 'BUILDING' || p.type === 'WALL') return <HighScienceSpire key={p.id} position={p.position} rotationY={p.rotationY} color={ARL_COLORS.arcane} seed={p.seed} />;
         if (p.type === 'SHRINE') return (
-          <group key={p.id} position={[px, 0, pz]}>
+          <group key={p.id} position={p.position}>
             <Float speed={4} rotationIntensity={2} floatIntensity={5}>
-              <mesh position={[0, 8, 0]} scale={2}>
-                <dodecahedronGeometry args={[1, 0]} />
-                <meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={3} toneMapped={false} />
-              </mesh>
+              <mesh position={[0, 8, 0]} scale={2}><dodecahedronGeometry args={[1, 0]} /><meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={3} toneMapped={false} /></mesh>
             </Float>
             <pointLight position={[0, 8, 0]} intensity={1.5} color={ARL_COLORS.teal} distance={80} />
           </group>
         );
         return null;
       })}
-      
       <ContactShadows resolution={1024} scale={100} blur={2} opacity={0.4} far={10} color="#000000" />
     </>
   );
 }
 
+const LocalPlayerController = ({ agent }: { agent: Agent }) => {
+  const { virtualInput, controlMode, targetPosition, setAgents, agents } = useStore();
+  const moveSpeed = 6.0;
+  useFrame(() => {
+    if (!agent || !agent.position) return;
+    let moving = false;
+    let dx = 0; let dz = 0;
+    if ((controlMode === 'JOYSTICK' || controlMode === 'KEYBOARD') && (Math.abs(virtualInput.x) > 0.1 || Math.abs(virtualInput.z) > 0.1)) {
+      dx = virtualInput.x * moveSpeed; dz = virtualInput.z * moveSpeed; moving = true;
+    } else if (targetPosition && controlMode === 'PUSH_TO_WALK') {
+      const diffX = targetPosition.x - agent.position.x;
+      const diffZ = targetPosition.z - agent.position.z;
+      const dist = Math.hypot(diffX, diffZ);
+      if (dist > 2.0) { dx = (diffX / dist) * moveSpeed; dz = (diffZ / dist) * moveSpeed; moving = true; }
+    }
+    if (moving) {
+      setAgents(agents.map(a => a.id === agent.id ? { ...a, position: { ...a.position, x: a.position.x + dx, z: a.position.z + dz }, state: AgentState.EXPLORING } : a));
+    } else if (agent.state !== AgentState.IDLE) {
+      setAgents(agents.map(a => a.id === agent.id ? { ...a, state: AgentState.IDLE } : a));
+    }
+  });
+  return <AgentModelWrapper agent={agent} isLocal />;
+};
+
 const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, localPlayerId?: string | null }) => {
   const setTargetPosition = useStore(state => state.setTargetPosition);
   const controlMode = useStore(state => state.controlMode);
-  const agents = useStore(state => state.agents);
-  const controlledAgentId = useStore(state => state.controlledAgentId);
-  
-  const controlledAgent = useMemo(() => 
-    agents.find(a => a.id === controlledAgentId), 
-    [agents, controlledAgentId]
-  );
-
   return (
     <div className="w-full h-full bg-[#010102] touch-none">
-        <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Materializing Reality...</div>}>
-          <Canvas 
-            gl={{ antialias: true, logarithmicDepthBuffer: true }} 
-            shadows
-            onPointerDown={(e) => {
-              if (controlMode === 'PUSH_TO_WALK') {
-                setTargetPosition({ x: e.point.x, y: 0, z: e.point.z });
-              }
-            }}
-          >
-              <PerspectiveCamera makeDefault position={[60, 40, 60]} fov={45} far={5000} />
-              
-              <CameraController targetPosition={controlledAgent?.position || null} />
-              
-              <ambientLight intensity={0.2} />
-              <directionalLight 
-                position={[100, 200, 100]} 
-                intensity={1.2} 
-                castShadow 
-                shadow-mapSize={[2048, 2048]}
-                shadow-bias={-0.0005}
-              />
-              
-              <Environment preset="night" />
-              <WorldContent localPlayerId={localPlayerId} />
-              
-              <fog attach="fog" args={["#010102", 100, 1500]} />
-          </Canvas>
-        </Suspense>
+      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Materializing Reality...</div>}>
+        <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
+          <PerspectiveCamera makeDefault position={[60, 40, 60]} fov={45} far={5000} />
+          <CameraController targetPosition={null} />
+          <ambientLight intensity={0.2} />
+          <directionalLight position={[100, 200, 100]} intensity={1.2} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
+          <Environment preset="night" />
+          <WorldContent localPlayerId={localPlayerId} />
+          <fog attach="fog" args={["#010102", 100, 1500]} />
+        </Canvas>
+      </Suspense>
     </div>
   );
 }
