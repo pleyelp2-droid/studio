@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -14,12 +15,10 @@ import {
   X,
   Layers,
   Activity,
-  History,
-  Play,
-  Monitor,
   Globe,
   Zap,
-  ChevronRight
+  Play,
+  Monitor
 } from "lucide-react"
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
@@ -127,7 +126,7 @@ export default function MMORPGPortal() {
       </AnimatePresence>
 
       <main className="relative z-10 pt-32 lg:pt-48">
-        {/* Hero Section - Optimized for Tablet aspect ratios */}
+        {/* Hero Section */}
         <section className={`px-6 lg:px-12 pb-20 flex flex-col items-center text-center max-w-7xl mx-auto ${orientation === 'portrait' ? 'pt-10' : 'pt-0'}`}>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -244,19 +243,6 @@ export default function MMORPGPortal() {
             ))}
           </div>
         </section>
-
-        {/* Narrative Section */}
-        <section id="chronicles" className="px-6 lg:px-12 py-48 relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-full bg-accent/5 blur-[120px] rounded-full" />
-          <div className="max-w-5xl mx-auto text-center space-y-12 relative z-10">
-            <History className="h-20 w-20 text-accent mx-auto opacity-30 animate-pulse" />
-            <h3 className="text-5xl lg:text-8xl font-headline font-black text-white italic uppercase tracking-tighter">Your Memory is Permanent.</h3>
-            <p className="text-xl md:text-3xl text-white/60 leading-relaxed italic font-light">
-              "The Spire does not reset. It absorbs the pulse of the collective. In Ouroboros, you are not just a player; you are a data-ghost in an infinite recursion of high science."
-            </p>
-            <div className="text-[10px] font-black text-accent tracking-[0.6em] uppercase">— THE ARCHITECTS // CHRONICLE X-42</div>
-          </div>
-        </section>
       </main>
 
       <footer className="py-48 px-6 lg:px-12 border-t border-white/5 bg-black relative z-10">
@@ -271,12 +257,6 @@ export default function MMORPGPortal() {
             </div>
           </div>
           
-          <div className="flex flex-wrap justify-center gap-16 text-[13px] font-black tracking-[0.4em] text-white/20 uppercase italic">
-            <Link href="#" className="hover:text-accent transition-colors">Discord</Link>
-            <Link href="#" className="hover:text-accent transition-colors">Twitter_X</Link>
-            <Link href="#" className="hover:text-accent transition-colors">Whitepaper</Link>
-          </div>
-
           <div className="text-[11px] font-black text-white/10 tracking-[0.4em] uppercase italic text-center lg:text-right space-y-2">
             <div>&copy; 2025 Ouroboros Collective</div>
             <div className="text-accent/20">Deterministic Engine Stable v1.0.6</div>
