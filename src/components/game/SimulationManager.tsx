@@ -4,11 +4,11 @@ import { useEffect, useRef } from 'react';
 import { useStore } from '@/store';
 import { AIService } from '@/services/AIService';
 import { syncAgentsBatch } from '@/services/AgentManager';
-import { summarizeNeurologicChoice, generateDialogue } from '@/lib/axiomatic-engine';
+import { summarizeNeurologicChoice, generateDialogue, RobustnessEngine } from '@/lib/axiomatic-engine';
 
 /**
  * WorldEngine / SimulationManager (Master Plan)
- * Zentraler Ticker, der Bedürfnisse und Agenten-Entscheidungen steuert.
+ * Zentraler Ticker, der Bedürfnisse, Agenten-Entscheidungen und Aufgaben steuert.
  */
 export const SimulationManager = () => {
   const addLog = useStore(state => state.addLog);
@@ -24,44 +24,60 @@ export const SimulationManager = () => {
     // Zentraler Tick-Loop (Master Plan)
     tickIntervalRef.current = setInterval(async () => {
       const state = useStore.getState();
+      
       const updatedAgents = state.agents.map(agent => {
-        if (!agent || agent.npcClass === 'SYSTEM') return agent;
+        return RobustnessEngine.wrap(() => {
+          if (!agent || agent.npcClass === 'SYSTEM') return agent;
 
-        // 1. Bedürfnisse verfallen lassen (Hunger steigt, Social sinkt)
-        const needs = {
-          hunger: Math.min(100, (agent.needs?.hunger || 0) + 1),
-          social: Math.max(0, (agent.needs?.social || 50) - 0.5),
-          wealth: agent.needs?.wealth || 50
-        };
+          // 1. Bedürfnisse verfallen lassen (Hunger steigt, Social sinkt)
+          const needs = {
+            hunger: Math.min(100, (agent.needs?.hunger || 0) + 1),
+            social: Math.max(0, (agent.needs?.social || 50) - 0.5),
+            wealth: agent.needs?.wealth || 50
+          };
 
-        // 2. Heuristische Entscheidung treffen
-        const decision = summarizeNeurologicChoice({ ...agent, needs }, [], [], [], []);
-        
-        // 3. Gedanken aktualisieren (Master Plan)
-        const memory = [...(agent.memory || [])];
-        const newThought = `Status: ${decision.choice} (Grund: ${decision.reason})`;
-        if (memory[memory.length - 1] !== newThought) {
-          memory.push(newThought);
-        }
-
-        // 4. Gelegentliche Kommunikation (Master Plan)
-        if (Math.random() > 0.95 && state.agents.length > 1) {
-          const target = state.agents.find(a => a.id !== agent.id);
-          if (target) {
-            const chat = generateDialogue(agent, target, needs.hunger > 50 ? 'trade' : 'social');
-            addLog(`[CHAT] ${agent.displayName} -> ${target.displayName}: ${chat}`, 'LOCAL');
+          // 2. Aufgaben-Validierung (Task System)
+          const tasks = [...(agent.tasks || [])];
+          const activeTask = tasks.find(t => t.status === 'active');
+          if (activeTask && Math.random() > 0.95) {
+            // Deterministische Erfüllungschance
+            activeTask.status = 'done';
+            addLog(`[TASK] ${agent.displayName} hat Ziel erfüllt: ${activeTask.goal}`, 'SYSTEM');
           }
-        }
 
-        return {
-          ...agent,
-          needs,
-          state: decision.choice,
-          memory: memory.slice(-10) // Nur die letzten 10 Gedanken behalten
-        };
+          // 3. Heuristische Entscheidung treffen
+          const decision = summarizeNeurologicChoice({ ...agent, needs }, [], [], [], []);
+          
+          // 4. Gedanken aktualisieren (Master Plan)
+          const memory = [...(agent.memory || [])];
+          const newThought = `Status: ${decision.choice} (Grund: ${decision.reason})`;
+          if (memory[memory.length - 1] !== newThought) {
+            memory.push(newThought);
+          }
+
+          // 5. Gelegentliche Kommunikation & Trust Update
+          if (Math.random() > 0.95 && state.agents.length > 1) {
+            const target = state.agents.find(a => a.id !== agent.id);
+            if (target) {
+              const chat = generateDialogue(agent, target, needs.hunger > 50 ? 'trade' : 'social');
+              addLog(`[CHAT] ${agent.displayName} -> ${target.displayName}: ${chat}`, 'LOCAL');
+              
+              // Trust-Feedback Heuristik
+              state.updateTrust(agent.id, target.id, 1);
+            }
+          }
+
+          return {
+            ...agent,
+            needs,
+            tasks,
+            state: decision.choice,
+            memory: memory.slice(-10) 
+          };
+        }, agent, "AgentSimulationTick");
       });
 
-      // 5. State in den Store schreiben
+      // 6. State in den Store schreiben
       state.setAgents(updatedAgents);
 
       // Alle 100 Ticks: Firestore Persistenz
@@ -71,7 +87,7 @@ export const SimulationManager = () => {
         } catch (e) {}
       }
 
-    }, 5000); // 5s Tick Intervall für die Simulation
+    }, 5000); 
 
     return cleanup;
   }, [addLog]);

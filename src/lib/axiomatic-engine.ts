@@ -1,12 +1,27 @@
 'use client';
 /**
- * @fileOverview Axiom Frontier - Heuristische Agenten-Logik (Master Plan)
- * Implementiert die Utility-basierte KI und template-basierte Kommunikation.
+ * @fileOverview Axiom Frontier - Robustness Engine & Agent Core (Master Plan)
+ * Implementiert die Sicherheits-Wrapper und das Vertrauens-basierte Agentensystem.
  */
 
-import { Agent, AgentState, ResourceNode, POI, Monster, Item, ItemRarity, ItemType, ItemStats } from '../types';
+import { Agent, AgentState, ResourceNode, POI, Monster, Item, ItemRarity, ItemType, ItemStats, Memory, Relationship } from '../types';
 
 export const KAPPA = 1.000;
+
+/**
+ * ROBUSTNESS & FALLBACK ENGINE
+ * Garantiert stabiles Gameplay durch Fehler-Wrapping und deterministische Fallbacks.
+ */
+export class RobustnessEngine {
+  static wrap<T>(operation: () => T, fallback: T, context: string): T {
+    try {
+      return operation();
+    } catch (e) {
+      console.error(`[CRITICAL FAILURE] in ${context}:`, e);
+      return fallback;
+    }
+  }
+}
 
 export interface AxiomaticSummary {
     choice: AgentState;
@@ -17,64 +32,66 @@ export interface AxiomaticSummary {
 
 /**
  * Heuristische Utility-Berechnung basierend auf Agenten-Needs.
- * Implementiert den Master Plan: Bedürfnisse steuern das Verhalten mathematisch.
  */
 export const calculateUtility = (agent: Agent, action: AgentState): number => {
-  const { hunger, social, wealth } = agent.needs || { hunger: 0, social: 50, wealth: 50 };
+  return RobustnessEngine.wrap(() => {
+    const { hunger, social, wealth } = agent.needs || { hunger: 0, social: 50, wealth: 50 };
 
-  switch (action) {
-    case AgentState.GATHERING:
-    case AgentState.CRAFTING:
-      // Utility steigt, wenn Wealth niedrig ist
-      return wealth < 30 ? 0.9 : 0.2;
-    
-    case AgentState.TRADING:
-    case AgentState.BANKING:
-      // Utility steigt bei Hunger (Handel für Nahrung) oder hohem Wealth (Logistik)
-      return hunger > 60 ? 0.95 : wealth > 80 ? 0.7 : 0.1;
-    
-    case AgentState.EXPLORING:
-    case AgentState.QUESTING:
-      // Social Bedürfnis treibt Exploration zu bewohnten Gebieten
-      return social < 40 ? 0.8 : 0.4;
-    
-    case AgentState.COMBAT:
-      // Aggression (Teil der Thinking Matrix) erhöht Combat Utility
-      return (agent.thinkingMatrix?.aggression || 0.5) > 0.7 ? 0.85 : 0.2;
+    switch (action) {
+      case AgentState.GATHERING:
+      case AgentState.CRAFTING:
+        return wealth < 30 ? 0.9 : 0.2;
+      
+      case AgentState.TRADING:
+      case AgentState.BANKING:
+        return hunger > 60 ? 0.95 : wealth > 80 ? 0.7 : 0.1;
+      
+      case AgentState.EXPLORING:
+      case AgentState.QUESTING:
+        return social < 40 ? 0.8 : 0.4;
+      
+      case AgentState.COMBAT:
+        return (agent.thinkingMatrix?.aggression || 0.5) > 0.7 ? 0.85 : 0.2;
 
-    case AgentState.IDLE:
-      return 0.1;
+      case AgentState.IDLE:
+        return 0.1;
 
-    default:
-      return 0.3;
-  }
+      default:
+        return 0.3;
+    }
+  }, 0.1, "UtilityCalculation");
 };
 
 /**
- * Heuristische Konversation (Master Plan)
- * Wählt Dialoge basierend auf Intent und Status ohne LLM.
+ * Heuristische Konversation (Trust-basiert)
+ * Wählt Dialoge basierend auf Intent, Status und Vertrauen.
  */
 export const generateDialogue = (agent: Agent, target: Agent, intent: 'trade' | 'social' | 'combat'): string => {
-  const templates = {
-    trade: [
-      `Ich brauche Ressourcen, ${target.displayName}. Hast du etwas für mich?`,
-      `Der Markt ist im Wandel. Lass uns handeln, mein Freund.`,
-      `Meine Vorräte sind knapp. Was verlangst du für deine Waren?`
-    ],
-    social: [
-      `Wie läuft das Leben in diesem Sektor?`,
-      `Hast du heute schon an der Spire gearbeitet?`,
-      `Die Matrix fühlt sich heute stabil an, findest du nicht?`
-    ],
-    combat: [
-      `Deine Signatur ist korrumpiert! Weiche zurück!`,
-      `Für den Ouroboros!`,
-      `Die Korruption endet hier.`
-    ]
-  };
+  return RobustnessEngine.wrap(() => {
+    const rel = agent.relationships?.[target.id] || { trust: 0, type: 'neutral' as const };
+    const tone = rel.trust > 50 ? "warm" : rel.trust < -50 ? "kalt" : "neutral";
 
-  const options = templates[intent] || ["Hallo."];
-  return options[Math.floor(Math.random() * options.length)];
+    const templates = {
+      trade: [
+        `[${tone}] Ich brauche Ressourcen, ${target.displayName}. Hast du etwas für mich?`,
+        `[${tone}] Der Markt ist im Wandel. Lass uns handeln, mein Freund.`,
+        `[${tone}] Meine Vorräte sind knapp. Was verlangst du für deine Waren?`
+      ],
+      social: [
+        `[${tone}] Wie läuft das Leben in diesem Sektor?`,
+        `[${tone}] Hast du heute schon an der Spire gearbeitet?`,
+        `[${tone}] Die Matrix fühlt sich heute stabil an, findest du nicht?`
+      ],
+      combat: [
+        `[${tone}] Deine Signatur ist korrumpiert! Weiche zurück!`,
+        `[${tone}] Für den Ouroboros!`,
+        `[${tone}] Die Korruption endet hier.`
+      ]
+    };
+
+    const options = templates[intent] || ["Hallo."];
+    return options[Math.floor(Math.random() * options.length)];
+  }, "Hallo.", "DialogueGeneration");
 };
 
 export const summarizeNeurologicChoice = (
@@ -137,4 +154,11 @@ export const generateLoot = (monsterType: string): Item | null => {
         value: Math.floor(10 * multiplier),
         description: `Ein ${rarity} Gegenstand von einem ${monsterType}.`
     };
+};
+
+export const ITEM_SETS: Record<string, Record<number, Array<{ description: string }>>> = {
+  'Axiom Core': {
+    2: [{ description: '+10% Logic Efficiency' }],
+    4: [{ description: '+25% Neural Regeneration' }]
+  }
 };

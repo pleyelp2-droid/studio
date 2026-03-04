@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Agent, Chunk, Language, AgentState } from './types';
+import { Agent, Chunk, Language, AgentState, StoreProduct, Task } from './types';
 
 interface AppState {
   agents: Agent[];
@@ -59,6 +59,15 @@ interface AppState {
   releaseControl: () => void;
   bidOnAuction: (auctionId: string, bidderId: string, amount: number) => void;
   setEmergenceSetting: (key: string, value: boolean) => void;
+  
+  // Agent-Core Actions
+  updateTrust: (agentId: string, targetId: string, delta: number) => void;
+  addAgentTask: (agentId: string, task: Task) => void;
+  completeAgentTask: (agentId: string, taskId: string) => void;
+  equipItem: (agentId: string, item: any, index: number) => void;
+  unequipItem: (agentId: string, slot: string) => void;
+  moveInventoryItem: (agentId: string, from: number, to: number) => void;
+  allocateStatPoint: (agentId: string, stat: string) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -150,5 +159,57 @@ export const useStore = create<AppState>((set) => ({
   })),
   setEmergenceSetting: (key, value) => set((state) => ({
     emergenceSettings: { ...state.emergenceSettings, [key]: value }
+  })),
+
+  // Agent-Core Actions Implementation
+  updateTrust: (agentId, targetId, delta) => set((state) => ({
+    agents: state.agents.map(a => {
+      if (a.id !== agentId) return a;
+      const rels = { ...a.relationships };
+      const current = rels[targetId] || { targetId, trust: 0, type: 'neutral' };
+      rels[targetId] = { ...current, trust: Math.max(-100, Math.min(100, current.trust + delta)) };
+      return { ...a, relationships: rels };
+    })
+  })),
+  addAgentTask: (agentId, task) => set((state) => ({
+    agents: state.agents.map(a => a.id === agentId ? { ...a, tasks: [...a.tasks, task] } : a)
+  })),
+  completeAgentTask: (agentId, taskId) => set((state) => ({
+    agents: state.agents.map(a => a.id === agentId ? { ...a, tasks: a.tasks.map(t => t.id === taskId ? { ...t, status: 'done' } : t) } : a)
+  })),
+  equipItem: (agentId, item, index) => set((state) => ({
+    agents: state.agents.map(a => {
+      if (a.id !== agentId) return a;
+      const inv = [...a.inventory];
+      inv[index] = null;
+      const slot = item.type === 'WEAPON' ? 'mainHand' : item.type === 'HELM' ? 'head' : item.type === 'CHEST' ? 'chest' : 'legs';
+      return { ...a, inventory: inv, equipment: { ...a.equipment, [slot]: item } };
+    })
+  })),
+  unequipItem: (agentId, slot) => set((state) => ({
+    agents: state.agents.map(a => {
+      if (a.id !== agentId) return a;
+      const item = (a.equipment as any)[slot];
+      if (!item) return a;
+      const inv = [...a.inventory];
+      const emptyIdx = inv.findIndex(i => i === null);
+      if (emptyIdx === -1) return a;
+      inv[emptyIdx] = item;
+      return { ...a, inventory: inv, equipment: { ...a.equipment, [slot]: null } };
+    })
+  })),
+  moveInventoryItem: (agentId, from, to) => set((state) => ({
+    agents: state.agents.map(a => {
+      if (a.id !== agentId) return a;
+      const inv = [...a.inventory];
+      [inv[from], inv[to]] = [inv[to], inv[from]];
+      return { ...a, inventory: inv };
+    })
+  })),
+  allocateStatPoint: (agentId, stat) => set((state) => ({
+    agents: state.agents.map(a => {
+      if (a.id !== agentId || (a.unspentStatPoints || 0) <= 0) return a;
+      return { ...a, [stat]: ((a as any)[stat] || 10) + 1, unspentStatPoints: (a.unspentStatPoints || 0) - 1 };
+    })
   })),
 }));

@@ -33,18 +33,38 @@ export interface AgentNeeds {
   wealth: number;
 }
 
+export interface Memory {
+  event: string;
+  timestamp: number;
+  trustDelta: number;
+}
+
+export interface Relationship {
+  targetId: string;
+  trust: number;
+  type: 'family' | 'friend' | 'neutral';
+}
+
+export interface Task {
+  id: string;
+  goal: string;
+  status: 'pending' | 'active' | 'done';
+}
+
 export interface AppearanceConfig {
   skinTone: string;
   hairStyle: string;
   bodyScale: number;
   baseModel?: string;
+  textures?: Record<string, string>;
 }
 
 export const DEFAULT_APPEARANCE: AppearanceConfig = {
   skinTone: '#c68642',
   hairStyle: 'short',
   bodyScale: 1.0,
-  baseModel: 'humanoid'
+  baseModel: 'humanoid',
+  textures: {}
 };
 
 export interface Agent {
@@ -65,7 +85,10 @@ export interface Agent {
   inventory: any[];
   bank: any[];
   needs: AgentNeeds;
-  memory: string[];
+  memory: string[]; // Schwebende Gedanken
+  memoryEvents: Memory[]; // Strukturierte Historie
+  relationships: Record<string, Relationship>; // Trust Matrix
+  tasks: Task[]; // Aktive Ziele
   dnaHistory: any[];
   memoryCache: any[];
   awakened: boolean;
@@ -78,6 +101,11 @@ export interface Agent {
   consciousnessLevel: number;
   awakeningProgress: number;
   insightPoints: number;
+  unspentStatPoints?: number;
+  lastScanTime?: number;
+  apiQuotaExceeded?: boolean;
+  lastDecision?: { justification: string; decision: string };
+  skills: Record<string, { level: number; xp: number }>;
 }
 
 export interface Chunk {

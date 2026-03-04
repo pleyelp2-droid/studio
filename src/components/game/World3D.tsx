@@ -10,6 +10,7 @@ import { createHumanoidModel } from "./HumanoidModel"
 import { AnimationController, createAnimationClips } from "./AnimationSystem"
 import { WorldBuildingService } from "@/services/WorldBuildingService"
 import { textureEngine } from "@/services/TextureEngine"
+import { RobustnessEngine } from "@/lib/axiomatic-engine"
 
 const ARL_COLORS = {
   void: "#020203",
@@ -105,7 +106,7 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
 
   useEffect(() => {
     if (!agent) return;
-    try {
+    RobustnessEngine.wrap(() => {
       const appearance = agent.appearance || { skinTone: '#c68642', bodyScale: 1.0 };
       const humanoid = createHumanoidModel({
         skinTone: appearance.skinTone,
@@ -117,7 +118,7 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
         const controller = new AnimationController(humanoid.mesh, clips);
         setAnimController(controller);
       }
-    } catch (e) {}
+    }, null, "AgentModelCreation");
   }, [agent.id, agent.appearance?.skinTone, agent.appearance?.bodyScale]);
 
   useEffect(() => {
