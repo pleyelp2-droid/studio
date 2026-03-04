@@ -20,7 +20,9 @@ import {
   Zap,
   Play,
   Monitor,
-  Trophy
+  Trophy,
+  ShieldCheck,
+  ChevronRight
 } from "lucide-react"
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"

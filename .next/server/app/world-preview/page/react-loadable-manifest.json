@@ -1,14 +1,1 @@
-{
-  "[project]/src/components/game/World3D.tsx [app-client] (ecmascript, next/dynamic entry)": {
-    "id": "[project]/src/components/game/World3D.tsx [app-client] (ecmascript, next/dynamic entry)",
-    "files": [
-      "static/chunks/node_modules_three_build_three_core_996ef05a.js",
-      "static/chunks/node_modules_three_build_three_module_0c59ee63.js",
-      "static/chunks/node_modules_three_build_three_module_f7d46d9b.js",
-      "static/chunks/node_modules_@react-three_fiber_dist_52cef955._.js",
-      "static/chunks/node_modules_afa33d19._.js",
-      "static/chunks/src_a180fb5f._.js",
-      "static/chunks/src_components_game_World3D_tsx_dcf728ff._.js"
-    ]
-  }
-}
+{}
