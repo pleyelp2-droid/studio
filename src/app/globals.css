@@ -1,54 +1,44 @@
+@import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Cinzel+Decorative:wght@700&family=JetBrains+Mono:wght@300;400;500;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=Rajdhani:wght@300;500;700&display=swap');
+@plugin "tailwindcss-animate";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@custom-variant dark (&:where(.dark, .dark *));
 
-:root {
-  /* PRD Deep Space Blue / Dark Neutral Blue Palette */
-  --arl-void:        #020203;
-  --arl-deep:        #1C1C21;
-  --arl-surface:     #2E2EB3;
-  --arl-elevated:    #1C1C21;
-  --arl-panel:       #1C1C21;
-  --arl-border:      #2E2EB3;
-  --arl-border-glow: #60D4FF;
+@theme {
+  --font-display: "Cinzel Decorative", serif;
+  --font-heading: "Cinzel", serif;
+  --font-body: "Inter", sans-serif;
+  --font-code: "JetBrains Mono", monospace;
 
-  /* Accent spectrum */
-  --arl-gold:        #c9a227;
-  --arl-gold-dim:    #7a5f12;
-  --arl-arcane:      #7b4fd4;
-  --arl-teal:        #60D4FF;
-  --arl-blood:       #c0392b;
+  --color-background: hsl(240 10% 2%);
+  --color-foreground: hsl(45 40% 85%);
+  --color-card: hsl(240 10% 4%);
+  --color-card-foreground: hsl(45 40% 85%);
+  --color-popover: hsl(240 10% 2%);
+  --color-popover-foreground: hsl(45 40% 85%);
+  --color-primary: hsl(231 60% 44%);
+  --color-primary-foreground: hsl(45 40% 95%);
+  --color-secondary: hsl(240 10% 13%);
+  --color-secondary-foreground: hsl(45 40% 85%);
+  --color-muted: hsl(240 10% 8%);
+  --color-muted-foreground: hsl(220 20% 60%);
+  --color-accent: hsl(196 100% 69%);
+  --color-accent-foreground: hsl(240 10% 2%);
+  --color-destructive: hsl(0 65% 46%);
+  --color-destructive-foreground: hsl(45 40% 95%);
+  --color-border: hsl(231 60% 20%);
+  --color-input: hsl(231 60% 20%);
+  --color-ring: hsl(231 60% 44%);
 
-  /* Typography */
-  --font-display: 'Cinzel Decorative', serif;
-  --font-heading: 'Cinzel', serif;
-  --font-body:    'Inter', sans-serif;
-  --font-code:    'JetBrains Mono', monospace;
+  --radius-lg: 1rem;
+  --radius-md: calc(1rem - 2px);
+  --radius-sm: calc(1rem - 4px);
 
-  /* ShadCN UI Variables Bridge */
-  --background: 240 10% 2%;
-  --foreground: 45 40% 85%;
-  --card: 240 10% 4%;
-  --card-foreground: 45 40% 85%;
-  --popover: 240 10% 2%;
-  --popover-foreground: 45 40% 85%;
-  --primary: 231 60% 44%; /* #2E2EB3 */
-  --primary-foreground: 45 40% 95%;
-  --secondary: 240 10% 13%; /* #1C1C21 */
-  --secondary-foreground: 45 40% 85%;
-  --muted: 240 10% 8%;
-  --muted-foreground: 220 20% 60%;
-  --accent: 196 100% 69%; /* #60D4FF */
-  --accent-foreground: 240 10% 2%;
-  --destructive: 0 65% 46%;
-  --destructive-foreground: 45 40% 95%;
-  --border: 231 60% 20%;
-  --input: 231 60% 20%;
-  --ring: 231 60% 44%;
-  --radius: 1rem;
+  /* Legacy variable support for components */
+  --axiom-dark: var(--color-background);
+  --axiom-purple: hsl(263 60% 57%);
+  --axiom-cyan: var(--color-accent);
+  --axiom-gold: hsl(45 67% 47%);
 }
 
 @layer base {
