@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Html, PerspectiveCamera, Float, OrbitControls, Sky, Stars, Environment, ContactShadows } from "@react-three/drei"
@@ -99,56 +98,6 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
   );
 };
 
-const ResourceNodeMesh = ({ node }: { node: ResourceNode }) => {
-  const color = node.type === 'GOLD_ORE' ? ARL_COLORS.gold : node.type === 'IRON_ORE' ? '#71717a' : node.type === 'WOOD' ? '#78350f' : ARL_COLORS.teal;
-  return (
-    <group position={[node.position[0], 0, node.position[2]]}>
-      <mesh position={[0, 1, 0]} castShadow>
-        {node.type === 'WOOD' ? <cylinderGeometry args={[0.5, 1.5, 8, 8]} /> : <dodecahedronGeometry args={[2, 0]} />}
-        <meshStandardMaterial color={color} metalness={0.6} roughness={0.4} />
-      </mesh>
-      <Html position={[0, 6, 0]} center>
-        <div className="text-[8px] font-black text-white/40 uppercase tracking-widest bg-black/40 px-2 py-0.5 rounded">{node.type}</div>
-      </Html>
-    </group>
-  );
-};
-
-const MonsterMesh = ({ monster }: { monster: Monster }) => {
-  const [model, setModel] = useState<any>(null);
-  const [animController, setAnimController] = useState<any>(null);
-
-  useEffect(() => {
-    try {
-      const humanoid = createHumanoidModel({ skinTone: monster.color, bodyScale: monster.scale * 4.0 });
-      if (humanoid) {
-        setModel(humanoid);
-        const clips = createAnimationClips(humanoid.bones);
-        const controller = new AnimationController(humanoid.mesh, clips);
-        setAnimController(controller);
-      }
-    } catch (e) {}
-  }, [monster.color, monster.scale]);
-
-  useFrame((_state, delta) => {
-    if (animController) animController.update(delta);
-  });
-
-  return (
-    <group position={[monster.position[0], 0, monster.position[2]]} rotation={[0, monster.rotationY, 0]}>
-      {model ? <primitive object={model.group} /> : (
-        <mesh position={[0, monster.scale, 0]} castShadow>
-          <boxGeometry args={[monster.scale, monster.scale, monster.scale]} />
-          <meshStandardMaterial color={monster.color} emissive={monster.color} emissiveIntensity={0.5} />
-        </mesh>
-      )}
-      <Html position={[0, monster.scale + 5, 0]} center distanceFactor={25}>
-        <div className="text-[9px] font-black text-red-400 uppercase italic bg-black/80 px-2 py-0.5 rounded border border-red-500/20">{monster.name}</div>
-      </Html>
-    </group>
-  );
-};
-
 const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolean }) => {
   const groupRef = useRef<THREE.Group>(null);
   const [model, setModel] = useState<any>(null);
@@ -184,12 +133,25 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
 
   if (!model) return null;
 
+  // Master Plan: Letzter Gedanke (Memory) wird als schwebender Text gerendert
+  const lastThought = agent.memory && agent.memory.length > 0 
+    ? agent.memory[agent.memory.length - 1] 
+    : agent.state === AgentState.IDLE ? "Berechne nächsten Zyklus..." : `Status: ${agent.state}`;
+
   return (
     <group ref={groupRef} position={[agent.position?.x || 0, 0, agent.position?.z || 0]}>
       <primitive object={model.group} />
-      <Html position={[0, 15, 0]} center distanceFactor={25}>
-        <div className={`px-4 py-1.5 rounded-full bg-black/80 border-2 ${isLocal ? 'border-axiom-cyan' : 'border-white/10'} text-white text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-md italic pointer-events-none whitespace-nowrap shadow-xl`}>
-          {agent.displayName || "Pilot"}
+      <Html position={[0, 25, 0]} center distanceFactor={25}>
+        <div className="flex flex-col items-center gap-2 pointer-events-none">
+          {/* Gedanken-Blase (Master Plan) */}
+          <div className="bg-black/80 backdrop-blur-md border border-axiom-cyan/40 px-3 py-1.5 rounded-2xl shadow-2xl animate-bounce">
+            <p className="text-[9px] font-medium text-axiom-cyan italic whitespace-nowrap">{lastThought}</p>
+          </div>
+          
+          {/* Name & Status */}
+          <div className={`px-4 py-1 rounded-full bg-black/60 border-2 ${isLocal ? 'border-axiom-cyan shadow-[0_0_15px_rgba(6,182,212,0.5)]' : 'border-white/10'} text-white text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-md italic whitespace-nowrap`}>
+            {agent.displayName || "Pilot"}
+          </div>
         </div>
       </Html>
     </group>
@@ -228,17 +190,13 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
   const localAgent = useMemo(() => agents.find(a => a.id === localPlayerId), [agents, localPlayerId]);
   const otherAgents = useMemo(() => agents.filter(a => a.id !== localPlayerId), [agents, localPlayerId]);
 
-  const { pois, monsters, resources } = useMemo(() => {
+  const { pois } = useMemo(() => {
     const allPois: any[] = [];
-    const allMonsters: Monster[] = [];
-    const allResources: ResourceNode[] = [];
     chunks.forEach(c => {
       const content = WorldBuildingService.generateAxiomaticContent(c);
       content.pois.forEach(p => allPois.push({ ...p, seed: c.seed }));
-      allMonsters.push(...content.monsters);
-      allResources.push(...content.resources);
     });
-    return { pois: allPois, monsters: allMonsters, resources: allResources };
+    return { pois: allPois };
   }, [chunks]);
 
   return (
@@ -248,18 +206,8 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
       {chunks.map(c => <ChunkTerrain key={c.id} chunk={c} />)}
       {localAgent && <LocalPlayerController agent={localAgent} />}
       {otherAgents.map(a => <AgentModelWrapper key={a.id} agent={a} />)}
-      {resources.map(r => <ResourceNodeMesh key={r.id} node={r} />)}
-      {monsters.map(m => <MonsterMesh key={m.id} monster={m} />)}
       {pois.map(p => {
         if (p.type === 'BUILDING' || p.type === 'WALL') return <HighScienceSpire key={p.id} position={p.position} rotationY={p.rotationY} color={ARL_COLORS.arcane} seed={p.seed} />;
-        if (p.type === 'SHRINE') return (
-          <group key={p.id} position={p.position}>
-            <Float speed={4} rotationIntensity={2} floatIntensity={5}>
-              <mesh position={[0, 8, 0]} scale={2}><dodecahedronGeometry args={[1, 0]} /><meshStandardMaterial color={ARL_COLORS.teal} emissive={ARL_COLORS.teal} emissiveIntensity={3} toneMapped={false} /></mesh>
-            </Float>
-            <pointLight position={[0, 8, 0]} intensity={1.5} color={ARL_COLORS.teal} distance={80} />
-          </group>
-        );
         return null;
       })}
       <ContactShadows resolution={1024} scale={100} blur={2} opacity={0.4} far={10} color="#000000" />
@@ -296,7 +244,7 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
   const controlMode = useStore(state => state.controlMode);
   return (
     <div className="w-full h-full bg-[#010102] touch-none">
-      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Materializing Reality...</div>}>
+      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Materialisierungs-Zyklus läuft...</div>}>
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[60, 40, 60]} fov={45} far={5000} />
           <CameraController />

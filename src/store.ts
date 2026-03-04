@@ -1,6 +1,5 @@
-
 import { create } from 'zustand';
-import { Agent, Chunk, Language } from './types';
+import { Agent, Chunk, Language, AgentState } from './types';
 
 interface AppState {
   agents: Agent[];
@@ -115,7 +114,7 @@ export const useStore = create<AppState>((set) => ({
   ],
   emergenceSettings: {
     isEmergenceEnabled: true,
-    useHeuristicsOnly: false,
+    useHeuristicsOnly: true,
     axiomaticWorldGeneration: true,
     physicsBasedActivation: true,
     showAxiomaticOverlay: false,

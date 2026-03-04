@@ -4,68 +4,74 @@ import { useEffect, useRef } from 'react';
 import { useStore } from '@/store';
 import { AIService } from '@/services/AIService';
 import { syncAgentsBatch } from '@/services/AgentManager';
+import { summarizeNeurologicChoice, generateDialogue } from '@/lib/axiomatic-engine';
 
 /**
- * Handles background simulation loops like emergent behavior and persistence.
- * Uses stable references to prevent memory leaks and interval multiplication.
+ * WorldEngine / SimulationManager (Master Plan)
+ * Zentraler Ticker, der Bedürfnisse und Agenten-Entscheidungen steuert.
  */
 export const SimulationManager = () => {
   const addLog = useStore(state => state.addLog);
-  const socialIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const emergentIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const tickIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Initial cleanup to be double sure
     const cleanup = () => {
-      if (socialIntervalRef.current) clearInterval(socialIntervalRef.current);
-      if (emergentIntervalRef.current) clearInterval(emergentIntervalRef.current);
-      if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
+      if (tickIntervalRef.current) clearInterval(tickIntervalRef.current);
     };
 
     cleanup();
 
-    // Neural Resonance Loop
-    socialIntervalRef.current = setInterval(() => {
+    // Zentraler Tick-Loop (Master Plan)
+    tickIntervalRef.current = setInterval(async () => {
       const state = useStore.getState();
-      const activeAgents = state.agents.filter(a => a && a.hp > 0);
-      if (activeAgents.length > 1) {
-        const a1 = activeAgents[Math.floor(Math.random() * activeAgents.length)];
-        const a2 = activeAgents.find(a => a && a.id !== a1.id);
-        if (a2) {
-          addLog(`Neural Resonance: ${a1.displayName} acknowledge ${a2.displayName}.`, 'SYSTEM');
-        }
-      }
-    }, 30000); // 30s
+      const updatedAgents = state.agents.map(agent => {
+        if (!agent || agent.npcClass === 'SYSTEM') return agent;
 
-    // Emergent Behavior Loop
-    emergentIntervalRef.current = setInterval(async () => {
-      const state = useStore.getState();
-      const activeAgents = state.agents.filter(a => a && a.npcClass !== 'SYSTEM');
-      
-      if (activeAgents.length > 0) {
-        const agent = activeAgents[Math.floor(Math.random() * activeAgents.length)];
-        try {
-          const behavior = await AIService.generateEmergentAction(agent, activeAgents, []);
-          addLog(`[EMERGENT] ${agent.displayName}: ${behavior.action}`, 'SYSTEM');
-        } catch (e) {
-          console.warn('[SIM_MANAGER] Emergent action failed', e);
-        }
-      }
-    }, 60000); // 60s
+        // 1. Bedürfnisse verfallen lassen (Hunger steigt, Social sinkt)
+        const needs = {
+          hunger: Math.min(100, (agent.needs?.hunger || 0) + 1),
+          social: Math.max(0, (agent.needs?.social || 50) - 0.5),
+          wealth: agent.needs?.wealth || 50
+        };
 
-    // Persistence Sync Loop
-    syncIntervalRef.current = setInterval(async () => {
-      const state = useStore.getState();
-      if (state.agents.length > 0) {
-        try {
-          await syncAgentsBatch(state.agents.filter(a => !!a));
-          addLog('Deterministic state committed to neural ledger.', 'SYSTEM');
-        } catch (e) {
-          console.error('[SIM_MANAGER] Sync failed', e);
+        // 2. Heuristische Entscheidung treffen
+        const decision = summarizeNeurologicChoice({ ...agent, needs }, [], [], [], []);
+        
+        // 3. Gedanken aktualisieren (Master Plan)
+        const memory = [...(agent.memory || [])];
+        const newThought = `Status: ${decision.choice} (Grund: ${decision.reason})`;
+        if (memory[memory.length - 1] !== newThought) {
+          memory.push(newThought);
         }
+
+        // 4. Gelegentliche Kommunikation (Master Plan)
+        if (Math.random() > 0.95 && state.agents.length > 1) {
+          const target = state.agents.find(a => a.id !== agent.id);
+          if (target) {
+            const chat = generateDialogue(agent, target, needs.hunger > 50 ? 'trade' : 'social');
+            addLog(`[CHAT] ${agent.displayName} -> ${target.displayName}: ${chat}`, 'LOCAL');
+          }
+        }
+
+        return {
+          ...agent,
+          needs,
+          state: decision.choice,
+          memory: memory.slice(-10) // Nur die letzten 10 Gedanken behalten
+        };
+      });
+
+      // 5. State in den Store schreiben
+      state.setAgents(updatedAgents);
+
+      // Alle 100 Ticks: Firestore Persistenz
+      if (Math.random() > 0.9) {
+        try {
+          await syncAgentsBatch(updatedAgents);
+        } catch (e) {}
       }
-    }, 120000); // 120s
+
+    }, 5000); // 5s Tick Intervall für die Simulation
 
     return cleanup;
   }, [addLog]);

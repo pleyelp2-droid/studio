@@ -27,6 +27,12 @@ export interface ThinkingMatrix {
   frugality: number;
 }
 
+export interface AgentNeeds {
+  hunger: number;
+  social: number;
+  wealth: number;
+}
+
 export interface AppearanceConfig {
   skinTone: string;
   hairStyle: string;
@@ -40,13 +46,6 @@ export const DEFAULT_APPEARANCE: AppearanceConfig = {
   bodyScale: 1.0,
   baseModel: 'humanoid'
 };
-
-export interface GameAction {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-}
 
 export interface Agent {
   id: string;
@@ -64,38 +63,21 @@ export interface Agent {
   visionRange: number;
   state: AgentState;
   inventory: any[];
+  bank: any[];
+  needs: AgentNeeds;
+  memory: string[];
   dnaHistory: any[];
   memoryCache: any[];
   awakened: boolean;
-  thinkingMatrix?: ThinkingMatrix;
-  appearance?: AppearanceConfig;
+  thinkingMatrix: ThinkingMatrix;
+  appearance: AppearanceConfig;
   lastUpdate: any;
-  name?: string;
-  xp?: number;
-  isAwakened?: boolean;
-  lastScanTime?: number;
-  apiQuotaExceeded?: boolean;
-  unspentStatPoints?: number;
-  lastDecision?: any;
-  skills?: any;
-  bank?: any[];
-  energy?: number;
-  maxEnergy?: number;
-  integrity?: number;
-  consciousnessLevel?: number;
-  awakeningProgress?: number;
-  insightPoints?: number;
-  faction?: string;
-  dna?: any;
-  emergentBehaviorLog?: any[];
-  economicDesires?: any;
-  equipment?: {
-    head?: any;
-    chest?: any;
-    legs?: any;
-    mainHand?: any;
-    offHand?: any;
-  };
+  energy: number;
+  maxEnergy: number;
+  integrity: number;
+  consciousnessLevel: number;
+  awakeningProgress: number;
+  insightPoints: number;
 }
 
 export interface Chunk {
