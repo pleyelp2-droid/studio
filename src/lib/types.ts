@@ -1,0 +1,31 @@
+export interface Memory {
+  event: string;
+  timestamp: number;
+  trustDelta: number;
+}
+
+export interface Relationship {
+  targetId: string;
+  trust: number;
+  type: 'family' | 'friend' | 'neutral';
+}
+
+export interface Task {
+  id: string;
+  goal: string;
+  status: 'pending' | 'active' | 'done';
+}
+
+export interface Interaction {
+  type: 'talk' | 'trade' | 'proposeGroup';
+  senderId: string;
+  receiverId: string;
+  payload: any;
+}
+
+export interface SocialGroup {
+  id: string;
+  name: string;
+  type: 'guild' | 'party' | 'faction';
+  members: string[];
+}
