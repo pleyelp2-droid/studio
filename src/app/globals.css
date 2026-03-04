@@ -1,6 +1,5 @@
-
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&family=JetBrains+Mono:wght@300;400;700&family=Rajdhani:wght@300;500;700&family=Inter:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&family=JetBrains+Mono:wght@300;400;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=Rajdhani:wght@300;500;700&family=Inter:wght@400;700;900&display=swap');
 @plugin "tailwindcss-animate";
 
 @theme {
@@ -34,6 +33,15 @@
   --color-axiom-cyan: hsl(196 100% 69%);
   --color-axiom-gold: hsl(45 67% 47%);
 
+  --color-sidebar: var(--color-card);
+  --color-sidebar-foreground: var(--color-foreground);
+  --color-sidebar-primary: var(--color-primary);
+  --color-sidebar-primary-foreground: var(--color-primary-foreground);
+  --color-sidebar-accent: var(--color-secondary);
+  --color-sidebar-accent-foreground: var(--color-secondary-foreground);
+  --color-sidebar-border: var(--color-border);
+  --color-sidebar-ring: var(--color-ring);
+
   @keyframes gradient {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -63,7 +71,6 @@
   --animate-scanline: scanline 8s linear infinite;
 }
 
-/* High-fidelity font fallbacks for Ouroboros Engine */
 @font-face {
   font-family: 'Cinzel';
   font-style: normal;
@@ -71,6 +78,7 @@
   font-display: swap;
   src: url(https://fonts.gstatic.com/s/cinzel/v26/8vIJ7ww63mVu7gt79mT7PkRXMw.woff2) format('woff2');
 }
+
 @font-face {
   font-family: 'Cinzel Decorative';
   font-style: normal;

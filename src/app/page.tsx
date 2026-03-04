@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -45,7 +44,6 @@ export default function MMORPGPortal() {
 
   return (
     <div className="min-h-screen bg-[#020203] text-[#e8dfc8] selection:bg-accent selection:text-accent-foreground font-body overflow-x-hidden">
-      {/* Cinematic Background */}
       <div className="fixed inset-0 z-0">
         <Image 
           src={getImg('world-chrome')?.imageUrl || "https://images.unsplash.com/photo-1605142859862-978be7eba909"} 
@@ -60,7 +58,6 @@ export default function MMORPGPortal() {
       </div>
 
       <main className="relative z-10 pt-24 md:pt-32 lg:pt-48">
-        {/* Hero Section */}
         <section className={`px-6 lg:px-12 pb-20 flex flex-col items-center text-center max-w-7xl mx-auto ${orientation === 'portrait' ? 'pt-8' : 'pt-0'}`}>
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -104,7 +101,6 @@ export default function MMORPGPortal() {
           </div>
         </section>
 
-        {/* Real-time Ticker */}
         <div className="w-full bg-accent/5 border-y border-accent/20 py-3 md:py-4 mb-16 md:mb-20 overflow-hidden whitespace-nowrap">
           <div className="flex animate-marquee gap-20">
             {Array.from({ length: 10 }).map((_, i) => (
@@ -118,7 +114,6 @@ export default function MMORPGPortal() {
           </div>
         </div>
 
-        {/* Skill Matrix Showcase */}
         <section id="skill-matrix" className="px-6 lg:px-12 py-20 md:py-32 bg-black/40">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 md:mb-24 gap-10">
@@ -163,7 +158,6 @@ export default function MMORPGPortal() {
           </div>
         </section>
 
-        {/* Feature Grid */}
         <section className="px-6 lg:px-12 py-20 md:py-32 border-y border-white/5 bg-black/20">
           <div className="max-w-7xl mx-auto grid gap-6 md:gap-8 md:grid-cols-2 lg:grid-cols-4">
             {[
