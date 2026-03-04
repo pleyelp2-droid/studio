@@ -11,9 +11,7 @@ import {
   Terminal, 
   Wifi, 
   ShieldCheck, 
-  Cpu, 
   Copy,
-  Code,
   FileCode,
   Zap
 } from "lucide-react"
@@ -23,12 +21,6 @@ import { firebaseConfig } from "@/firebase/config"
 export default function GodotBridgePage() {
   const { toast } = useToast()
 
-  const copyToClipboard = (text: string, label: string) => {
-    if (!text) return
-    navigator.clipboard.writeText(text)
-    toast({ title: `${label} Kopiert`, description: "Bereit für Godot." })
-  }
-
   const downloadOneFileBridge = () => {
     const link = document.createElement('a')
     link.href = '/godot/AxiomBridge.gd'
@@ -36,7 +28,7 @@ export default function GodotBridgePage() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    toast({ title: "Brücke Heruntergeladen", description: "Zieh die AxiomBridge.gd einfach in dein Godot Projekt." })
+    toast({ title: "Bridge Downloaded", description: "Just drop AxiomBridge.gd into your Godot project." })
   }
 
   return (
@@ -55,10 +47,10 @@ export default function GodotBridgePage() {
 
         <main className="p-6 space-y-8 max-w-4xl mx-auto w-full">
           <section className="text-center space-y-4 mb-12">
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Schluss mit dem Daten-Dschungel.</h2>
-            <p className="text-muted-foreground text-sm max-w-2xl mx-auto">
-              Vergiss komplizierte Plugins und hunderte Config-Files. Lade die <b>AxiomBridge.gd</b> herunter, 
-              füge sie als Autoload in Godot hinzu, und dein Spiel ist mit deiner Datenbank verbunden.
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">No more plugin chaos.</h2>
+            <p className="text-muted-foreground text-sm max-w-2xl mx-auto uppercase font-bold tracking-widest italic">
+              Forget complicated configurations. Download the <b>AxiomBridge.gd</b>, 
+              add it as an Autoload, and your game is live.
             </p>
           </section>
 
@@ -69,19 +61,19 @@ export default function GodotBridgePage() {
               </div>
               <CardHeader>
                 <CardTitle className="text-2xl font-headline font-black uppercase italic text-accent">The One-File Bridge</CardTitle>
-                <CardDescription>Alles was du brauchst in einer einzigen Datei.</CardDescription>
+                <CardDescription>Everything you need in a single class.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <ul className="text-xs space-y-2 text-white/60 font-medium uppercase italic">
-                  <li className="flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-accent" /> Keine Plugins erforderlich</li>
-                  <li className="flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-accent" /> Integrierter Auth-Manager</li>
-                  <li className="flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-accent" /> Realtime Firestore Sync</li>
-                  <li className="flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-accent" /> Reines, sauberes GDScript</li>
+                <ul className="text-[10px] space-y-2 text-white/60 font-black uppercase italic tracking-widest">
+                  <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-accent" /> NO PLUGINS REQUIRED</li>
+                  <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-accent" /> INTEGRATED AUTH MANAGER</li>
+                  <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-accent" /> FIRESTORE REST SYNC</li>
+                  <li className="flex items-center gap-2"><div className="h-1.5 w-1.5 rounded-full bg-accent" /> PURE GDSCRIPT</li>
                 </ul>
               </CardContent>
               <CardFooter>
                 <Button onClick={downloadOneFileBridge} className="w-full h-16 axiom-gradient text-white font-black italic uppercase tracking-widest shadow-xl text-lg hover:scale-[1.02] transition-transform">
-                  <HardDriveDownload className="h-6 w-6 mr-2" /> AxiomBridge.gd Laden
+                  <HardDriveDownload className="h-6 w-6 mr-2" /> Download AxiomBridge.gd
                 </Button>
               </CardFooter>
             </Card>
@@ -89,7 +81,7 @@ export default function GodotBridgePage() {
             <Card className="border-border bg-card shadow-2xl">
               <CardHeader>
                 <CardTitle className="text-sm font-black uppercase tracking-[0.3em] flex items-center gap-2">
-                  <Terminal className="h-4 w-4 text-accent" /> Schnell-Check
+                  <Terminal className="h-4 w-4 text-accent" /> Manifest Data
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -106,7 +98,7 @@ export default function GodotBridgePage() {
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/5 border border-accent/10">
                   <ShieldCheck className="h-5 w-5 text-emerald-500 shrink-0" />
                   <p className="text-[10px] text-muted-foreground leading-relaxed uppercase font-bold italic">
-                    Die heruntergeladene Datei enthält bereits alle notwendigen Keys. Du musst sie nur noch in Godot ziehen.
+                    The bridge file is pre-baked with these credentials. Simply drag and drop.
                   </p>
                 </div>
               </CardContent>
@@ -116,25 +108,25 @@ export default function GodotBridgePage() {
           <Card className="border-border bg-card">
             <CardHeader className="p-6 border-b border-border">
               <CardTitle className="text-sm font-black uppercase tracking-widest italic flex items-center gap-2">
-                <FileCode className="h-4 w-4 text-accent" /> Integrations-Anleitung
+                <FileCode className="h-4 w-4 text-accent" /> Integration Blueprint
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8">
               <div className="grid gap-8 md:grid-cols-3">
                 <div className="space-y-2">
                   <div className="h-8 w-8 rounded-lg bg-accent/20 text-accent flex items-center justify-center font-black">1</div>
-                  <h4 className="text-xs font-black uppercase">Importieren</h4>
-                  <p className="text-[10px] text-muted-foreground uppercase leading-tight font-bold italic">Ziehe die Datei in deinen Godot "res://" Ordner.</p>
+                  <h4 className="text-xs font-black uppercase tracking-tighter">Import</h4>
+                  <p className="text-[9px] text-muted-foreground uppercase leading-tight font-bold italic">Move the file to your Godot "res://" folder.</p>
                 </div>
                 <div className="space-y-2">
                   <div className="h-8 w-8 rounded-lg bg-accent/20 text-accent flex items-center justify-center font-black">2</div>
-                  <h4 className="text-xs font-black uppercase">Autoload</h4>
-                  <p className="text-[10px] text-muted-foreground uppercase leading-tight font-bold italic">Gehe zu Project Settings -> Autoload und füge sie als 'AxiomBridge' hinzu.</p>
+                  <h4 className="text-xs font-black uppercase tracking-tighter">Autoload</h4>
+                  <p className="text-[9px] text-muted-foreground uppercase leading-tight font-bold italic">Project Settings -> Autoload. Add as 'AxiomBridge'.</p>
                 </div>
                 <div className="space-y-2">
                   <div className="h-8 w-8 rounded-lg bg-accent/20 text-accent flex items-center justify-center font-black">3</div>
-                  <h4 className="text-xs font-black uppercase">Starten</h4>
-                  <p className="text-[10px] text-muted-foreground uppercase leading-tight font-bold italic">Rufe AxiomBridge.connect_to_matrix(email, pass) in deinem Spiel-Code auf.</p>
+                  <h4 className="text-xs font-black uppercase tracking-tighter">Initialize</h4>
+                  <p className="text-[9px] text-muted-foreground uppercase leading-tight font-bold italic">Call AxiomBridge.connect_to_matrix(email, pass).</p>
                 </div>
               </div>
             </CardContent>

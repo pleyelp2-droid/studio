@@ -1,83 +1,32 @@
 extends Node
 
-## Axiom Frontier - One-File Bridge Protocol
-## Handles Authentication and Firestore Sync via HTTP (No Plugins Required)
+# Axiom Frontier - One-File Firebase Bridge
+# Pre-configured for your project environment.
 
-# --- CONFIGURATION ---
-const PROJECT_ID = "studio-5485353702-8ce01"
 const API_KEY = "AIzaSyDldbhESThtDQ3YYIPmLEh-cocereahAOE"
+const PROJECT_ID = "studio-5485353702-8ce01"
 
-# --- SIGNALS ---
-signal auth_complete(user_data)
-signal auth_failed(error_message)
-signal data_received(collection, document_id, data)
-signal data_error(error_message)
+var id_token = ""
+var local_id = ""
+var refresh_token = ""
 
-# --- INTERNAL STATE ---
-var id_token: String = ""
-var local_id: String = ""
-var refresh_token: String = ""
+signal auth_completed(success, message)
+signal data_received(collection, data)
 
-var _http_auth: HTTPRequest
-var _http_firestore: HTTPRequest
-
-func _ready():
-	# Initialize HTTP Nodes
-	_http_auth = HTTPRequest.new()
-	_http_firestore = HTTPRequest.new()
-	add_child(_http_auth)
-	add_child(_http_firestore)
-	
-	_http_auth.request_completed.connect(_on_auth_request_completed)
-	_http_firestore.request_completed.connect(_on_firestore_request_completed)
-
-# --- PUBLIC API ---
-
-## Connect to the Ouroboros Matrix
-func connect_to_matrix(email: String, password: String):
-	var url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + API_KEY
+func connect_to_matrix(email, password):
+	var auth_url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + API_KEY
 	var body = JSON.stringify({
 		"email": email,
 		"password": password,
 		"returnSecureToken": true
 	})
-	var headers = ["Content-Type: application/json"]
-	_http_auth.request(url, headers, HTTPClient.METHOD_POST, body)
-
-## Get Player Data
-func fetch_player_data(player_id: String):
-	_firestore_get("players", player_id)
-
-## Update Player Position
-func update_position(player_id: String, x: float, y: float, z: float):
-	var fields = {
-		"position": {
-			"mapValue": {
-				"fields": {
-					"x": {"doubleValue": x},
-					"y": {"doubleValue": y},
-					"z": {"doubleValue": z}
-				}
-			}
-		}
-	}
-	_firestore_patch("players", player_id, fields)
-
-# --- PRIVATE HELPERS ---
-
-func _firestore_get(collection: String, document: String):
-	var url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents/%s/%s" % [PROJECT_ID, collection, document]
-	var headers = ["Authorization: Bearer " + id_token]
-	_http_firestore.request(url, headers, HTTPClient.METHOD_GET)
-
-func _firestore_patch(collection: String, document: String, fields: Dictionary):
-	var url = "https://firestore.googleapis.com/v1/projects/%s/databases/(default)/documents/%s/%s?updateMask.fieldPaths=position" % [PROJECT_ID, collection, document]
-	var headers = [
-		"Authorization: Bearer " + id_token,
-		"Content-Type: application/json"
-	]
-	var body = JSON.stringify({"fields": fields})
-	_http_firestore.request(url, headers, HTTPClient.METHOD_PATCH, body)
+	
+	var http = HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(_on_auth_request_completed)
+	var err = http.request(auth_url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
+	if err != OK:
+		auth_completed.emit(false, "Failed to initiate request.")
 
 func _on_auth_request_completed(result, response_code, headers, body):
 	var response = JSON.parse_string(body.get_string_from_utf8())
@@ -85,31 +34,54 @@ func _on_auth_request_completed(result, response_code, headers, body):
 		id_token = response["idToken"]
 		local_id = response["localId"]
 		refresh_token = response["refreshToken"]
-		auth_complete.emit(response)
-		print("[AXIOM_BRIDGE] Connection Established: ", local_id)
+		auth_completed.emit(true, "Synchronized with Matrix.")
 	else:
-		var err = response.get("error", {}).get("message", "Unknown Auth Error")
-		auth_failed.emit(err)
-		printerr("[AXIOM_BRIDGE] Auth Failed: ", err)
+		var err_msg = "Auth Failure"
+		if response and response.has("error"):
+			err_msg = response["error"]["message"]
+		auth_completed.emit(false, err_msg)
 
-func _on_firestore_request_completed(result, response_code, headers, body):
-	var response = JSON.parse_string(body.get_string_from_utf8())
-	if response_code == 200:
-		# Simple parser for Firestore JSON format
-		var data = _parse_firestore_document(response)
-		data_received.emit("collection", response.name.split("/")[-1], data)
-	else:
-		data_error.emit(body.get_string_from_utf8())
+func get_player_data():
+	if id_token == "": return
+	var url = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/players/" + local_id
+	var http = HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(r, rc, h, b): 
+		if rc == 200:
+			var data = JSON.parse_string(b.get_string_from_utf8())
+			data_received.emit("players", data)
+	)
+	http.request(url, ["Authorization: Bearer " + id_token], HTTPClient.METHOD_GET)
 
-func _parse_firestore_document(doc: Dictionary) -> Dictionary:
-	var result = {}
-	if not doc.has("fields"): return result
+func get_world_state():
+	var url = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/worldState/global"
+	var http = HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(r, rc, h, b): 
+		if rc == 200:
+			data_received.emit("worldState", JSON.parse_string(b.get_string_from_utf8()))
+	)
+	http.request(url, [], HTTPClient.METHOD_GET)
+
+func update_position(x, y, z):
+	if id_token == "": return
+	var url = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/players/" + local_id + "?updateMask.fieldPaths=position"
 	
-	for key in doc["fields"]:
-		var field = doc["fields"][key]
-		if field.has("stringValue"): result[key] = field["stringValue"]
-		elif field.has("doubleValue"): result[key] = field["doubleValue"]
-		elif field.has("integerValue"): result[key] = int(field["integerValue"])
-		elif field.has("booleanValue"): result[key] = field["booleanValue"]
-		elif field.has("mapValue"): result[key] = _parse_firestore_document(field["mapValue"])
-	return result
+	# Firestore JSON structure for doubleValue
+	var body = JSON.stringify({
+		"fields": {
+			"position": {
+				"mapValue": {
+					"fields": {
+						"x": {"doubleValue": x},
+						"y": {"doubleValue": y},
+						"z": {"doubleValue": z}
+					}
+				}
+			}
+		}
+	})
+	
+	var http = HTTPRequest.new()
+	add_child(http)
+	http.request(url, ["Authorization: Bearer " + id_token, "Content-Type: application/json"], HTTPClient.METHOD_PATCH, body)
