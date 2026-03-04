@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import { useStore } from '@/store';
 import { soundManager } from '@/services/SoundManager';
-import { Brain, X, Github, CloudUpload, Key, Loader2, CheckCircle2, AlertTriangle, Lock } from 'lucide-react';
+import { Brain, X, Github, CloudUpload, Key, Loader2, CheckCircle2, AlertTriangle, Lock, ShieldCheck } from 'lucide-react';
 import { GitHubSyncService } from '@/services/GitHubSyncService';
 
 /**
@@ -59,7 +59,6 @@ export const AdminDashboard = () => {
     };
 
     const handleGitHubSync = async () => {
-        // PULL FRESH STATE DIRECTLY TO ENSURE INPUTS ARE CAPTURED
         const freshStoreState = useStore.getState();
         const config = freshStoreState.githubConfig;
 
@@ -150,6 +149,7 @@ export const AdminDashboard = () => {
                                     onChange={e => setHandshakeInput(e.target.value)}
                                     placeholder="Enter Universal Key..."
                                     className="w-full h-14 bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 text-emerald-400 font-mono outline-none focus:border-emerald-500/50 transition-all"
+                                    onKeyDown={e => e.key === 'Enter' && handleHandshake()}
                                 />
                             </div>
                             <button 
