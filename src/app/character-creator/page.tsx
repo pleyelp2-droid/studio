@@ -1,7 +1,6 @@
-
 "use client"
 
-import { useState, useRef, Suspense } from "react"
+import { useState, useRef } from "react"
 import { useFirestore, useUser } from "@/firebase"
 import { doc, setDoc, serverTimestamp } from "firebase/firestore"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -18,48 +17,25 @@ import {
   Loader2, 
   Fingerprint, 
   UserPlus, 
-  Dna,
   ShieldCheck,
   BrainCircuit,
   Zap,
   Download,
-  Eye,
   Maximize2
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import { Canvas, useFrame } from "@react-three/fiber"
 import { createHumanoidModel } from "@/components/game/HumanoidModel"
-import * as THREE from "three"
 import { CharacterExportService } from "@/services/CharacterExportService"
+import dynamic from "next/dynamic"
 
-function CharacterPreview({ appearance }: { appearance: any }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const modelRef = useRef<any>(null);
-
-  useFrame(() => {
-    if (!groupRef.current) return;
-    
-    const key = `${appearance.skinTone}-${appearance.heightScale}-${appearance.bodyScale}`;
-    if (groupRef.current.userData.lastKey !== key) {
-      if (modelRef.current) {
-        groupRef.current.remove(modelRef.current.group);
-      }
-      const model = createHumanoidModel({
-        skinTone: appearance.skinTone,
-        heightScale: appearance.heightScale,
-        bodyScale: appearance.bodyScale * 2.0
-      });
-      modelRef.current = model;
-      groupRef.current.add(model.group);
-      groupRef.current.userData.lastKey = key;
-      groupRef.current.userData.modelGroup = model.group;
-    }
-    groupRef.current.rotation.y += 0.005;
-  });
-
-  return <group ref={groupRef} position={[0, -1.5, 0]} />;
-}
+const CharacterManifestationPreview = dynamic(
+  () => import("@/components/game/CharacterManifestationPreview"),
+  { 
+    ssr: false,
+    loading: () => <div className="w-full h-full flex items-center justify-center bg-black/20 animate-pulse text-[10px] font-black text-axiom-cyan uppercase tracking-widest italic">Initialising Render Engine...</div>
+  }
+)
 
 export default function CharacterCreatorPage() {
   const { user } = useUser()
@@ -76,8 +52,6 @@ export default function CharacterCreatorPage() {
   const [heightScale, setHeightScale] = useState(1.0)
   const [bodyScale, setBodyScale] = useState(1.0)
   const [stats, setStats] = useState({ str: 10, agi: 10, int: 10, vit: 10 })
-  
-  const previewRef = useRef<THREE.Group>(null);
 
   const handleSynthesize = async () => {
     if (!neuralPrompt) return
@@ -107,8 +81,6 @@ export default function CharacterCreatorPage() {
   }
 
   const handleExport = async () => {
-    // In a real Three.js / React context, we'd need to find the specific model in the scene
-    // For this prototype, we re-generate it for export
     setIsExporting(true);
     try {
       const model = createHumanoidModel({
@@ -190,14 +162,7 @@ export default function CharacterCreatorPage() {
           <div className="lg:col-span-7 space-y-8">
             <div className="aspect-video w-full rounded-[2rem] bg-black/40 border border-white/5 relative overflow-hidden group shadow-2xl">
               <div className="absolute inset-0 z-0">
-                <Canvas camera={{ position: [0, 0, 5], fov: 40 }}>
-                  <ambientLight intensity={0.5} />
-                  <pointLight position={[10, 10, 10]} intensity={1.5} color="#60D4FF" />
-                  <pointLight position={[-10, -10, -10]} intensity={0.5} color="#7b4fd4" />
-                  <Suspense fallback={null}>
-                    <CharacterPreview appearance={{ skinTone, heightScale, bodyScale }} />
-                  </Suspense>
-                </Canvas>
+                <CharacterManifestationPreview appearance={{ skinTone, heightScale, bodyScale }} />
               </div>
               <div className="absolute top-6 left-6 z-10">
                 <Badge className="bg-black/60 backdrop-blur-md border-white/10 text-axiom-cyan font-black italic uppercase text-[9px] tracking-[0.3em]">
