@@ -59,7 +59,7 @@ export const AdminDashboard = () => {
     };
 
     const handleGitHubSync = async () => {
-        // Pull fresh state directly to ensure Owner/Repo fields are captured accurately
+        // PULL FRESH STATE DIRECTLY TO ENSURE INPUTS ARE CAPTURED
         const freshStoreState = useStore.getState();
         const config = freshStoreState.githubConfig;
 
@@ -84,7 +84,6 @@ export const AdminDashboard = () => {
         soundManager.playUI('CLICK');
 
         try {
-            // Snapshot serialization with safe routine to fix "Matrix JSON" error
             const snapshotData = {
                 timestamp: new Date().toISOString(),
                 agents: freshStoreState.agents,

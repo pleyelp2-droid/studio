@@ -223,7 +223,7 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
                 shadow-mapSize={[1024, 1024]}
                 shadow-bias={-0.0001}
               >
-                <orthographicCamera attach="shadow-camera" args={[-300, 300, 300, -300, 0.1, 1000]} />
+                <orthographicCamera attach="shadow-camera" args={[-150, 150, 150, -150, 0.1, 500]} />
               </directionalLight>
               <WorldContent localPlayerId={localPlayerId} />
           </Canvas>
