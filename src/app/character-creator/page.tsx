@@ -58,13 +58,11 @@ export default function CharacterCreatorPage() {
     if (!neuralPrompt) return
     setIsSynthesizing(true)
     try {
-      // Simulate neural synthesis based on the RuneScape-style classless logic
       await new Promise(resolve => setTimeout(resolve, 2000))
       
       const rngHeight = 0.8 + Math.random() * 0.4;
       setHeightScale(rngHeight);
       
-      // Starting stats influenced by the "essence" prompt
       setStats({
         str: 10 + Math.floor(Math.random() * 5),
         agi: 10 + Math.floor(Math.random() * 5),
@@ -116,9 +114,26 @@ export default function CharacterCreatorPage() {
         visionRange: 50,
         state: 'IDLE',
         inventory: [],
+        bank: [],
+        equipment: {
+          head: null,
+          chest: null,
+          legs: null,
+          mainHand: null,
+          offHand: null
+        },
+        skills: {
+          mining: { level: 1, xp: 0 },
+          smithing: { level: 1, xp: 0 },
+          combat: { level: 1, xp: 0 },
+          reflection: { level: 1, xp: 0 }
+        },
         dnaHistory: [neuralPrompt],
         memoryCache: [],
         awakened: !!neuralPrompt,
+        integrity: 1.0,
+        consciousnessLevel: 0.1,
+        awakeningProgress: 0,
         appearance: {
           skinTone,
           heightScale,
@@ -127,7 +142,7 @@ export default function CharacterCreatorPage() {
         },
         lastUpdate: serverTimestamp(),
         createdAt: serverTimestamp(),
-        npcClass: "PILOT" // Classless system: Everyone starts as a generic Pilot
+        npcClass: "PILOT"
       })
       toast({ title: "Neural Link Established", description: "Consciousness has been imprinted on the Ouroboros collective." })
       router.push("/pilot-hub")
@@ -162,7 +177,6 @@ export default function CharacterCreatorPage() {
         </header>
 
         <main className="p-6 grid gap-8 lg:grid-cols-12 max-w-7xl mx-auto w-full">
-          {/* AI Neural Imprinting */}
           <div className="lg:col-span-7 space-y-8">
             <div className="aspect-video w-full rounded-[2rem] bg-black/40 border border-white/5 relative overflow-hidden group shadow-2xl">
               <div className="absolute inset-0 z-0">
@@ -255,7 +269,6 @@ export default function CharacterCreatorPage() {
             </Card>
           </div>
 
-          {/* Stats & Preview */}
           <div className="lg:col-span-5 space-y-8">
             <Card className="border-border bg-card shadow-2xl">
               <CardHeader className="bg-secondary/10 border-b border-border/50">

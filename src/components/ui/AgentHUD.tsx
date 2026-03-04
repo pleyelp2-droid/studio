@@ -51,16 +51,16 @@ export const AgentHUD = () => {
   const maxHeight = typeof window !== 'undefined' ? window.innerHeight - (isLandscapeMobile ? 32 : 128) : 800;
 
   const SCAN_COOLDOWN = 30 * 60 * 1000;
-  const timeSinceLastScan = now - agent.lastScanTime;
+  const timeSinceLastScan = now - (agent.lastScanTime || 0);
 
-  const invCount = agent.inventory.filter(i => i).length;
-  const bankCount = agent.bank.filter(i => i).length;
+  const invCount = (agent.inventory || []).filter(i => i).length;
+  const bankCount = (agent.bank || []).filter(i => i).length;
   
   const isThrottled = now < globalApiCooldown;
   const isControlled = controlledAgentId === agent.id;
 
   const topSkills = Object.entries(agent.skills || {})
-    .sort(([, a], [, b]) => b.level - a.level)
+    .sort(([, a]: any, [, b]: any) => (b.level || 0) - (a.level || 0))
     .slice(0, 5);
 
   return (
@@ -78,7 +78,7 @@ export const AgentHUD = () => {
                     ✕
                 </button>
                 
-                <h2 className={`${isTablet ? 'text-2xl' : 'text-lg md:text-xl'} font-serif text-white mb-1`}>{String(agent.name || "Unknown")} <span className="text-xs text-gray-400">({String(agent.state || AgentState.IDLE)})</span></h2>
+                <h2 className={`${isTablet ? 'text-2xl' : 'text-lg md:text-xl'} font-serif text-white mb-1`}>{String(agent.displayName || agent.name || "Unknown")} <span className="text-xs text-gray-400">({String(agent.state || AgentState.IDLE)})</span></h2>
                 <div className={`flex items-center space-x-2 ${isTablet ? 'text-xs' : 'text-[10px]'} mb-3`}>
                     <span className="bg-white/10 px-2 py-0.5 rounded text-axiom-cyan uppercase tracking-tighter">LVL {String(agent.level || 1)}</span>
 
@@ -92,7 +92,7 @@ export const AgentHUD = () => {
                         </span>
                     )}
 
-                    {agent.isAwakened && (
+                    {agent.awakened && (
                         <div className="flex items-center gap-1">
                             <span className={`${isTablet ? 'text-xs' : 'text-[10px]'} font-black uppercase flex items-center gap-1 ${agent.apiQuotaExceeded || isThrottled ? 'text-red-500 animate-pulse' : 'text-axiom-gold'}`}>
                                 {agent.apiQuotaExceeded || isThrottled ? <ZapOff className="w-2.5 h-2.5" /> : <Zap className="w-2.5 h-2.5" />}
@@ -108,12 +108,12 @@ export const AgentHUD = () => {
                 <div className="mb-4">
                     <div className={`flex justify-between ${isTablet ? 'text-[11px]' : 'text-[9px]'} text-gray-500 uppercase font-black mb-1`}>
                         <span>Experience</span>
-                        <span className="text-axiom-cyan">{String(agent.xp)} / {String(getXPForNextLevel(agent.level))} XP</span>
+                        <span className="text-axiom-cyan">{String(agent.exp || agent.xp || 0)} / {String(getXPForNextLevel(agent.level || 1))} XP</span>
                     </div>
                     <div className={`${isTablet ? 'h-2.5' : 'h-1.5'} w-full bg-black/40 rounded-full overflow-hidden border border-white/5`}>
                         <div 
                             className="h-full bg-gradient-to-r from-axiom-cyan to-blue-500 transition-all duration-700 ease-out shadow-[0_0_8px_rgba(6,182,212,0.5)]"
-                            style={{ width: `${Math.min(100, (agent.xp / getXPForNextLevel(agent.level)) * 100)}%` }}
+                            style={{ width: `${Math.min(100, (((agent.exp || agent.xp || 0) / getXPForNextLevel(agent.level || 1)) * 100))}%` }}
                         ></div>
                     </div>
                 </div>
@@ -131,16 +131,16 @@ export const AgentHUD = () => {
 
                 <div className="space-y-1 mb-4">
                     <div className={`${isTablet ? 'text-[10px]' : 'text-[8px]'} text-gray-500 uppercase font-black mb-1`}>Top Skills</div>
-                    {topSkills.map(([name, skill]) => {
+                    {topSkills.map(([name, skill]: any) => {
                         const def = GAME_SKILLS[name];
-                        const xpNeeded = skill.level * 100 + skill.level * skill.level * 10;
+                        const xpNeeded = (skill.level || 1) * 100 + (skill.level || 1) * (skill.level || 1) * 10;
                         return (
                             <div key={name} className="flex items-center gap-2 bg-black/30 px-2 py-1 rounded">
                                 {def && getSkillIcon(def.icon, 'w-3 h-3 text-gray-400')}
                                 <span className="text-[9px] text-gray-300 flex-1">{def?.name || name}</span>
-                                <span className="text-[10px] text-white font-bold">{String(skill.level)}</span>
+                                <span className="text-[10px] text-white font-bold">{String(skill.level || 1)}</span>
                                 <div className="w-12 h-1 bg-black/40 rounded-full overflow-hidden">
-                                    <div className="h-full bg-axiom-cyan transition-all" style={{ width: `${(skill.xp / xpNeeded) * 100}%` }} />
+                                    <div className="h-full bg-axiom-cyan transition-all" style={{ width: `${((skill.xp || 0) / xpNeeded) * 100}%` }} />
                                 </div>
                             </div>
                         );
@@ -153,7 +153,7 @@ export const AgentHUD = () => {
                             <Eye className="w-3 h-3 text-axiom-gold" />
                             <span className="text-[8px] text-gray-400 uppercase font-black">Vision</span>
                         </div>
-                        <span className="text-[10px] text-white font-mono">{String(agent.visionRange.toFixed(0))}u</span>
+                        <span className="text-[10px] text-white font-mono">{String((agent.visionRange || 50).toFixed(0))}u</span>
                     </div>
                     <div className={`p-2 rounded border flex items-center justify-between ${invCount >= 9 ? 'bg-red-500/10 border-red-500/30' : 'bg-white/5 border-white/10'}`}>
                         <div className="flex items-center gap-1">
@@ -197,17 +197,17 @@ export const AgentHUD = () => {
                         <div className="flex justify-between text-[10px] text-gray-500 uppercase font-bold">
                             <span>Conscious Expansion</span>
                             <span className="text-axiom-cyan">
-                                {String((agent.consciousnessLevel * 100).toFixed(1))}%
+                                {String(((agent.consciousnessLevel || 0) * 100).toFixed(1))}%
                             </span>
                         </div>
                         <div className="h-1 w-full bg-gray-800 rounded-full mt-1 overflow-hidden relative">
                             <div 
                                 className="h-full bg-axiom-cyan transition-all duration-500"
-                                style={{ width: `${(agent.consciousnessLevel * 100).toFixed(0)}%` }}
+                                style={{ width: `${((agent.consciousnessLevel || 0) * 100).toFixed(0)}%` }}
                             ></div>
                             <div 
                                 className="absolute top-0 left-0 h-full bg-white/30 transition-all duration-300"
-                                style={{ width: `${(agent.awakeningProgress).toFixed(0)}%` }}
+                                style={{ width: `${(agent.awakeningProgress || 0).toFixed(0)}%` }}
                             ></div>
                         </div>
                     </div>
@@ -263,7 +263,7 @@ export const AgentHUD = () => {
             
             <div className="bg-white/5 p-2 flex justify-between items-center text-[9px] text-gray-600 font-mono">
                 <span>DNA: {String((agent.dna?.hash || "0x0").slice(0,10))}</span>
-                <span>COORD: {`[${String((agent.position?.[0] || 0).toFixed(0))}, ${String((agent.position?.[2] || 0).toFixed(0))}]`}</span>
+                <span>COORD: {`[${String((agent.position?.x || 0).toFixed(0))}, ${String((agent.position?.z || 0).toFixed(0))}]`}</span>
             </div>
         </div>
     </div>

@@ -26,7 +26,6 @@ export default function WorldPreviewPage() {
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
   const { data: worldState } = useDoc(worldRef)
 
-  // Explicit device detection for tablet controls
   useEffect(() => {
     const checkMobile = () => {
       const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -41,7 +40,6 @@ export default function WorldPreviewPage() {
     if (initializedRef.current || !user) return;
     initializedRef.current = true;
 
-    // Initialize with a mock chunk if none exists to ensure buildings render
     const mockChunk = {
       id: "0_0", 
       x: 0, 
@@ -59,7 +57,6 @@ export default function WorldPreviewPage() {
     
     setChunks([mockChunk]);
 
-    // Ensure there is at least one agent (the player)
     const existingPlayer = agents.find(a => a.id === user.uid);
     if (!existingPlayer) {
       setAgents([{
@@ -78,6 +75,14 @@ export default function WorldPreviewPage() {
         visionRange: 100,
         state: AgentState.IDLE,
         inventory: [],
+        bank: [],
+        equipment: {
+          head: null,
+          chest: null,
+          legs: null,
+          mainHand: null,
+          offHand: null
+        },
         dnaHistory: [],
         memoryCache: [],
         awakened: true,
@@ -96,7 +101,6 @@ export default function WorldPreviewPage() {
       }]);
     }
     
-    // Auto-select the player for the HUD
     useStore.getState().setUserApiKey(user.uid); 
   }, [user, setChunks, setAgents, agents]);
 
@@ -108,10 +112,8 @@ export default function WorldPreviewPage() {
         localPlayerId={user?.uid} 
       />
       
-      {/* UI Layer: Movement Controls */}
       <MobileControls />
 
-      {/* UI Layer: Player HUD & Matrix Info */}
       <div className="absolute top-0 left-0 w-full p-6 pointer-events-none flex justify-between items-start z-40">
         <div className="bg-black/60 backdrop-blur-xl border border-white/10 p-4 rounded-2xl space-y-1 pointer-events-auto shadow-2xl">
           <div className="text-[8px] font-black text-axiom-cyan uppercase tracking-[0.3em] italic">Axiom Frontier Core</div>
@@ -125,17 +127,14 @@ export default function WorldPreviewPage() {
         </div>
       </div>
 
-      {/* UI Layer: Agent Information & Skills */}
       <div className="absolute top-0 right-0 p-6 pointer-events-none z-40">
         <AgentHUD />
       </div>
 
-      {/* UI Layer: Chat & Social Console */}
       <div className="absolute bottom-6 right-6 pointer-events-none z-40">
         <ChatConsole />
       </div>
 
-      {/* Debug/Matrix Overlay */}
       <AxiomaticOverlay />
 
       <style jsx global>{`
