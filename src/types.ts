@@ -70,6 +70,7 @@ export const DEFAULT_APPEARANCE: AppearanceConfig = {
 export interface Agent {
   id: string;
   displayName: string;
+  name?: string; // Compatibility with user snippets
   npcClass: string;
   level: number;
   hp: number;
@@ -82,13 +83,14 @@ export interface Agent {
   position: { x: number; y: number; z: number };
   visionRange: number;
   state: AgentState;
-  inventory: any[];
+  inventory: any[]; // Complex items
+  resourceInventory: Record<string, number>; // Simple resources like 'food', 'wood'
   bank: any[];
   needs: AgentNeeds;
-  memory: string[]; // Schwebende Gedanken
-  memoryEvents: Memory[]; // Strukturierte Historie
+  memory: string[]; // Floating thoughts
+  memoryEvents: Memory[]; // Structured history
   relationships: Record<string, Relationship>; // Trust Matrix
-  tasks: Task[]; // Aktive Ziele
+  tasks: Task[]; // Active goals
   dnaHistory: any[];
   memoryCache: any[];
   awakened: boolean;

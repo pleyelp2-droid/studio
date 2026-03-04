@@ -44,6 +44,7 @@ export const calculateUtility = (agent: Agent, action: AgentState): number => {
       
       case AgentState.TRADING:
       case AgentState.BANKING:
+        // Priorität für Trading steigt, wenn Nahrung knapp ist (Hunger hoch)
         return hunger > 60 ? 0.95 : wealth > 80 ? 0.7 : 0.1;
       
       case AgentState.EXPLORING:
@@ -114,11 +115,11 @@ export const summarizeNeurologicChoice = (
 
     const results = choices.map(c => {
         const utility = calculateUtility(agent, c);
-        return { choice: c, utility, reason: `Heuristische Utility: ${utility.toFixed(2)}` };
+        return { choice: c, utility, reason: `Utility: ${utility.toFixed(2)}` };
     }).sort((a, b) => b.utility - a.utility);
 
     const best = results[0];
-    const logic = `[HEURISTIC_AI]: ${best.choice} - Needs: H:${agent.needs?.hunger} S:${agent.needs?.social} W:${agent.needs?.wealth}`;
+    const logic = `[HEURISTIC_AI]: ${best.choice} - Needs: H:${Math.floor(agent.needs?.hunger)} S:${Math.floor(agent.needs?.social)} W:${Math.floor(agent.needs?.wealth)}`;
 
     return { ...best, logic };
 };
