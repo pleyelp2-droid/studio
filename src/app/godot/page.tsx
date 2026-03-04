@@ -14,53 +14,29 @@ import {
   Cpu, 
   Copy,
   Code,
-  Eye,
+  FileCode,
   Zap
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { firebaseConfig } from "@/firebase/config"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-
-const SCRIPTS = [
-  { name: 'FirebaseConnector.gd', path: '/godot/FirebaseConnector.gd' },
-  { name: 'WorldSync.gd', path: '/godot/WorldSync.gd' },
-  { name: 'TextureManager.gd', path: '/godot/TextureManager.gd' }
-]
 
 export default function GodotBridgePage() {
   const { toast } = useToast()
-  const [viewingScript, setViewingScript] = useState<{name: string, content: string} | null>(null)
-  const [loadingScript, setLoadingScript] = useState(false)
 
   const copyToClipboard = (text: string, label: string) => {
     if (!text) return
     navigator.clipboard.writeText(text)
-    toast({ title: `${label} Copied`, description: "Ready to paste into Godot." })
+    toast({ title: `${label} Kopiert`, description: "Bereit für Godot." })
   }
 
-  const fetchScript = async (script: typeof SCRIPTS[0]) => {
-    setLoadingScript(true)
-    try {
-      const res = await fetch(script.path)
-      const content = await res.text()
-      setViewingScript({ name: script.name, content })
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: "Could not load script." })
-    } finally {
-      setLoadingScript(false)
-    }
-  }
-
-  const downloadScripts = () => {
-    SCRIPTS.forEach(script => {
-      const link = document.createElement('a')
-      link.href = script.path
-      link.download = script.name
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-    })
-    toast({ title: "Downloading", description: "Godot scripts are being downloaded." })
+  const downloadOneFileBridge = () => {
+    const link = document.createElement('a')
+    link.href = '/godot/AxiomBridge.gd'
+    link.download = 'AxiomBridge.gd'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast({ title: "Brücke Heruntergeladen", description: "Zieh die AxiomBridge.gd einfach in dein Godot Projekt." })
   }
 
   return (
@@ -73,86 +49,64 @@ export default function GodotBridgePage() {
             <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight text-white">Godot Bridge Protocol</h1>
           </div>
           <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/40 gap-2 font-black italic text-[10px]">
-            <Wifi className="h-3 w-3 animate-pulse" /> REALTIME_SYNC_READY
+            <Wifi className="h-3 w-3 animate-pulse" /> SIMPLICITY_V1_ACTIVE
           </Badge>
         </header>
 
-        <main className="p-6 space-y-8 max-w-5xl mx-auto w-full">
+        <main className="p-6 space-y-8 max-w-4xl mx-auto w-full">
+          <section className="text-center space-y-4 mb-12">
+            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-white">Schluss mit dem Daten-Dschungel.</h2>
+            <p className="text-muted-foreground text-sm max-w-2xl mx-auto">
+              Vergiss komplizierte Plugins und hunderte Config-Files. Lade die <b>AxiomBridge.gd</b> herunter, 
+              füge sie als Autoload in Godot hinzu, und dein Spiel ist mit deiner Datenbank verbunden.
+            </p>
+          </section>
+
           <div className="grid gap-6 md:grid-cols-2">
-            <Card className="border-border bg-card shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Cpu className="h-32 w-32" />
+            <Card className="border-accent/30 bg-card shadow-2xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Zap className="h-32 w-32 text-accent" />
               </div>
               <CardHeader>
-                <CardTitle className="text-xl font-headline font-black uppercase italic text-accent flex items-center gap-2">
-                  <Terminal className="h-5 w-5" /> Axiom Configuration
-                </CardTitle>
-                <CardDescription>Master credentials for the Ouroboros Godot Firebase Plugin.</CardDescription>
+                <CardTitle className="text-2xl font-headline font-black uppercase italic text-accent">The One-File Bridge</CardTitle>
+                <CardDescription>Alles was du brauchst in einer einzigen Datei.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="p-4 rounded-xl bg-secondary/20 border border-border space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Project Name</span>
-                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard("Ouroboros", "Project Name")} className="h-6 text-[9px] hover:text-accent">
-                      <Copy className="h-3 w-3 mr-1" /> Copy
-                    </Button>
-                  </div>
-                  <div className="text-xs font-mono text-white bg-black/40 p-2 rounded border border-white/5 truncate">
-                    Ouroboros
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Project ID</span>
-                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(firebaseConfig.projectId, "Project ID")} className="h-6 text-[9px] hover:text-accent">
-                      <Copy className="h-3 w-3 mr-1" /> Copy
-                    </Button>
-                  </div>
-                  <div className="text-xs font-mono text-white bg-black/40 p-2 rounded border border-white/5 truncate">
-                    {firebaseConfig.projectId}
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">API Key</span>
-                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(firebaseConfig.apiKey, "API Key")} className="h-6 text-[9px] hover:text-accent">
-                      <Copy className="h-3 w-3 mr-1" /> Copy
-                    </Button>
-                  </div>
-                  <div className="text-xs font-mono text-white bg-black/40 p-2 rounded border border-white/5 truncate">
-                    {firebaseConfig.apiKey}
-                  </div>
-                </div>
+                <ul className="text-xs space-y-2 text-white/60 font-medium uppercase italic">
+                  <li className="flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-accent" /> Keine Plugins erforderlich</li>
+                  <li className="flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-accent" /> Integrierter Auth-Manager</li>
+                  <li className="flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-accent" /> Realtime Firestore Sync</li>
+                  <li className="flex items-center gap-2"><div className="h-1 w-1 rounded-full bg-accent" /> Reines, sauberes GDScript</li>
+                </ul>
               </CardContent>
               <CardFooter>
-                <Button onClick={downloadScripts} className="w-full h-12 axiom-gradient text-white font-black italic uppercase tracking-widest shadow-xl">
-                  <HardDriveDownload className="h-4 w-4 mr-2" /> Download Setup Scripts
+                <Button onClick={downloadOneFileBridge} className="w-full h-16 axiom-gradient text-white font-black italic uppercase tracking-widest shadow-xl text-lg hover:scale-[1.02] transition-transform">
+                  <HardDriveDownload className="h-6 w-6 mr-2" /> AxiomBridge.gd Laden
                 </Button>
               </CardFooter>
             </Card>
 
-            <Card className="border-border bg-card shadow-2xl overflow-hidden group">
+            <Card className="border-border bg-card shadow-2xl">
               <CardHeader>
-                <CardTitle className="text-xl font-headline font-black uppercase italic text-white flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-emerald-500" /> Synchronization Matrix
+                <CardTitle className="text-sm font-black uppercase tracking-[0.3em] flex items-center gap-2">
+                  <Terminal className="h-4 w-4 text-accent" /> Schnell-Check
                 </CardTitle>
-                <CardDescription>Live telemetry stream status between React and Godot.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                    <div className="text-[8px] font-black text-muted-foreground uppercase">Firestore Stream</div>
-                    <div className="text-sm font-bold text-emerald-500 italic">PASSIVE_LISTEN</div>
+              <CardContent className="space-y-6">
+                <div className="p-4 rounded-xl bg-secondary/20 border border-border space-y-4">
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-muted-foreground block mb-1">Project ID</span>
+                    <code className="text-xs text-axiom-cyan">{firebaseConfig.projectId}</code>
                   </div>
-                  <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                    <div className="text-[8px] font-black text-muted-foreground uppercase">Auth State</div>
-                    <div className="text-sm font-bold text-emerald-500 italic">SECURE_ACTIVE</div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-muted-foreground block mb-1">API Key</span>
+                    <code className="text-[10px] text-axiom-cyan truncate block">{firebaseConfig.apiKey}</code>
                   </div>
                 </div>
-                <div className="p-4 rounded-xl bg-accent/5 border border-accent/10 space-y-2">
-                  <div className="text-[9px] font-black text-accent uppercase tracking-widest italic flex items-center gap-2">
-                    <Zap className="h-3 w-3" /> Real-time Protocol Notes
-                  </div>
-                  <p className="text-[10px] text-muted-foreground leading-relaxed">
-                    The synchronization is now **fully automatic**. Any changes to Chunks, Quests, or NPC personalities in this dashboard are reflected in Godot the instant they are committed to the neural ledger.
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-accent/5 border border-accent/10">
+                  <ShieldCheck className="h-5 w-5 text-emerald-500 shrink-0" />
+                  <p className="text-[10px] text-muted-foreground leading-relaxed uppercase font-bold italic">
+                    Die heruntergeladene Datei enthält bereits alle notwendigen Keys. Du musst sie nur noch in Godot ziehen.
                   </p>
                 </div>
               </CardContent>
@@ -160,60 +114,32 @@ export default function GodotBridgePage() {
           </div>
 
           <Card className="border-border bg-card">
-            <CardHeader className="bg-secondary/10 border-b border-border/50 p-6">
-              <CardTitle className="text-sm font-black uppercase tracking-[0.3em] flex items-center gap-2">
-                <Code className="h-4 w-4 text-accent" /> Connection Scripts
+            <CardHeader className="p-6 border-b border-border">
+              <CardTitle className="text-sm font-black uppercase tracking-widest italic flex items-center gap-2">
+                <FileCode className="h-4 w-4 text-accent" /> Integrations-Anleitung
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid gap-4 md:grid-cols-3">
-                {SCRIPTS.map(script => (
-                  <Button 
-                    key={script.name} 
-                    variant="outline" 
-                    className="justify-start gap-3 h-14 font-black uppercase italic text-xs border-white/10"
-                    onClick={() => fetchScript(script)}
-                  >
-                    <Code className="h-4 w-4 text-accent" />
-                    {script.name}
-                    <Eye className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                ))}
+            <CardContent className="p-8">
+              <div className="grid gap-8 md:grid-cols-3">
+                <div className="space-y-2">
+                  <div className="h-8 w-8 rounded-lg bg-accent/20 text-accent flex items-center justify-center font-black">1</div>
+                  <h4 className="text-xs font-black uppercase">Importieren</h4>
+                  <p className="text-[10px] text-muted-foreground uppercase leading-tight font-bold italic">Ziehe die Datei in deinen Godot "res://" Ordner.</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-8 w-8 rounded-lg bg-accent/20 text-accent flex items-center justify-center font-black">2</div>
+                  <h4 className="text-xs font-black uppercase">Autoload</h4>
+                  <p className="text-[10px] text-muted-foreground uppercase leading-tight font-bold italic">Gehe zu Project Settings -> Autoload und füge sie als 'AxiomBridge' hinzu.</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-8 w-8 rounded-lg bg-accent/20 text-accent flex items-center justify-center font-black">3</div>
+                  <h4 className="text-xs font-black uppercase">Starten</h4>
+                  <p className="text-[10px] text-muted-foreground uppercase leading-tight font-bold italic">Rufe AxiomBridge.connect_to_matrix(email, pass) in deinem Spiel-Code auf.</p>
+                </div>
               </div>
             </CardContent>
           </Card>
         </main>
-
-        <Dialog open={!!viewingScript} onOpenChange={() => setViewingScript(null)}>
-          <DialogContent className="max-w-4xl max-h-[80vh] bg-black border-border overflow-hidden flex flex-col text-white">
-            <DialogHeader>
-              <DialogTitle className="text-accent font-headline italic uppercase">{viewingScript?.name}</DialogTitle>
-              <DialogDescription>Preview of the Godot GDScript file.</DialogDescription>
-            </DialogHeader>
-            <div className="flex-1 overflow-auto bg-zinc-900 p-4 rounded-lg border border-white/5">
-              <pre className="text-xs font-mono text-zinc-300 whitespace-pre-wrap">
-                {viewingScript?.content}
-              </pre>
-            </div>
-            <div className="flex justify-end gap-3 mt-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setViewingScript(null)}
-                className="font-black uppercase italic text-xs border-white/10"
-              >
-                Close
-              </Button>
-              <Button 
-                className="axiom-gradient text-white border-0 font-black italic uppercase text-xs"
-                onClick={() => {
-                  if (viewingScript) copyToClipboard(viewingScript.content, viewingScript.name)
-                }}
-              >
-                <Copy className="h-3 w-3 mr-2" /> Copy Code
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </SidebarInset>
     </div>
   )
