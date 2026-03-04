@@ -3,8 +3,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { useStore } from '@/store'
-import { Button } from '@/components/ui/button'
-import { Settings2, Move, MousePointer2, Smartphone, Monitor } from 'lucide-react'
+import { Move, MousePointer2 } from 'lucide-react'
 
 export const MobileControls = () => {
   const { controlMode, setControlMode, setVirtualInput, isMobile } = useStore()
@@ -52,41 +51,14 @@ export const MobileControls = () => {
     setVirtualInput({ x: 0, z: 0 })
   }
 
-  return (
-    <div className="absolute inset-0 pointer-events-none z-50 flex flex-col justify-between p-6">
-      {/* Control Switcher Overlay */}
-      <div className="flex justify-between items-start pointer-events-auto">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10">
-          <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-axiom-cyan mr-4 italic">
-            {isMobile ? <Smartphone className="h-3 w-3" /> : <Monitor className="h-3 w-3" />}
-            <span>System: {isMobile ? 'Android' : 'Desktop'}</span>
-          </div>
-          <div className="flex gap-1">
-            <Button 
-              variant={controlMode === 'JOYSTICK' ? 'default' : 'ghost'} 
-              size="sm" 
-              className={`rounded-xl h-10 w-10 p-0 ${controlMode === 'JOYSTICK' ? 'axiom-gradient border-0' : ''}`}
-              onClick={() => setControlMode('JOYSTICK')}
-              title="Joystick Mode"
-            >
-              <Move className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant={controlMode === 'PUSH_TO_WALK' ? 'default' : 'ghost'} 
-              size="sm" 
-              className={`rounded-xl h-10 w-10 p-0 ${controlMode === 'PUSH_TO_WALK' ? 'axiom-gradient border-0' : ''}`}
-              onClick={() => setControlMode('PUSH_TO_WALK')}
-              title="Push to Walk"
-            >
-              <MousePointer2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
+  // Only render joystick on mobile or if specifically enabled
+  if (!isMobile) return null;
 
+  return (
+    <div className="absolute inset-0 pointer-events-none z-50 flex flex-col justify-end p-12">
       {/* Virtual Joystick UI */}
       {controlMode === 'JOYSTICK' && (
-        <div className="flex justify-start items-end p-8 pointer-events-auto">
+        <div className="flex justify-start items-end pointer-events-auto">
           <div 
             ref={joystickRef}
             className="w-32 h-32 rounded-full bg-white/5 backdrop-blur-md border-2 border-white/10 relative flex items-center justify-center touch-none shadow-2xl"

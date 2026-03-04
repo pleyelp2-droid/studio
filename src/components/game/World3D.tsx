@@ -34,7 +34,6 @@ const HighScienceSpire = ({ position, rotationY, color }: { position: [number, n
 
   return (
     <group position={safePos} rotation={[0, rotationY || 0, 0]}>
-      {/* Structural Spire */}
       <mesh position={[0, 15, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[2, 5, 30, 6]} />
         <meshStandardMaterial 
@@ -46,7 +45,6 @@ const HighScienceSpire = ({ position, rotationY, color }: { position: [number, n
         />
       </mesh>
       
-      {/* Floating Crown */}
       <Float speed={3} rotationIntensity={4} floatIntensity={2}>
         <mesh position={[0, 35, 0]} scale={3}>
           <octahedronGeometry args={[1, 0]} />
@@ -59,10 +57,8 @@ const HighScienceSpire = ({ position, rotationY, color }: { position: [number, n
         </mesh>
       </Float>
 
-      {/* Volumetric Glow */}
       <pointLight position={[0, 35, 0]} intensity={2} color={color} distance={150} decay={2} />
       
-      {/* Foundation Rings */}
       <mesh position={[0, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[8, 10, 32]} />
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1} transparent opacity={0.5} />
@@ -117,9 +113,10 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
 
     try {
       const appearance = agent.appearance || { skinTone: '#c68642', bodyScale: 1.0 };
+      // Significantly increased base scale for character presence
       humanoid = createHumanoidModel({
         skinTone: appearance.skinTone,
-        bodyScale: (appearance.bodyScale || 1.0) * 2.5
+        bodyScale: (appearance.bodyScale || 1.0) * 8.0 
       });
       
       if (humanoid) {
@@ -159,7 +156,7 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
   return (
     <group ref={groupRef} position={[agent.position?.x || 0, 0, agent.position?.z || 0]}>
       <primitive object={model.group} />
-      <Html position={[0, 6, 0]} center distanceFactor={15}>
+      <Html position={[0, 15, 0]} center distanceFactor={25}>
         <div className={`px-4 py-1.5 rounded-full bg-black/80 border-2 ${isLocal ? 'border-axiom-cyan shadow-[0_0_20px_rgba(31,184,184,0.8)]' : 'border-white/10'} text-white text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-md italic pointer-events-none whitespace-nowrap shadow-xl`}>
           {agent.displayName || "Unknown Pilot"}
         </div>
@@ -168,11 +165,55 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
   );
 };
 
-const LocalPlayerController = ({ agent }: { agent: Agent }) => {
-  const { virtualInput, controlMode, targetPosition, setAgents, agents } = useStore();
-  const moveSpeed = 4.0;
+const CameraController = ({ targetPosition }: { targetPosition: { x: number, z: number } | null }) => {
+  const { camera } = useThree();
+  const controlsRef = useRef<any>(null);
+  const controlledAgentId = useStore(state => state.controlledAgentId);
+  const agents = useStore(state => state.agents);
+  
+  const controlledAgent = useMemo(() => 
+    agents.find(a => a.id === controlledAgentId), 
+    [agents, controlledAgentId]
+  );
 
   useFrame(() => {
+    if (controlledAgent && controlledAgent.position) {
+      const { x, z } = controlledAgent.position;
+      const idealOffset = new THREE.Vector3(0, 15, 40); // Standard 3rd person height/distance
+      const idealLookat = new THREE.Vector3(x, 8, z); // Look at character chest height
+
+      // Camera Follow Logic
+      const currentPos = camera.position.clone();
+      const targetPos = new THREE.Vector3(x, 0, z).add(idealOffset);
+      
+      camera.position.lerp(targetPos, 0.1);
+      camera.lookAt(idealLookat);
+
+      if (controlsRef.current) {
+        controlsRef.current.target.lerp(idealLookat, 0.1);
+        controlsRef.current.update();
+      }
+    }
+  });
+
+  return (
+    <OrbitControls 
+      ref={controlsRef}
+      makeDefault 
+      enableDamping 
+      dampingFactor={0.05} 
+      maxPolarAngle={Math.PI / 2.2} 
+      minDistance={10} 
+      maxDistance={200} 
+    />
+  );
+};
+
+const LocalPlayerController = ({ agent }: { agent: Agent }) => {
+  const { virtualInput, controlMode, targetPosition, setAgents, agents } = useStore();
+  const moveSpeed = 6.0;
+
+  useFrame((_state, delta) => {
     if (!agent || !agent.position) return;
     let moving = false;
     let dx = 0;
@@ -260,6 +301,13 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
 const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, localPlayerId?: string | null }) => {
   const setTargetPosition = useStore(state => state.setTargetPosition);
   const controlMode = useStore(state => state.controlMode);
+  const agents = useStore(state => state.agents);
+  const controlledAgentId = useStore(state => state.controlledAgentId);
+  
+  const controlledAgent = useMemo(() => 
+    agents.find(a => a.id === controlledAgentId), 
+    [agents, controlledAgentId]
+  );
 
   return (
     <div className="w-full h-full bg-[#010102] touch-none">
@@ -269,20 +317,13 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
             shadows
             onPointerDown={(e) => {
               if (controlMode === 'PUSH_TO_WALK') {
-                // Approximate floor intersection
                 setTargetPosition({ x: e.point.x, y: 0, z: e.point.z });
               }
             }}
           >
-              <PerspectiveCamera makeDefault position={[120, 120, 120]} fov={40} far={5000} />
-              <OrbitControls 
-                makeDefault 
-                enableDamping 
-                dampingFactor={0.05} 
-                maxPolarAngle={Math.PI / 2.2} 
-                minDistance={30} 
-                maxDistance={800} 
-              />
+              <PerspectiveCamera makeDefault position={[60, 40, 60]} fov={45} far={5000} />
+              
+              <CameraController targetPosition={controlledAgent?.position || null} />
               
               <ambientLight intensity={0.2} />
               <directionalLight 
