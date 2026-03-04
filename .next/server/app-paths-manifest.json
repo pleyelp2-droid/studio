@@ -6,5 +6,6 @@
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/godot/page": "app/godot/page.js",
   "/assets/page": "app/assets/page.js",
-  "/admin/lore/page": "app/admin/lore/page.js"
+  "/admin/lore/page": "app/admin/lore/page.js",
+  "/admin/content/page": "app/admin/content/page.js"
 }

@@ -30,6 +30,7 @@ interface AppState {
   globalApiCooldown: number;
   windowStates: Record<string, { isOpen: boolean; isMinimized: boolean }>;
   controlledAgentId: string | null;
+  auctionHouse: any[];
   emergenceSettings: {
     isEmergenceEnabled: boolean;
     useHeuristicsOnly: boolean;
@@ -57,6 +58,7 @@ interface AppState {
   minimizeWindow: (window: string) => void;
   takeControl: (id: string) => void;
   releaseControl: () => void;
+  bidOnAuction: (auctionId: string, bidderId: string, amount: number) => void;
   setEmergenceSetting: (key: string, value: boolean) => void;
 }
 
@@ -93,6 +95,24 @@ export const useStore = create<AppState>((set) => ({
     QUESTS: { isOpen: false, isMinimized: false },
   },
   controlledAgentId: null,
+  auctionHouse: [
+    { 
+      id: 'auc_1', 
+      item: { name: 'Void-Forged Plate', rarity: 'EPIC' }, 
+      sellerName: 'AxiomVendor', 
+      currentBid: 450, 
+      endTime: Date.now() + 3600000, 
+      status: 'ACTIVE' 
+    },
+    { 
+      id: 'auc_2', 
+      item: { name: 'Axiom Shard x5', rarity: 'RARE' }, 
+      sellerName: 'GhostPilot', 
+      currentBid: 120, 
+      endTime: Date.now() + 1800000, 
+      status: 'ACTIVE' 
+    }
+  ],
   emergenceSettings: {
     isEmergenceEnabled: true,
     useHeuristicsOnly: false,
@@ -126,6 +146,9 @@ export const useStore = create<AppState>((set) => ({
   })),
   takeControl: (id) => set({ controlledAgentId: id }),
   releaseControl: () => set({ controlledAgentId: null }),
+  bidOnAuction: (id, bidderId, amount) => set((state) => ({
+    auctionHouse: state.auctionHouse.map(a => a.id === id ? { ...a, currentBid: amount } : a)
+  })),
   setEmergenceSetting: (key, value) => set((state) => ({
     emergenceSettings: { ...state.emergenceSettings, [key]: value }
   })),

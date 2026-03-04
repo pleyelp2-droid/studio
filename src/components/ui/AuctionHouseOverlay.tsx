@@ -8,10 +8,10 @@ import { X, Gavel, Timer, TrendingUp, Package, Minus } from 'lucide-react';
 export const AuctionHouseOverlay = () => {
   const toggleWindow = useStore(state => state.toggleWindow);
   const minimizeWindow = useStore(state => state.minimizeWindow);
-  const auctionHouse = useStore(state => state.auctionHouse);
+  const auctionHouse = useStore(state => state.auctionHouse) || [];
   const bidOnAuction = useStore(state => state.bidOnAuction);
   const agents = useStore(state => state.agents);
-  const currentUserAgent = agents.find(a => a.npcClass === 'PLAYER');
+  const currentUserAgent = agents.find(a => a.npcClass === 'PLAYER' || a.npcClass === 'PILOT');
 
   const [bidAmounts, setBidAmounts] = useState<Record<string, number>>({});
 
