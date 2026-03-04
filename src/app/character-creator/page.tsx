@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea"
 import { 
   Sparkles, 
   Loader2, 
@@ -19,11 +20,14 @@ import {
   UserPlus, 
   Dna,
   ShieldCheck,
-  ChevronRight,
-  Monitor
+  BrainCircuit,
+  Zap,
+  Target,
+  Pickaxe
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { AIService } from "@/services/AIService"
 
 export default function CharacterCreatorPage() {
   const { user } = useUser()
@@ -32,11 +36,38 @@ export default function CharacterCreatorPage() {
   const { toast } = useToast()
   
   const [loading, setLoading] = useState(false)
+  const [isSynthesizing, setIsSynthesizing] = useState(false)
   const [name, setName] = useState("")
-  const [npcClass, setNpcClass] = useState("PILOT")
-  const [race, setRace] = useState("HUMAN")
+  const [neuralPrompt, setNeuralPrompt] = useState("")
   const [skinTone, setSkinTone] = useState("#d1a37c")
   const [stats, setStats] = useState({ str: 10, agi: 10, int: 10, vit: 10 })
+  const [skills, setSkills] = useState({ mining: 1, smithing: 1, combat: 1, reflection: 1 })
+
+  const handleSynthesize = async () => {
+    if (!neuralPrompt) return
+    setIsSynthesizing(true)
+    try {
+      // In a real scenario, this would call our Genkit flow
+      // For now, we simulate the "Axiom Synthesis"
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      setStats({
+        str: 10 + Math.floor(Math.random() * 5),
+        agi: 10 + Math.floor(Math.random() * 5),
+        int: 10 + Math.floor(Math.random() * 5),
+        vit: 10 + Math.floor(Math.random() * 5)
+      })
+      
+      toast({ 
+        title: "Neural Imprinting Successful", 
+        description: "Your essence has been translated into starting attributes." 
+      })
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Synthesis Failed", description: e.message })
+    } finally {
+      setIsSynthesizing(false)
+    }
+  }
 
   const handleCreate = async () => {
     if (!db || !user || !name) return
@@ -45,20 +76,19 @@ export default function CharacterCreatorPage() {
       await setDoc(doc(db, "players", user.uid), {
         id: user.uid,
         displayName: name,
-        npcClass,
-        race,
         level: 1,
         hp: stats.vit * 10,
         maxHp: stats.vit * 10,
         exp: 0,
         ...stats,
+        skills,
         position: { x: Math.random() * 20, y: 0, z: Math.random() * 20 },
         visionRange: 50,
         state: 'IDLE',
         inventory: [],
-        dnaHistory: [],
+        dnaHistory: [neuralPrompt],
         memoryCache: [],
-        awakened: false,
+        awakened: !!neuralPrompt,
         appearance: {
           skinTone,
           hairStyle: 'short',
@@ -76,18 +106,6 @@ export default function CharacterCreatorPage() {
     }
   }
 
-  const races = [
-    { id: 'HUMAN', label: 'Human Signature', desc: 'Versatile neural architecture.' },
-    { id: 'CYBORG', label: 'Augmented Shell', desc: 'Enhanced hardware compatibility.' },
-    { id: 'ANOMALY', label: 'Void Manifest', desc: 'Unstable but high potential.' }
-  ]
-
-  const classes = [
-    { id: 'PILOT', label: 'Standard Pilot', bonus: '+2 ALL' },
-    { id: 'ENFORCER', label: 'Combat Enforcer', bonus: '+5 STR/VIT' },
-    { id: 'TECH_WEAVER', label: 'Logic Weaver', bonus: '+5 INT/AGI' }
-  ]
-
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       <AppSidebar />
@@ -95,23 +113,24 @@ export default function CharacterCreatorPage() {
         <header className="flex h-16 items-center border-b border-border px-6 justify-between shrink-0 bg-background/50 backdrop-blur-md sticky top-0 z-10">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight">Neural Synthesis</h1>
+            <h1 className="text-xl font-headline font-semibold italic uppercase tracking-tight text-white">Neural Manifestation</h1>
           </div>
+          <Badge variant="outline" className="text-accent border-accent font-black text-[10px] tracking-widest italic">CLASSLESS_SYSTEM_V1.2</Badge>
         </header>
 
         <main className="p-6 grid gap-8 lg:grid-cols-12 max-w-7xl mx-auto w-full">
-          {/* Configuration */}
+          {/* AI Neural Imprinting */}
           <div className="lg:col-span-7 space-y-8">
-            <Card className="border-border bg-card shadow-2xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-12 opacity-5">
-                <Dna className="h-64 w-64" />
+            <Card className="border-border bg-card shadow-2xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
+                <BrainCircuit className="h-64 w-64" />
               </div>
               <CardHeader className="bg-secondary/10 border-b border-border/50 pb-8">
                 <CardTitle className="font-headline text-3xl font-black italic uppercase tracking-tighter flex items-center gap-3">
                   <Fingerprint className="h-8 w-8 text-accent" />
-                  Pilot Imprinting
+                  Neural Synthesis
                 </CardTitle>
-                <CardDescription className="text-xs uppercase font-bold tracking-widest mt-2">Specify character parameters for the Ouroboros physical layer.</CardDescription>
+                <CardDescription className="text-xs uppercase font-bold tracking-widest mt-2 text-white/60">Define your essence. The Axiom Core will manifest your shell.</CardDescription>
               </CardHeader>
               <CardContent className="p-8 space-y-10">
                 <div className="space-y-4">
@@ -120,50 +139,38 @@ export default function CharacterCreatorPage() {
                     value={name} 
                     onChange={(e) => setName(e.target.value)} 
                     placeholder="Enter Pilot Name..." 
-                    className="h-14 bg-secondary/20 border-border text-xl font-headline rounded-xl"
+                    className="h-14 bg-secondary/20 border-border text-xl font-headline rounded-xl text-white italic"
                   />
                 </div>
 
-                <div className="space-y-6">
-                  <Label className="text-[10px] font-black uppercase tracking-[0.3em] italic text-accent">Genetic Blueprint</Label>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {races.map(r => (
-                      <button 
-                        key={r.id} 
-                        onClick={() => setRace(r.id)}
-                        className={`text-left p-4 rounded-xl border transition-all duration-300 ${race === r.id ? 'border-accent bg-accent/5 ring-1 ring-accent' : 'border-border bg-secondary/10 hover:bg-secondary/20'}`}
-                      >
-                        <div className="text-xs font-black uppercase italic mb-1">{r.label}</div>
-                        <div className="text-[10px] text-muted-foreground leading-tight">{r.desc}</div>
-                      </button>
-                    ))}
+                <div className="space-y-4">
+                  <Label className="text-[10px] font-black uppercase tracking-[0.3em] italic text-accent">AI Neural Link (Concept Prompt)</Label>
+                  <div className="relative">
+                    <Textarea 
+                      value={neuralPrompt}
+                      onChange={(e) => setNeuralPrompt(e.target.value)}
+                      placeholder="Describe your character's soul, origin, or purpose... (e.g. A weary miner from the Crystal Peaks seeking redemption)"
+                      className="min-h-[120px] bg-secondary/20 border-border rounded-xl text-xs italic leading-relaxed text-white/80"
+                    />
+                    <Button 
+                      onClick={handleSynthesize}
+                      disabled={!neuralPrompt || isSynthesizing}
+                      className="absolute bottom-3 right-3 axiom-gradient h-10 px-4 text-[10px] font-black uppercase tracking-widest italic rounded-lg"
+                    >
+                      {isSynthesizing ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Sparkles className="h-3 w-3 mr-2" />}
+                      Synthesize Essence
+                    </Button>
                   </div>
                 </div>
 
                 <div className="space-y-6">
-                  <Label className="text-[10px] font-black uppercase tracking-[0.3em] italic text-accent">Functional Archetype</Label>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    {classes.map(c => (
-                      <button 
-                        key={c.id} 
-                        onClick={() => setNpcClass(c.id)}
-                        className={`text-left p-4 rounded-xl border transition-all duration-300 ${npcClass === c.id ? 'border-accent bg-accent/5 ring-1 ring-accent' : 'border-border bg-secondary/10 hover:bg-secondary/20'}`}
-                      >
-                        <div className="text-xs font-black uppercase italic mb-1">{c.label}</div>
-                        <Badge variant="outline" className="text-[8px] border-accent/30 text-accent">{c.bonus}</Badge>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <Label className="text-[10px] font-black uppercase tracking-[0.3em] italic text-accent">Shell Pigmentation</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-[0.3em] italic text-accent">Starting Pigmentation</Label>
                   <div className="flex gap-4">
                     {['#d1a37c', '#8d5524', '#c68642', '#e0ac69', '#3d1e11'].map(c => (
                       <button 
                         key={c} 
                         onClick={() => setSkinTone(c)}
-                        className={`h-10 w-10 rounded-full border-4 ${skinTone === c ? 'border-accent scale-110 shadow-lg' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                        className={`h-10 w-10 rounded-full border-4 transition-all ${skinTone === c ? 'border-accent scale-110 shadow-[0_0_15px_rgba(96,212,255,0.5)]' : 'border-transparent opacity-60 hover:opacity-100'}`}
                         style={{ backgroundColor: c }}
                       />
                     ))}
@@ -178,32 +185,34 @@ export default function CharacterCreatorPage() {
             <Card className="border-border bg-card shadow-2xl">
               <CardHeader className="bg-secondary/10 border-b border-border/50">
                 <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-accent" /> Axiomatic Distribution
+                  <Zap className="h-4 w-4 text-accent" /> Manifested Attributes
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
                 {Object.entries(stats).map(([s, val]) => (
                   <div key={s} className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <Label className="uppercase font-black text-xs tracking-widest text-muted-foreground">{s}</Label>
-                      <span className="text-sm font-headline font-bold text-white">{val}</span>
+                      <Label className="uppercase font-black text-[10px] tracking-widest text-muted-foreground">{s}</Label>
+                      <span className="text-sm font-headline font-bold text-white italic">{val}</span>
                     </div>
                     <Slider 
                       value={[val]} 
-                      min={5} max={25} step={1} 
-                      onValueChange={([v]) => setStats(prev => ({ ...prev, [s]: v }))}
+                      disabled
+                      max={25} 
+                      className="opacity-50"
                     />
                   </div>
                 ))}
                 
                 <div className="pt-6 border-t border-border/50 space-y-4">
-                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                    <span className="text-muted-foreground">Neural Capacity</span>
-                    <span className="text-emerald-500">OPTIMAL</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                    <span className="text-muted-foreground">Persistency Rating</span>
-                    <span className="text-accent">HIGH</span>
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-accent mb-4">Initial Skill Imprints</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {Object.entries(skills).map(([skill, level]) => (
+                      <div key={skill} className="p-3 rounded-xl bg-secondary/20 border border-border/50 flex flex-col items-center">
+                        <div className="text-[8px] font-black text-muted-foreground uppercase mb-1">{skill}</div>
+                        <div className="text-lg font-headline font-black text-white italic">LVL {level}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </CardContent>
@@ -211,9 +220,9 @@ export default function CharacterCreatorPage() {
                 <Button 
                   onClick={handleCreate} 
                   disabled={loading || !name} 
-                  className="w-full h-16 axiom-gradient text-white font-black text-xl italic uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition-transform"
+                  className="w-full h-16 axiom-gradient text-white font-black text-xl italic uppercase tracking-widest shadow-2xl hover:scale-[1.02] transition-transform rounded-2xl"
                 >
-                  {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <><UserPlus className="h-6 w-6 mr-2" /> Manifest Neural Ghost</>}
+                  {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <><UserPlus className="h-6 w-6 mr-2" /> Commit to Ledger</>}
                 </Button>
               </CardFooter>
             </Card>
@@ -221,10 +230,10 @@ export default function CharacterCreatorPage() {
             <div className="p-8 rounded-2xl bg-accent/5 border border-accent/10 space-y-4 shadow-xl">
               <div className="flex items-center gap-3 text-accent">
                 <ShieldCheck className="h-5 w-5" />
-                <span className="text-[10px] font-black uppercase tracking-widest italic">Compliance Matrix Verified</span>
+                <span className="text-[10px] font-black uppercase tracking-widest italic">Axiomatic Persistence Verified</span>
               </div>
-              <p className="text-[11px] text-muted-foreground italic leading-relaxed font-bold">
-                By manifesting your neural ghost, you agree to follow the Ouroboros Deterministic Protocols. Your shell will be persistent and visible to all global pilots.
+              <p className="text-[11px] text-muted-foreground italic leading-relaxed">
+                By manifesting, you establish an immutable neural signature in the simulation. Every skill gained and resource gathered is permanent.
               </p>
             </div>
           </div>
