@@ -1,0 +1,120 @@
+
+'use client';
+/**
+ * @fileOverview Ouroboros Neural Texture Engine
+ * Handles the registry, sorting, and mapping of uploaded textures to game subsystems.
+ */
+
+import * as THREE from 'three';
+import { collection, query, getDocs, onSnapshot } from 'firebase/firestore';
+import { initializeFirebase } from '@/firebase';
+
+const { firestore: db } = initializeFirebase();
+
+export type TextureCategory = 'TERRAIN' | 'ARCHITECTURE' | 'CHARACTER' | 'UI' | 'VFX' | 'UNKNOWN';
+
+export interface TextureSignature {
+  id: string;
+  name: string;
+  url: string;
+  category: TextureCategory;
+  tags: string[];
+  biomeMapping?: string[];
+  lastUpdate: number;
+}
+
+class TextureEngine {
+  private loader = new THREE.TextureLoader();
+  private registry: Map<string, TextureSignature> = new Map();
+  private cache: Map<string, THREE.Texture> = new Map();
+  private listeners: Set<(registry: Map<string, TextureSignature>) => void> = new Set();
+
+  constructor() {
+    this.init();
+  }
+
+  private async init() {
+    if (!db) return;
+
+    // Real-time sync with the global asset ledger
+    onSnapshot(collection(db, 'worldAssets'), (snap) => {
+      snap.docs.forEach(doc => {
+        const data = doc.data();
+        const signature: TextureSignature = {
+          id: doc.id,
+          name: data.name || 'Unknown_Signature',
+          url: data.url || '',
+          category: this.autoCategorize(data.name || '', data.tags || []),
+          tags: data.tags || [],
+          biomeMapping: data.biomeMapping || [],
+          lastUpdate: Date.now()
+        };
+        this.registry.set(signature.id, signature);
+      });
+      this.notify();
+    });
+  }
+
+  /**
+   * Automatically sorts textures based on nomenclature and heuristic tagging.
+   */
+  private autoCategorize(name: string, tags: string[]): TextureCategory {
+    const combined = (name + tags.join(' ')).toLowerCase();
+    
+    if (combined.match(/grass|dirt|soil|sand|rock|terrain|ground|snow/)) return 'TERRAIN';
+    if (combined.match(/wall|metal|floor|ceiling|window|neon|door/)) return 'ARCHITECTURE';
+    if (combined.match(/skin|eye|hair|clothes|armor|ghost/)) return 'CHARACTER';
+    if (combined.match(/icon|button|panel|border|hud/)) return 'UI';
+    if (combined.match(/particle|glow|fire|smoke|pulse/)) return 'VFX';
+    
+    return 'UNKNOWN';
+  }
+
+  /**
+   * Fetches a THREE.js texture, using the local cache to prevent redundant GPU memory allocation.
+   */
+  async getTexture(idOrUrl: string): Promise<THREE.Texture | null> {
+    const signature = Array.from(this.registry.values()).find(s => s.id === idOrUrl || s.url === idOrUrl);
+    const url = signature ? signature.url : idOrUrl;
+
+    if (this.cache.has(url)) return this.cache.get(url)!;
+
+    return new Promise((resolve) => {
+      this.loader.load(url, (tex) => {
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.anisotropy = 16;
+        this.cache.set(url, tex);
+        resolve(tex);
+      }, undefined, () => resolve(null));
+    });
+  }
+
+  /**
+   * Returns all textures sorted by category for the Admin UI.
+   */
+  getSortedRegistry(): Record<TextureCategory, TextureSignature[]> {
+    const result: Record<TextureCategory, TextureSignature[]> = {
+      TERRAIN: [],
+      ARCHITECTURE: [],
+      CHARACTER: [],
+      UI: [],
+      VFX: [],
+      UNKNOWN: []
+    };
+
+    this.registry.forEach(s => result[s.category].push(s));
+    return result;
+  }
+
+  subscribe(callback: (registry: Map<string, TextureSignature>) => void) {
+    this.listeners.add(callback);
+    callback(this.registry);
+    return () => this.listeners.delete(callback);
+  }
+
+  private notify() {
+    this.listeners.forEach(cb => cb(this.registry));
+  }
+}
+
+export const textureEngine = new TextureEngine();

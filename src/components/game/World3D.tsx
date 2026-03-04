@@ -10,6 +10,7 @@ import { POI, Agent, AgentState } from "../../types"
 import { createHumanoidModel } from "./HumanoidModel"
 import { AnimationController, createAnimationClips } from "./AnimationSystem"
 import { WorldBuildingService } from "@/services/WorldBuildingService"
+import { textureEngine } from "@/services/TextureEngine"
 
 const ARL_COLORS = {
   void: "#0a0d1a",
@@ -45,6 +46,38 @@ const HighScienceSpire = ({ position, rotationY, color }: { position: [number, n
       </Float>
       <pointLight position={[0, 15, 0]} intensity={0.5} color={color} distance={100} />
     </group>
+  );
+};
+
+const Terrain = () => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const [terrainTex, setTerrainTex] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    // Neural logic: Find the best ground texture in the engine registry
+    const unsub = textureEngine.subscribe(async (registry) => {
+      const terrainAssets = Array.from(registry.values()).filter(s => s.category === 'TERRAIN');
+      if (terrainAssets.length > 0) {
+        const tex = await textureEngine.getTexture(terrainAssets[0].id);
+        if (tex) {
+          tex.repeat.set(50, 50);
+          setTerrainTex(tex);
+        }
+      }
+    });
+    return unsub;
+  }, []);
+
+  return (
+    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
+      <planeGeometry args={[2000, 2000]} />
+      <meshStandardMaterial 
+        color={terrainTex ? "#ffffff" : "#020205"} 
+        map={terrainTex}
+        roughness={1} 
+        metalness={0.1} 
+      />
+    </mesh>
   );
 };
 
@@ -183,10 +216,7 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
 
   return (
     <>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
-        <planeGeometry args={[2000, 2000]} />
-        <meshStandardMaterial color="#020205" roughness={1} metalness={0.1} />
-      </mesh>
+      <Terrain />
       <gridHelper args={[2000, 100, "#1e2a4a", "#0a0d1a"]} position={[0, -0.05, 0]} />
       {localAgent && <LocalPlayerController agent={localAgent} />}
       {otherAgents.map(a => <AgentModelWrapper key={a.id} agent={a} />)}
