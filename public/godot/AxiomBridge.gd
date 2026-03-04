@@ -1,101 +1,57 @@
 extends Node
 
-# Axiom Frontier - Universal Godot Bridge
-# Handles Authentication and Firestore Sync via Pure GDScript (HTTP)
+# Axiom Frontier - Godot Bridge Protocol v1.0.4
+# Pure GDScript implementation for Firebase Auth & Firestore REST
+# No external plugins required. Just add this as an Autoload.
 
 const PROJECT_ID = "studio-5485353702-8ce01"
 const API_KEY = "AIzaSyDldbhESThtDQ3YYIPmLEh-cocereahAOE"
 
-var auth_token: String = ""
-var refresh_token: String = ""
-var local_id: String = ""
+var auth_token = ""
+var refresh_token = ""
+var user_id = ""
 
-signal connection_established(pilot_id)
-signal matrix_sync_received(data)
-signal error_detected(message)
+signal auth_complete(success, message)
+signal data_received(collection, data)
 
-func _ready():
-	print("[AXIOM_BRIDGE] Initialized. Ready for neural handshake.")
-
-# --- AUTHENTICATION ---
-
-func connect_to_matrix(email: String, pass: String):
+func connect_to_matrix(email, password):
 	var url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + API_KEY
 	var body = JSON.stringify({
 		"email": email,
-		"password": pass,
+		"password": password,
 		"returnSecureToken": true
 	})
-	
-	var http = HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(_on_login_completed)
-	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
+	_make_request(url, body, "_on_auth_response")
 
-func _on_login_completed(result, response_code, headers, body):
+func _on_auth_response(result, response_code, headers, body):
 	var json = JSON.parse_string(body.get_string_from_utf8())
 	if response_code == 200:
-		auth_token = json["idToken"]
-		refresh_token = json["refreshToken"]
-		local_id = json["localId"]
-		print("[AXIOM_BRIDGE] Link established. ID: ", local_id)
-		connection_established.emit(local_id)
-		start_matrix_sync()
+		auth_token = json.idToken
+		refresh_token = json.refreshToken
+		user_id = json.localId
+		emit_signal("auth_complete", true, "Session Materialized")
 	else:
-		var error_msg = json["error"]["message"] if json.has("error") else "Unknown connection failure"
-		error_detected.emit(error_msg)
+		var err_msg = "Unknown Protocol Error"
+		if json.has("error"): err_msg = json.error.message
+		emit_signal("auth_complete", false, err_msg)
 
-# --- FIRESTORE SYNC ---
+func get_player_data():
+	if user_id == "": return
+	var url = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/players/" + user_id
+	_make_request(url, "", "_on_data_response", HTTPClient.METHOD_GET)
 
-func start_matrix_sync():
-	sync_player_data()
-	sync_world_state()
+func _on_data_response(result, response_code, headers, body):
+	var json = JSON.parse_string(body.get_string_from_utf8())
+	if response_code == 200:
+		emit_signal("data_received", "players", json)
 
-func sync_player_data():
-	var url = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/players/" + local_id
+func _make_request(url, body, callback, method = HTTPClient.METHOD_POST):
 	var http = HTTPRequest.new()
 	add_child(http)
-	http.request_completed.connect(_on_player_sync_completed)
-	http.request(url, ["Authorization: Bearer " + auth_token], HTTPClient.METHOD_GET)
-
-func _on_player_sync_completed(result, response_code, headers, body):
-	if response_code == 200:
-		var data = JSON.parse_string(body.get_string_from_utf8())
-		var fields = data.get("fields", {})
-		matrix_sync_received.emit(fields)
-	else:
-		print("[AXIOM_BRIDGE] Sync failed: ", response_code)
-
-func update_matrix_position(pos: Vector3):
-	var url = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/players/" + local_id + "?updateMask.fieldPaths=position"
-	var body = JSON.stringify({
-		"fields": {
-			"position": {
-				"mapValue": {
-					"fields": {
-						"x": {"doubleValue": pos.x},
-						"y": {"doubleValue": pos.y},
-						"z": {"doubleValue": pos.z}
-					}
-				}
-			}
-		}
-	})
+	http.request_completed.connect(Callable(self, callback))
 	
-	var http = HTTPRequest.new()
-	add_child(http)
-	http.request(url, ["Authorization: Bearer " + auth_token, "Content-Type: application/json"], HTTPClient.METHOD_PATCH, body)
-
-func sync_world_state():
-	var url = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/worldState/global"
-	var http = HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(_on_world_sync_completed)
-	http.request(url, [], HTTPClient.METHOD_GET)
-
-func _on_world_sync_completed(result, response_code, headers, body):
-	if response_code == 200:
-		var data = JSON.parse_string(body.get_string_from_utf8())
-		print("[AXIOM_BRIDGE] World State synchronized.")
-	else:
-		print("[AXIOM_BRIDGE] World sync failed.")
+	var headers = ["Content-Type: application/json"]
+	if auth_token != "":
+		headers.append("Authorization: Bearer " + auth_token)
+	
+	http.request(url, headers, method, body)
