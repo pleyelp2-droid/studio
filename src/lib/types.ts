@@ -27,7 +27,7 @@ export interface SocialGroup {
   id: string;
   name: string;
   type: 'guild' | 'kingdom';
-  members: string[];
+  members: string[]; // Liste der Agenten-IDs
 }
 
 export type InteractionType = 'talk' | 'trade' | 'proposeGroup';

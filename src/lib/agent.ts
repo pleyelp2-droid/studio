@@ -13,16 +13,18 @@ export class Agent {
   needs: Record<string, number> = { hunger: 50, social: 50 };
   longTermGoals: string[] = [];
   groups: SocialGroup[] = [];
+  trustDecayRate: number = 0.1;
 
-  constructor(id: string, name: string) {
+  constructor(id: string, name: string, trustDecayRate: number = 0.1) {
     this.id = id;
     this.name = name;
+    this.trustDecayRate = trustDecayRate;
   }
 
-  // Trust decay logic
-  decayTrust(decayRate: number = 0.1) {
+  // Trust-Degradierung nutzt nun die konfigurierbare Rate
+  decayTrust() {
     for (const [id, rel] of this.relationships) {
-      rel.trust = Math.max(-100, rel.trust - decayRate);
+      rel.trust = Math.max(-100, rel.trust - this.trustDecayRate);
       this.relationships.set(id, rel);
     }
   }
@@ -39,7 +41,6 @@ export class Agent {
     this.tasks.forEach(task => {
       if (task.status === 'active') {
         // Logic to potentially complete tasks based on world state
-        // For prototype, we complete them randomly or based on interaction success
         if (Math.random() > 0.95) {
           task.status = 'done';
           this.addMemory(`Completed task: ${task.goal}`, 10);
@@ -93,7 +94,7 @@ export class Agent {
         };
     }
 
-    // 3. Socialize based on memory (seek out agents with positive history)
+    // 3. Socialize based on memory
     const positiveInteractions = this.memory.filter(m => m.trustDelta > 0);
     if (positiveInteractions.length > 0 || Math.random() > 0.7) {
         // Seek out someone randomly or from memory
@@ -148,5 +149,18 @@ export class Agent {
     this.updateTrust(interaction.senderId, -5); // Failed trade hurts trust
     interactionLogger.log(interaction, -5);
     return `${this.name} does not have enough ${item}.`;
+  }
+
+  // Gruppen-Management
+  joinGroup(group: SocialGroup) {
+    if (!this.groups.find(g => g.id === group.id)) {
+      this.groups.push(group);
+      this.addMemory(`Ist der Gruppe beigetreten: ${group.name}`, 5);
+    }
+  }
+
+  leaveGroup(groupId: string) {
+    this.groups = this.groups.filter(g => g.id !== groupId);
+    this.addMemory(`Hat die Gruppe verlassen: ${groupId}`, -5);
   }
 }
