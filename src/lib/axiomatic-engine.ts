@@ -88,19 +88,21 @@ export const generateDialogue = (agent: Agent, target: Agent, intent: 'trade' | 
 };
 
 /**
- * EXPERIMENTAL XP LOGIC: NO CAP.
+ * NO LEVEL CAP LOGIC
  * Levels < 100: Multiplier 1.5
- * Levels >= 100: Multiplier 2.25 (225% mehr pro Level)
+ * Levels >= 100: Each additional level costs 225% more than the previous one.
  */
 export const getXPForNextLevel = (currentLevel: number): number => {
     const baseXP = 100;
     if (currentLevel < 100) {
+        // Standard geometric growth
         return Math.floor(baseXP * Math.pow(1.5, currentLevel - 1));
     } else {
-        // Berechne XP-Bedarf für Level 99 -> 100 als Basis
+        // High Science Era: 225% increase per level from level 100
         const xpAt99 = Math.floor(baseXP * Math.pow(1.5, 98));
-        // Ab Level 100 exponentielles Wachstum mit 2.25
-        return Math.floor(xpAt99 * Math.pow(2.25, currentLevel - 99));
+        const levelsOver99 = currentLevel - 99;
+        // Total = prev * 3.25 (which is 225% more)
+        return Math.floor(xpAt99 * Math.pow(3.25, levelsOver99));
     }
 };
 
