@@ -5,8 +5,7 @@ import { InteractionManager } from './interaction-system';
 
 /**
  * WorldController
- * Handles simulation steps for all active agents.
- * This class uses functional state transformation to be compatible with plain data objects.
+ * Handles simulation steps using functional transformations to be compatible with plain data objects.
  */
 export class WorldController {
   private agents: Agent[];
@@ -19,13 +18,12 @@ export class WorldController {
 
   /**
    * Processes one tick of simulation time.
-   * Transforms agent needs, trust matrices, and triggers interactions.
    */
   tick(): Agent[] {
     const updatedAgents = this.agents.map(agent => {
       const newAgent = { ...agent };
 
-      // 1. Decay Trust (Functional implementation)
+      // 1. Decay Trust (Functional)
       if (newAgent.relationships) {
         const newRels = { ...newAgent.relationships };
         Object.keys(newRels).forEach(targetId => {
@@ -38,7 +36,7 @@ export class WorldController {
         newAgent.relationships = newRels;
       }
 
-      // 2. Update Tasks
+      // 2. Update Tasks (Functional)
       if (newAgent.tasks) {
         newAgent.tasks = newAgent.tasks.map(task => {
           if (task.status === 'active' && Math.random() > 0.98) {
@@ -48,7 +46,7 @@ export class WorldController {
         });
       }
 
-      // 3. Update Needs (Natural hunger and social decay)
+      // 3. Update Needs
       if (newAgent.needs) {
         newAgent.needs = {
           ...newAgent.needs,
@@ -61,7 +59,7 @@ export class WorldController {
       return newAgent;
     });
 
-    // 4. Autonomous Peer-to-Peer Interactions
+    // 4. Peer-to-Peer Interactions
     updatedAgents.forEach(agent => {
       if (Math.random() > 0.95) {
         const targets = updatedAgents.filter(a => a.id !== agent.id);

@@ -3,5 +3,6 @@
   "/world-preview/page": "app/world-preview/page.js",
   "/character-creator/page": "app/character-creator/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/agents/page": "app/agents/page.js"
+  "/agents/page": "app/agents/page.js",
+  "/players/page": "app/players/page.js"
 }

@@ -1,16 +1,15 @@
 'use client';
 /**
- * @fileOverview Axiom Frontier - Robustness Engine & Agent Core (Master Plan)
+ * @fileOverview Axiom Frontier - Robustness Engine & Agent Core
  * Implementiert die Sicherheits-Wrapper und das Vertrauens-basierte Agentensystem.
  */
 
-import { Agent, AgentState, ResourceNode, POI, Monster, Item, ItemRarity, ItemType, ItemStats, Memory, Relationship } from '../types';
+import { Agent, AgentState, ResourceNode, POI, Monster, Item, ItemRarity, ItemType, ItemStats } from '../types';
 
 export const KAPPA = 1.000;
 
 /**
  * ROBUSTNESS & FALLBACK ENGINE
- * Garantiert stabiles Gameplay durch Fehler-Wrapping und deterministische Fallbacks.
  */
 export class RobustnessEngine {
   static wrap<T>(operation: () => T, fallback: T, context: string): T {
@@ -41,22 +40,16 @@ export const calculateUtility = (agent: Agent, action: AgentState): number => {
       case AgentState.GATHERING:
       case AgentState.CRAFTING:
         return wealth < 30 ? 0.9 : 0.2;
-      
       case AgentState.TRADING:
       case AgentState.BANKING:
-        // Priorität für Trading steigt, wenn Nahrung knapp ist (Hunger hoch)
         return hunger > 60 ? 0.95 : wealth > 80 ? 0.7 : 0.1;
-      
       case AgentState.EXPLORING:
       case AgentState.QUESTING:
         return social < 40 ? 0.8 : 0.4;
-      
       case AgentState.COMBAT:
         return (agent.thinkingMatrix?.aggression || 0.5) > 0.7 ? 0.85 : 0.2;
-
       case AgentState.IDLE:
         return 0.1;
-
       default:
         return 0.3;
     }
@@ -65,7 +58,6 @@ export const calculateUtility = (agent: Agent, action: AgentState): number => {
 
 /**
  * Heuristische Konversation (Trust-basiert)
- * Wählt Dialoge basierend auf Intent, Status und Vertrauen.
  */
 export const generateDialogue = (agent: Agent, target: Agent, intent: 'trade' | 'social' | 'combat'): string => {
   return RobustnessEngine.wrap(() => {
@@ -95,6 +87,23 @@ export const generateDialogue = (agent: Agent, target: Agent, intent: 'trade' | 
   }, "Hallo.", "DialogueGeneration");
 };
 
+/**
+ * EXPERIMENTAL XP LOGIC: NO CAP.
+ * Levels < 100: Multiplier 1.5
+ * Levels >= 100: Multiplier 2.25 (225% mehr pro Level)
+ */
+export const getXPForNextLevel = (currentLevel: number): number => {
+    const baseXP = 100;
+    if (currentLevel < 100) {
+        return Math.floor(baseXP * Math.pow(1.5, currentLevel - 1));
+    } else {
+        // Berechne XP-Bedarf für Level 99 -> 100 als Basis
+        const xpAt99 = Math.floor(baseXP * Math.pow(1.5, 98));
+        // Ab Level 100 exponentielles Wachstum mit 2.25
+        return Math.floor(xpAt99 * Math.pow(2.25, currentLevel - 99));
+    }
+};
+
 export const summarizeNeurologicChoice = (
     agent: Agent,
     nearbyAgents: Agent[],
@@ -122,10 +131,6 @@ export const summarizeNeurologicChoice = (
     const logic = `[HEURISTIC_AI]: ${best.choice} - Needs: H:${Math.floor(agent.needs?.hunger)} S:${Math.floor(agent.needs?.social)} W:${Math.floor(agent.needs?.wealth)}`;
 
     return { ...best, logic };
-};
-
-export const getXPForNextLevel = (currentLevel: number): number => {
-    return Math.floor(100 * Math.pow(1.5, currentLevel - 1));
 };
 
 export const generateLoot = (monsterType: string): Item | null => {
