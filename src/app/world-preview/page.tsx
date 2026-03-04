@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useRef } from "react"
@@ -140,10 +139,10 @@ export default function WorldPreviewPage() {
 
       {/* Bottom UI Row */}
       <div className="absolute bottom-6 left-0 w-full px-6 flex justify-between items-end pointer-events-none z-40 gap-6">
-        <div className="flex-1 max-w-xl">
+        <div className="flex-1 max-w-2xl">
           <SkillBar />
         </div>
-        <div className="w-[450px]">
+        <div className="w-[450px] hidden lg:block">
           <ChatConsole />
         </div>
       </div>
@@ -151,7 +150,7 @@ export default function WorldPreviewPage() {
       {/* Logic Overlays */}
       <AxiomaticOverlay />
 
-      {/* Modals & Overlays */}
+      {/* Modals & Overlays - MOUNTING CHECKS */}
       {windowStates.CHARACTER.isOpen && <CharacterSheet />}
       {windowStates.AUCTION.isOpen && <AuctionHouseOverlay />}
       {windowStates.QUESTS.isOpen && <QuestBoardOverlay />}

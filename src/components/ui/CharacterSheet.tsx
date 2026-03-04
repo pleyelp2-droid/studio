@@ -1,12 +1,11 @@
-
 "use client";
 
 import React, { useState } from 'react';
 import { useStore } from '@/store';
 import { Agent, Item, GAME_SKILLS, SkillCategory, StatName, STAT_DESCRIPTIONS, getUnlockedActions } from '@/types';
-import { ITEM_SETS } from '@/lib/axiomatic-engine';
+import { ITEM_SETS, getXPForNextLevel } from '@/lib/axiomatic-engine';
 import { AgentMemoryDisplay } from './AgentMemoryDisplay';
-import { Minus, X, Plus, ChevronRight } from 'lucide-react';
+import { Minus, X, Plus, ChevronRight, Pickaxe, Hammer, Swords, Brain } from 'lucide-react';
 
 type EquipmentSlotType = keyof Agent['equipment'];
 
@@ -145,13 +144,12 @@ const ItemTooltip: React.FC<{ item: Item, agent: Agent, position: {x: number, y:
 const EquipmentSlot: React.FC<{ agent: Agent, slot: EquipmentSlotType, onUnequip: (slot: EquipmentSlotType) => void }> = ({ agent, slot, onUnequip }) => {
     const item = agent.equipment[slot];
     const label = String(slot).replace(/([A-Z])/g, ' $1').toUpperCase();
-    const rarityGlowClass = item?.rarity === 'EPIC' ? 'item-glow-epic' : item?.rarity === 'LEGENDARY' ? 'item-glow-legendary' : '';
     
     return (
         <div className="text-center">
             <div
                 onClick={() => item && onUnequip(slot)}
-                className={`relative w-16 h-16 md:w-20 md:h-20 mx-auto bg-black/50 border-2 border-dashed border-white/10 rounded-lg flex items-center justify-center cursor-pointer hover:border-axiom-cyan ${item ? RARITY_COLORS[item.rarity] : ''} ${rarityGlowClass}`}
+                className={`relative w-16 h-16 md:w-20 md:h-20 mx-auto bg-black/50 border-2 border-dashed border-white/10 rounded-lg flex items-center justify-center cursor-pointer hover:border-axiom-cyan ${item ? RARITY_COLORS[item.rarity] : ''}`}
             >
                 {item ? <span className="text-3xl">⚔️</span> : <span className="text-gray-600 text-2xl">+</span>}
                 {item?.setName && <div className="absolute top-1 right-1 w-2 h-2 bg-axiom-cyan rounded-full border border-black" title={`Set: ${String(item.setName)}`}></div>}
@@ -173,7 +171,6 @@ const InventoryItem: React.FC<{
     if (!item) {
         return <div className="w-16 h-16 bg-black/30 border border-white/5 rounded"></div>;
     }
-    const rarityGlowClass = item.rarity === 'EPIC' ? 'item-glow-epic' : item.rarity === 'LEGENDARY' ? 'item-glow-legendary' : '';
 
     return (
         <div
@@ -182,7 +179,7 @@ const InventoryItem: React.FC<{
             onClick={() => onEquip(item, index)}
             onMouseEnter={(e) => onMouseEnter(item, e)}
             onMouseLeave={onMouseLeave}
-            className={`relative w-16 h-16 bg-black/50 border-2 ${RARITY_COLORS[item.rarity]} rounded flex items-center justify-center cursor-pointer hover:bg-axiom-cyan/20 transition-colors ${rarityGlowClass}`}
+            className={`relative w-16 h-16 bg-black/50 border-2 ${RARITY_COLORS[item.rarity]} rounded flex items-center justify-center cursor-pointer hover:bg-axiom-cyan/20 transition-colors`}
         >
              <span className="text-2xl">⚔️</span>
              {item.setName && <div className="absolute top-1 right-1 w-2 h-2 bg-axiom-cyan rounded-full border border-black" title={`Set: ${String(item.setName)}`}></div>}
@@ -236,6 +233,16 @@ const CATEGORY_COLORS: Record<SkillCategory, string> = {
     GATHERING: 'text-green-400',
     CRAFTING: 'text-yellow-400',
     UTILITY: 'text-purple-400',
+};
+
+const SkillIcon = ({ iconName, className }: { iconName: string, className: string }) => {
+  switch (iconName) {
+    case 'Pickaxe': return <Pickaxe className={className} />;
+    case 'Hammer': return <Hammer className={className} />;
+    case 'Swords': return <Swords className={className} />;
+    case 'Brain': return <Brain className={className} />;
+    default: return null;
+  }
 };
 
 export const CharacterSheet = () => {
@@ -387,28 +394,27 @@ export const CharacterSheet = () => {
                                             <ChevronRight className={`w-3 h-3 transition-transform ${expandedCategory === cat ? 'rotate-90' : ''}`} />
                                         </button>
                                         {expandedCategory === cat && groupedSkills[cat]?.map(skill => {
-                                            const entry = agent.skills[skill.key] || { level: 1, xp: 0 };
-                                            const xpNeeded = entry.level * 100 + entry.level * entry.level * 10;
-                                            const unlocked = getUnlockedActions(skill.key, entry.level);
+                                            const entry = agent.skills?.[skill.key] || { level: 1, xp: 0 };
+                                            const xpNeeded = getXPForNextLevel(entry.level);
                                             return (
-                                                <div key={skill.key} className="mt-1 bg-black/20 p-2 rounded-lg border border-white/5">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <span className="text-xs text-white font-bold">{skill.name}</span>
+                                                <div key={skill.key} className="mt-1 bg-black/20 p-3 rounded-lg border border-white/5">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <div className="flex items-center gap-2">
+                                                          <SkillIcon iconName={skill.icon} className="w-3 h-3 text-white/40" />
+                                                          <span className="text-xs text-white font-bold">{skill.name}</span>
+                                                        </div>
                                                         <span className="text-[10px] text-axiom-cyan font-mono">Lv.{entry.level}</span>
                                                     </div>
-                                                    <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden mb-1">
-                                                        <div className="h-full bg-gradient-to-r from-axiom-cyan to-blue-500 transition-all" style={{ width: `${(entry.xp / xpNeeded) * 100}%` }} />
+                                                    <div className="h-2 w-full bg-black/40 rounded-full overflow-hidden mb-1 border border-white/5 shadow-inner">
+                                                        <div 
+                                                          className={`h-full axiom-gradient transition-all duration-1000 ease-out`} 
+                                                          style={{ width: `${Math.min(100, (entry.xp / xpNeeded) * 100)}%` }} 
+                                                        />
                                                     </div>
-                                                    <div className="text-[8px] text-gray-500 mb-1">{entry.xp}/{xpNeeded} XP</div>
-                                                    {unlocked.length > 0 && (
-                                                        <div className="flex flex-wrap gap-1 mt-1">
-                                                            {unlocked.map(action => (
-                                                                <span key={action.name} className="text-[8px] bg-white/10 text-gray-300 px-1.5 py-0.5 rounded" title={action.description}>
-                                                                    {action.name}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    )}
+                                                    <div className="flex justify-between text-[8px] text-gray-500 uppercase font-black">
+                                                      <span>Exp Tracker</span>
+                                                      <span>{entry.xp} / {xpNeeded} XP</span>
+                                                    </div>
                                                 </div>
                                             );
                                         })}
@@ -430,7 +436,7 @@ export const CharacterSheet = () => {
                                             <div className="flex-1">
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-xs text-white font-bold capitalize">{stat}</span>
-                                                    <span className="text-sm text-axiom-cyan font-mono font-bold">{(agent.stats as any)[stat] ?? 10}</span>
+                                                    <span className="text-sm text-axiom-cyan font-mono font-bold">{(agent as any)[stat] ?? 10}</span>
                                                 </div>
                                                 <span className="text-[8px] text-gray-500">{STAT_DESCRIPTIONS[stat]}</span>
                                             </div>
@@ -448,12 +454,11 @@ export const CharacterSheet = () => {
                                 <div className="mt-4 bg-black/20 p-3 rounded-xl border border-white/5">
                                     <h4 className="text-[10px] text-gray-400 font-black uppercase mb-2">Combat Stats</h4>
                                     <div className="grid grid-cols-2 gap-2 text-xs">
-                                        <div className="flex justify-between"><span className="text-gray-500">HP</span> <span className="text-red-400">{Math.floor(agent.stats.hp)}/{agent.stats.maxHp}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-500">Mana</span> <span className="text-blue-400">{Math.floor(agent.stats.mana ?? 100)}/{agent.stats.maxMana ?? 100}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-500">STR</span> <span className="text-white">{agent.stats.str}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-500">AGI</span> <span className="text-white">{agent.stats.agi}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-500">INT</span> <span className="text-white">{agent.stats.int}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-500">VIT</span> <span className="text-white">{agent.stats.vit}</span></div>
+                                        <div className="flex justify-between"><span className="text-gray-500">HP</span> <span className="text-red-400">{Math.floor(agent.hp)}/{agent.maxHp}</span></div>
+                                        <div className="flex justify-between"><span className="text-gray-500">STR</span> <span className="text-white">{agent.str}</span></div>
+                                        <div className="flex justify-between"><span className="text-gray-500">AGI</span> <span className="text-white">{agent.agi}</span></div>
+                                        <div className="flex justify-between"><span className="text-gray-500">INT</span> <span className="text-white">{agent.int}</span></div>
+                                        <div className="flex justify-between"><span className="text-gray-500">VIT</span> <span className="text-white">{agent.vit}</span></div>
                                     </div>
                                 </div>
                             </div>

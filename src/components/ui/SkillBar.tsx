@@ -1,50 +1,55 @@
-
 "use client"
 
 import React from 'react'
 import { useStore } from '@/store'
-import { Pickaxe, Hammer, Swords, Brain, Trophy } from 'lucide-react'
+import { Pickaxe, Hammer, Swords, Brain, Shield, Crosshair, Zap, Package, Compass, Activity } from 'lucide-react'
+
+const ACTIONS = [
+  { id: 'attack', label: 'ATTACK', icon: Crosshair, color: 'text-red-500', key: '1' },
+  { id: 'block', label: 'BLOCK', icon: Shield, color: 'text-blue-500', key: '2' },
+  { id: 'mine', label: 'MINE', icon: Pickaxe, color: 'text-axiom-gold', key: '3' },
+  { id: 'forge', label: 'FORGE', icon: Hammer, color: 'text-orange-500', key: '4' },
+  { id: 'reflect', label: 'REFLECT', icon: Brain, color: 'text-axiom-purple', key: '5' },
+  { id: 'gather', label: 'GATHER', icon: Package, color: 'text-emerald-500', key: '6' },
+  { id: 'scan', label: 'SCAN', icon: Compass, color: 'text-axiom-cyan', key: '7' },
+  { id: 'burst', label: 'BURST', icon: Zap, color: 'text-yellow-400', key: '8' },
+  { id: 'rest', label: 'REST', icon: Activity, color: 'text-gray-400', key: '9' },
+]
 
 export const SkillBar = () => {
-  const { agents, selectedAgentId } = useStore()
+  const { agents, selectedAgentId, addLog } = useStore()
   const agent = agents.find(a => a.id === selectedAgentId)
 
-  if (!agent || !agent.skills) return null
+  if (!agent) return null
 
-  const skills = [
-    { id: 'mining', label: 'MINING', icon: Pickaxe, color: 'text-axiom-gold', borderColor: 'border-axiom-gold/30' },
-    { id: 'smithing', label: 'FORGING', icon: Hammer, color: 'text-red-500', borderColor: 'border-red-500/30' },
-    { id: 'combat', label: 'COMBAT', icon: Swords, color: 'text-axiom-cyan', borderColor: 'border-axiom-cyan/30' },
-    { id: 'reflection', label: 'THINKING', icon: Brain, color: 'text-axiom-purple', borderColor: 'border-axiom-purple/30' },
-  ]
+  const handleAction = (id: string) => {
+    addLog(`Action triggered: ${id.toUpperCase()}`, 'SYSTEM');
+  }
 
   return (
-    <div className="bg-black/60 backdrop-blur-2xl border border-white/5 p-2 rounded-2xl flex items-center gap-4 pointer-events-auto shadow-2xl">
-      <div className="h-10 w-10 axiom-gradient rounded-xl flex items-center justify-center shadow-lg shrink-0">
-        <Trophy className="text-white w-5 h-5" />
-      </div>
-      <div className="flex gap-2 w-full overflow-x-auto scrollbar-hide py-1">
-        {skills.map((skill) => {
-          const skillData = agent.skills[skill.id] || { level: 1, xp: 0 }
-          const xpNeeded = skillData.level * 100 + skillData.level * skillData.level * 10
-          const progress = Math.min(100, (skillData.xp / xpNeeded) * 100)
-
-          return (
-            <div key={skill.id} className={`flex flex-col gap-1 min-w-[120px] p-2 rounded-xl bg-white/5 border ${skill.borderColor} group hover:bg-white/10 transition-all`}>
-              <div className="flex justify-between items-center gap-2">
-                <skill.icon className={`w-3 h-3 ${skill.color}`} />
-                <span className="text-[8px] font-black text-white/60 tracking-widest">{skill.label}</span>
-                <span className="text-[10px] font-bold text-white ml-auto">LVL {skillData.level}</span>
-              </div>
-              <div className="h-1 w-full bg-black/40 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full ${skill.color.replace('text-', 'bg-')} transition-all duration-500 shadow-[0_0_8px_currentColor]`}
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            </div>
-          )
-        })}
+    <div className="bg-black/80 backdrop-blur-2xl border border-white/10 p-3 rounded-[2rem] flex items-center gap-3 pointer-events-auto shadow-2xl overflow-hidden max-w-full">
+      <div className="flex gap-2 items-center overflow-x-auto scrollbar-hide px-2">
+        {ACTIONS.map((action, i) => (
+          <button
+            key={action.id}
+            onClick={() => handleAction(action.id)}
+            className="group relative flex flex-col items-center justify-center min-w-[60px] h-16 md:min-w-[70px] md:h-20 rounded-2xl bg-white/5 border border-white/5 hover:border-white/20 hover:bg-white/10 transition-all active:scale-90"
+          >
+            <action.icon className={`w-6 h-6 md:w-7 md:h-7 ${action.color} group-hover:scale-110 transition-transform`} />
+            <span className="text-[7px] md:text-[8px] font-black text-white/40 tracking-widest mt-1 uppercase group-hover:text-white/80">{action.label}</span>
+            <div className="absolute top-1 right-2 text-[8px] font-mono text-white/20">{action.key}</div>
+            
+            {/* Slot Highlight */}
+            <div className={`absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-white/10 pointer-events-none`} />
+          </button>
+        ))}
+        
+        {/* Empty Slots */}
+        {Array.from({ length: 1 }).map((_, i) => (
+          <div key={i} className="min-w-[60px] h-16 md:min-w-[70px] md:h-20 rounded-2xl bg-black/40 border border-dashed border-white/5 flex items-center justify-center">
+            <span className="text-white/5 font-black text-[10px]">EMPTY</span>
+          </div>
+        ))}
       </div>
     </div>
   )

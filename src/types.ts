@@ -41,6 +41,13 @@ export const DEFAULT_APPEARANCE: AppearanceConfig = {
   baseModel: 'humanoid'
 };
 
+export interface GameAction {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+}
+
 export interface Agent {
   id: string;
   displayName: string;
