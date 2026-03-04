@@ -58,6 +58,18 @@
         "lastUpdate": { "type": "string", "format": "date-time" }
       }
     },
+    "WorldAsset": {
+      "title": "WorldAsset",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
     "LiveEvent": {
       "title": "LiveEvent",
       "type": "object",
@@ -150,6 +162,10 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/User" },
       "description": "User profile data."
+    },
+    "/worldAssets/{assetId}": {
+      "schema": { "$ref": "#/entities/WorldAsset" },
+      "description": "Uploaded world textures and assets."
     },
     "/players/{playerId}": {
       "schema": { "$ref": "#/entities/Agent" },

@@ -16,12 +16,13 @@ import {
   Loader2, 
   FileArchive,
   ImageIcon,
-  ShieldCheck
+  ShieldCheck,
+  CheckCircle2
 } from "lucide-react"
 import Image from "next/image"
 import { useToast } from "@/hooks/use-toast"
 import { textureEngine, TextureSignature, TextureCategory } from "@/services/TextureEngine"
-import { collection, addDoc, serverTimestamp } from "firebase/firestore"
+import { collection, addDoc, serverTimestamp, updateDoc, doc, getDocs, query, where, writeBatch } from "firebase/firestore"
 import { initializeFirebase } from "@/firebase"
 import JSZip from "jszip"
 
@@ -29,6 +30,7 @@ const { firestore: db } = initializeFirebase();
 
 export default function AssetHubPage() {
   const [loading, setLoading] = useState(false)
+  const [injecting, setInjecting] = useState<string | null>(null)
   const [registry, setRegistry] = useState<Record<TextureCategory, TextureSignature[]>>({
     TERRAIN: [], ARCHITECTURE: [], CHARACTER: [], UI: [], VFX: [], UNKNOWN: []
   })
@@ -46,10 +48,19 @@ export default function AssetHubPage() {
     fileInputRef.current?.click()
   }
 
+  const autoCategorize = (name: string): TextureCategory => {
+    const combined = name.toLowerCase();
+    if (combined.match(/grass|dirt|soil|sand|rock|terrain|ground|snow|biome|floor_g/)) return 'TERRAIN';
+    if (combined.match(/wall|metal|architecture|structure|neon|door|concrete|tech_panel/)) return 'ARCHITECTURE';
+    if (combined.match(/skin|eye|hair|clothes|armor|ghost|pilot|npc/)) return 'CHARACTER';
+    if (combined.match(/icon|button|panel|border|hud|gui/)) return 'UI';
+    if (combined.match(/particle|glow|fire|smoke|pulse|laser|magic/)) return 'VFX';
+    return 'UNKNOWN';
+  }
+
   const processFile = async (file: File) => {
     if (!db) return;
 
-    // Handle ZIP files
     if (file.name.endsWith('.zip')) {
       try {
         setLoading(true);
@@ -70,10 +81,13 @@ export default function AssetHubPage() {
             await new Promise((resolve) => {
               reader.onloadend = async () => {
                 const base64 = reader.result as string;
+                const name = filename.split('/').pop() || 'unnamed';
                 await addDoc(collection(db, 'worldAssets'), {
-                  name: filename.split('/').pop(),
-                  url: base64, // In production, upload to Firebase Storage first
+                  name,
+                  url: base64,
+                  category: autoCategorize(name),
                   tags: [filename.includes('terrain') ? 'terrain' : 'architecture', 'extracted'],
+                  isActive: false,
                   createdAt: serverTimestamp()
                 });
                 extractedCount++;
@@ -96,7 +110,6 @@ export default function AssetHubPage() {
       return;
     }
 
-    // Handle direct images
     const isImage = /\.(jpg|jpeg|png|webp)$/i.test(file.name);
     if (isImage) {
       setLoading(true);
@@ -107,7 +120,9 @@ export default function AssetHubPage() {
           await addDoc(collection(db, 'worldAssets'), {
             name: file.name,
             url: base64,
+            category: autoCategorize(file.name),
             tags: ['direct_upload'],
+            isActive: false,
             createdAt: serverTimestamp()
           });
           toast({ title: "Texture Manifested", description: "Asset has been synchronized with the core engine." });
@@ -119,13 +134,41 @@ export default function AssetHubPage() {
         setLoading(false);
       }
     } else {
-      toast({ variant: "destructive", title: "Protocol Violation", description: "Only .zip or image files are accepted by the Neural Engine." });
+      toast({ variant: "destructive", title: "Protocol Violation", description: "Only .zip or image files are accepted." });
     }
   }
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) processFile(file);
+  }
+
+  const handleInject = async (asset: TextureSignature) => {
+    if (!db) return;
+    setInjecting(asset.id);
+    try {
+      // Deactivate others in same category
+      const q = query(collection(db, 'worldAssets'), where('category', '==', asset.category), where('isActive', '==', true));
+      const snap = await getDocs(q);
+      const batch = writeBatch(db);
+      
+      snap.docs.forEach(d => {
+        batch.update(d.ref, { isActive: false });
+      });
+
+      // Activate selected
+      batch.update(doc(db, 'worldAssets', asset.id), { isActive: true });
+      await batch.commit();
+
+      toast({ 
+        title: "Signature Injected", 
+        description: `${asset.name} is now the primary signature for ${asset.category}.` 
+      });
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Injection Error", description: e.message });
+    } finally {
+      setInjecting(null);
+    }
   }
 
   return (
@@ -157,7 +200,6 @@ export default function AssetHubPage() {
         </header>
 
         <main className="p-6 space-y-8 max-w-7xl mx-auto w-full">
-          {/* Engine Dashboard */}
           <div className="grid gap-6 md:grid-cols-3">
             <Card className="bg-secondary/10 border-border">
               <CardHeader className="pb-2">
@@ -213,7 +255,7 @@ export default function AssetHubPage() {
                 ) : (
                   <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {assets.map((asset) => (
-                      <Card key={asset.id} className="axiom-card-hover border-border bg-card overflow-hidden flex flex-col group relative">
+                      <Card key={asset.id} className={`axiom-card-hover border-border bg-card overflow-hidden flex flex-col group relative ${asset.isActive ? 'ring-2 ring-accent' : ''}`}>
                         <div className="aspect-square relative overflow-hidden bg-secondary/20">
                           <Image 
                             src={asset.url} 
@@ -221,14 +263,23 @@ export default function AssetHubPage() {
                             fill
                             className="object-cover transition-transform duration-500 group-hover:scale-110"
                           />
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <Button 
-                              size="sm" 
-                              variant="secondary" 
-                              className="rounded-full axiom-gradient border-0 text-white font-black italic uppercase text-[9px] tracking-widest"
-                            >
-                              Inject to World <ArrowRight className="h-3 w-3 ml-2" />
-                            </Button>
+                          <div className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center ${asset.isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                            {asset.isActive ? (
+                              <Badge className="bg-emerald-500 text-white font-black italic uppercase text-[10px] tracking-widest px-4 py-2 rounded-full">
+                                <CheckCircle2 className="h-4 w-4 mr-2" /> ACTIVE_SIGNAL
+                              </Badge>
+                            ) : (
+                              <Button 
+                                size="sm" 
+                                variant="secondary" 
+                                disabled={injecting === asset.id}
+                                onClick={() => handleInject(asset)}
+                                className="rounded-full axiom-gradient border-0 text-white font-black italic uppercase text-[9px] tracking-widest"
+                              >
+                                {injecting === asset.id ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Zap className="h-3 w-3 mr-2" />}
+                                Inject to World <ArrowRight className="h-3 w-3 ml-2" />
+                              </Button>
+                            )}
                           </div>
                           <Badge className="absolute top-2 left-2 bg-black/80 backdrop-blur-md text-white border-white/10 text-[8px] font-black uppercase tracking-widest">
                             {cat}
@@ -242,8 +293,8 @@ export default function AssetHubPage() {
                         </CardHeader>
                         <CardFooter className="p-4 pt-0 mt-auto border-t border-white/5 flex justify-between items-center bg-white/[0.02]">
                           <div className="flex items-center gap-1.5">
-                            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[8px] font-black text-muted-foreground uppercase">Linked</span>
+                            <div className={`h-1.5 w-1.5 rounded-full ${asset.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-white/20'}`} />
+                            <span className="text-[8px] font-black text-muted-foreground uppercase">{asset.isActive ? 'Synchronized' : 'Idle'}</span>
                           </div>
                           <span className="text-[8px] font-mono text-white/30">{asset.id.slice(0, 8)}...</span>
                         </CardFooter>

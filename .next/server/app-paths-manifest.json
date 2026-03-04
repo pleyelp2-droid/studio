@@ -2,5 +2,9 @@
   "/page": "app/page.js",
   "/character-creator/page": "app/character-creator/page.js",
   "/pilot-hub/page": "app/pilot-hub/page.js",
-  "/world-preview/page": "app/world-preview/page.js"
+  "/world-preview/page": "app/world-preview/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/godot/page": "app/godot/page.js",
+  "/assets/page": "app/assets/page.js",
+  "/admin/lore/page": "app/admin/lore/page.js"
 }

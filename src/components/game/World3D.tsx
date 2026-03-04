@@ -28,9 +28,9 @@ const HighScienceSpire = ({ position, rotationY, color }: { position: [number, n
 
   useEffect(() => {
     const unsub = textureEngine.subscribe(async (registry) => {
-      const archAssets = Array.from(registry.values()).filter(s => s.category === 'ARCHITECTURE');
-      if (archAssets.length > 0) {
-        const tex = await textureEngine.getTexture(archAssets[0].id);
+      const activeArch = textureEngine.getActiveForCategory('ARCHITECTURE');
+      if (activeArch) {
+        const tex = await textureEngine.getTexture(activeArch.id);
         if (tex) {
           tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
           tex.repeat.set(2, 8);
@@ -90,10 +90,9 @@ const Terrain = () => {
 
   useEffect(() => {
     const unsub = textureEngine.subscribe(async (registry) => {
-      const terrainAssets = Array.from(registry.values()).filter(s => s.category === 'TERRAIN');
-      if (terrainAssets.length > 0) {
-        // Automatically apply the first detected terrain texture from the pack
-        const tex = await textureEngine.getTexture(terrainAssets[0].id);
+      const activeTerrain = textureEngine.getActiveForCategory('TERRAIN');
+      if (activeTerrain) {
+        const tex = await textureEngine.getTexture(activeTerrain.id);
         if (tex) {
           tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
           tex.repeat.set(100, 100);

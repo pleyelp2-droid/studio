@@ -6,7 +6,7 @@
  */
 
 import * as THREE from 'three';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 
 const { firestore: db } = initializeFirebase();
@@ -19,7 +19,7 @@ export interface TextureSignature {
   url: string;
   category: TextureCategory;
   tags: string[];
-  biomeMapping?: string[];
+  isActive: boolean;
   lastUpdate: number;
 }
 
@@ -44,10 +44,10 @@ class TextureEngine {
           id: doc.id,
           name: data.name || 'Unknown_Signature',
           url: data.url || '',
-          category: this.autoCategorize(data.name || '', data.tags || []),
+          category: data.category || this.autoCategorize(data.name || '', data.tags || []),
           tags: data.tags || [],
-          biomeMapping: data.biomeMapping || [],
-          lastUpdate: Date.now()
+          isActive: data.isActive || false,
+          lastUpdate: data.createdAt?.toMillis() || Date.now()
         };
         this.registry.set(signature.id, signature);
       });
@@ -55,25 +55,16 @@ class TextureEngine {
     });
   }
 
-  /**
-   * Automatically sorts textures based on nomenclature and heuristic tagging.
-   */
   private autoCategorize(name: string, tags: string[]): TextureCategory {
     const combined = (name + tags.join(' ')).toLowerCase();
-    
-    // Advanced heuristic detection for texture packs
     if (combined.match(/grass|dirt|soil|sand|rock|terrain|ground|snow|biome|floor_g/)) return 'TERRAIN';
     if (combined.match(/wall|metal|architecture|structure|neon|door|concrete|tech_panel/)) return 'ARCHITECTURE';
     if (combined.match(/skin|eye|hair|clothes|armor|ghost|pilot|npc/)) return 'CHARACTER';
     if (combined.match(/icon|button|panel|border|hud|gui/)) return 'UI';
     if (combined.match(/particle|glow|fire|smoke|pulse|laser|magic/)) return 'VFX';
-    
     return 'UNKNOWN';
   }
 
-  /**
-   * Fetches a THREE.js texture, using the local cache to prevent redundant GPU memory allocation.
-   */
   async getTexture(idOrUrl: string): Promise<THREE.Texture | null> {
     const signature = Array.from(this.registry.values()).find(s => s.id === idOrUrl || s.url === idOrUrl);
     const url = signature ? signature.url : idOrUrl;
@@ -90,9 +81,10 @@ class TextureEngine {
     });
   }
 
-  /**
-   * Returns all textures sorted by category for the Admin UI.
-   */
+  getActiveForCategory(cat: TextureCategory): TextureSignature | undefined {
+    return Array.from(this.registry.values()).find(s => s.category === cat && s.isActive);
+  }
+
   getSortedRegistry(): Record<TextureCategory, TextureSignature[]> {
     const result: Record<TextureCategory, TextureSignature[]> = {
       TERRAIN: [],
@@ -102,7 +94,6 @@ class TextureEngine {
       VFX: [],
       UNKNOWN: []
     };
-
     this.registry.forEach(s => result[s.category].push(s));
     return result;
   }
