@@ -1,4 +1,3 @@
-
 'use client';
 /**
  * @fileOverview Axiom Frontier - Chunk Management Service
@@ -21,7 +20,8 @@ const { firestore: db } = initializeFirebase();
 export async function getChunk(x: number, z: number, seed: number): Promise<Chunk> {
   if (!db) {
     console.warn("[MATRIX_CORE] Firestore disconnected. Using local manifestation.");
-    return generateChunk(x, z, seed);
+    const data = generateChunk(x, z, seed);
+    return { ...data, id: data.id, entropy: 0, stabilityIndex: 1, corruptionLevel: 0, resourceData: data.resources, logicField: [], lastUpdate: new Date(), logicString: data.fieldString } as any;
   }
 
   const chunkId = `${x}_${z}`;
@@ -38,14 +38,23 @@ export async function getChunk(x: number, z: number, seed: number): Promise<Chun
         lastUpdate: data.lastUpdate?.toDate() || new Date() 
       } as Chunk;
     } else {
-      // Manifest new chunk based on Axioms
-      const newChunk = generateChunk(x, z, seed);
+      const data = generateChunk(x, z, seed);
+      const newChunk: any = {
+        id: data.id,
+        x: data.x,
+        z: data.z,
+        seed: data.seed,
+        biome: data.biome.toUpperCase(),
+        entropy: 0.05,
+        stabilityIndex: 0.95,
+        corruptionLevel: 0.01,
+        resourceData: data.resources,
+        logicField: [],
+        lastUpdate: serverTimestamp(),
+        logicString: data.fieldString
+      };
       
-      // PERSISTENCE: Record the manifestation in the ledger (non-blocking)
-      setDoc(docRef, {
-        ...newChunk,
-        lastUpdate: serverTimestamp()
-      }, { merge: true }).catch(async (serverError) => {
+      setDoc(docRef, newChunk, { merge: true }).catch(async () => {
         const permissionError = new FirestorePermissionError({
           path: docRef.path,
           operation: 'create',
@@ -54,10 +63,11 @@ export async function getChunk(x: number, z: number, seed: number): Promise<Chun
         errorEmitter.emit('permission-error', permissionError);
       });
 
-      return newChunk;
+      return { ...newChunk, lastUpdate: new Date() };
     }
   } catch (error) {
     console.error("[MATRIX_CORRUPTION] Persistence failure, falling back to heuristics:", error);
-    return generateChunk(x, z, seed);
+    const data = generateChunk(x, z, seed);
+    return { ...data, id: data.id, entropy: 0, stabilityIndex: 1, corruptionLevel: 0, resourceData: data.resources, logicField: [], lastUpdate: new Date(), logicString: data.fieldString } as any;
   }
 }

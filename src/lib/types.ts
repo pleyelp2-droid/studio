@@ -33,3 +33,8 @@ export interface Interaction {
   receiverId: string;
   payload: any;
 }
+
+export interface EquipSlot {
+  slot: 'head' | 'chest' | 'legs';
+  itemId: string | null;
+}
