@@ -6,7 +6,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import React, { useMemo, useRef, useState, useEffect, Suspense } from "react"
 import * as THREE from "three"
 import { useStore } from "../../store"
-import { POI, Agent, AgentState } from "../../types"
+import { POI, Agent, AgentState, ResourceNode, Monster } from "../../types"
 import { createHumanoidModel } from "./HumanoidModel"
 import { AnimationController, createAnimationClips } from "./AnimationSystem"
 import { WorldBuildingService } from "@/services/WorldBuildingService"
@@ -115,6 +115,49 @@ const Terrain = () => {
         />
       </mesh>
       <gridHelper args={[4000, 100, ARL_COLORS.border, "#050508"]} position={[0, -0.05, 0]} />
+    </group>
+  );
+};
+
+const ResourceNodeMesh = ({ node }: { node: ResourceNode }) => {
+  const color = node.type === 'GOLD_ORE' ? ARL_COLORS.gold : node.type === 'IRON_ORE' ? '#71717a' : node.type === 'WOOD' ? '#78350f' : ARL_COLORS.teal;
+  
+  return (
+    <group position={[node.position[0], 0, node.position[2]]}>
+      <mesh position={[0, 1, 0]} castShadow>
+        {node.type === 'WOOD' ? (
+          <cylinderGeometry args={[0.5, 1.5, 8, 8]} />
+        ) : (
+          <dodecahedronGeometry args={[2, 0]} />
+        )}
+        <meshStandardMaterial color={color} metalness={0.6} roughness={0.4} />
+      </mesh>
+      <Html position={[0, 6, 0]} center>
+        <div className="text-[8px] font-black text-white/40 uppercase tracking-widest whitespace-nowrap bg-black/40 px-2 py-0.5 rounded">
+          {node.type} ({node.amount})
+        </div>
+      </Html>
+    </group>
+  );
+};
+
+const MonsterMesh = ({ monster }: { monster: Monster }) => {
+  return (
+    <group position={[monster.position[0], 0, monster.position[2]]} rotation={[0, monster.rotationY, 0]}>
+      <mesh position={[0, 2, 0]} castShadow>
+        <boxGeometry args={[monster.scale, monster.scale, monster.scale]} />
+        <meshStandardMaterial color={monster.color} emissive={monster.color} emissiveIntensity={0.5} />
+      </mesh>
+      <Html position={[0, monster.scale + 2, 0]} center>
+        <div className="flex flex-col items-center gap-1">
+          <div className="w-12 h-1 bg-black/60 rounded-full overflow-hidden border border-white/10">
+            <div className="h-full bg-red-500" style={{ width: '100%' }} />
+          </div>
+          <div className="text-[9px] font-black text-red-400 uppercase italic tracking-tighter bg-black/80 px-2 py-0.5 rounded border border-red-500/20">
+            {monster.name}
+          </div>
+        </div>
+      </Html>
     </group>
   );
 };
@@ -272,13 +315,19 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
   const localAgent = useMemo(() => agents.find(a => a.id === localPlayerId), [agents, localPlayerId]);
   const otherAgents = useMemo(() => agents.filter(a => a.id !== localPlayerId), [agents, localPlayerId]);
 
-  const pois = useMemo(() => {
-    const all: POI[] = [];
+  const { pois, monsters, resources } = useMemo(() => {
+    const allPois: POI[] = [];
+    const allMonsters: Monster[] = [];
+    const allResources: ResourceNode[] = [];
+
     chunks.forEach(c => {
       const content = WorldBuildingService.generateAxiomaticContent(c);
-      if (content?.pois) all.push(...content.pois);
+      if (content?.pois) allPois.push(...content.pois);
+      if (content?.monsters) allMonsters.push(...content.monsters);
+      if (content?.resources) allResources.push(...content.resources);
     });
-    return all;
+    
+    return { pois: allPois, monsters: allMonsters, resources: allResources };
   }, [chunks]);
 
   return (
@@ -289,6 +338,9 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
       
       {localAgent && <LocalPlayerController agent={localAgent} />}
       {otherAgents.map(a => <AgentModelWrapper key={a.id} agent={a} />)}
+      
+      {resources.map(r => <ResourceNodeMesh key={r.id} node={r} />)}
+      {monsters.map(m => <MonsterMesh key={m.id} monster={m} />)}
       
       {pois.map(p => {
         const px = p.position[0] || 0;
