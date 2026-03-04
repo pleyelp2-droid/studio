@@ -1,58 +1,70 @@
 /**
- * @fileOverview Axiom Frontier - Deterministic Math Engine
- * Provides the mathematical foundations for world generation, noise, resource decay,
- * and high-level simulation variables like Kappa (κ).
+ * @fileOverview Axiom Frontier - Deterministic Math Engine (Axiomatic Edition)
+ * Provides the mathematical foundations for world generation based on KAPPA = 1000
+ * and the 5 Core Axioms of the Ouroboros simulation.
  */
 
 export const KAPPA = 1000;
 export const CHUNK_SIZE = 16;
 export const TICK_INTERVAL_MS = 600;
 
+/**
+ * THE 5 AXIOMS OF OUROBOROS
+ * These functions govern the deterministic manifestation of all world data.
+ */
+export const Axioms = {
+  // Axiom 1: Continuity - Smooth transitions across coordinates
+  Continuity: (x: number, z: number) => Math.sin(x / KAPPA) + Math.cos(z / KAPPA),
+  
+  // Axiom 2: Resource Density - Deterministic loot placement
+  ResourceDensity: (x: number, z: number) => (Math.abs(x) + Math.abs(z)) % 100,
+  
+  // Axiom 3: Connectivity - Pathing and structural logic
+  Connectivity: (x: number, z: number) => (x + z) % 2 === 0 ? "path" : "wall",
+  
+  // Axiom 4: Complexity - Entropy scaling based on distance from origin
+  Complexity: (x: number, z: number) => Math.sqrt(x * x + z * z) / KAPPA,
+  
+  // Axiom 5: Determinism - Unique seed-based signature for every sector
+  Determinism: (seed: number, x: number, z: number) => (x * 31 + z * 37 + seed) % 1000,
+};
+
+/**
+ * Constructs the "Logical Chunk String" (Field String)
+ */
+export function constructFieldString(x: number, z: number, seed: number): string {
+  const continuity = Axioms.Continuity(x, z);
+  const resourceDensity = Axioms.ResourceDensity(x, z);
+  const connectivity = Axioms.Connectivity(x, z);
+  const complexity = Axioms.Complexity(x, z);
+  const determinism = Axioms.Determinism(seed, x, z);
+
+  return `F:${continuity.toFixed(2)}|R:${resourceDensity}|C:${connectivity}|X:${complexity.toFixed(2)}|D:${determinism}`;
+}
+
 let kappaOverride: number | null = null;
 let kappaOverrideTicksLeft = 0;
 
-/**
- * Returns the current effective Kappa value, accounting for active overrides.
- */
 export function getEffectiveKappa(): number {
   return kappaOverride ?? KAPPA;
 }
 
-/**
- * Sets a temporary override for the global Kappa value.
- */
 export function setTemporaryKappa(newKappa: number, durationTicks: number): { success: boolean; message: string } {
   if (newKappa <= 0 || newKappa > 100000) {
     return { success: false, message: 'κ must be between 1 and 100000.' };
   }
   kappaOverride = newKappa;
   kappaOverrideTicksLeft = durationTicks;
-  console.log(`κ temporarily set to ${newKappa} for ${durationTicks} ticks.`);
   return { success: true, message: `κ set to ${newKappa} for ${durationTicks} ticks.` };
 }
 
-/**
- * Decrements the duration of any active Kappa override.
- */
 export function tickKappaOverride(): void {
   if (kappaOverride !== null && kappaOverrideTicksLeft > 0) {
     kappaOverrideTicksLeft--;
     if (kappaOverrideTicksLeft <= 0) {
-      console.log(`κ override expired. Reverting to ${KAPPA}.`);
       kappaOverride = null;
     }
   }
-}
-
-/**
- * Returns the status of the Kappa variable.
- */
-export function getKappaStatus(): { current: number; isOverridden: boolean; ticksLeft: number } {
-  return {
-    current: getEffectiveKappa(),
-    isOverridden: kappaOverride !== null,
-    ticksLeft: kappaOverrideTicksLeft
-  };
 }
 
 /**
@@ -95,13 +107,10 @@ function smoothNoise(x: number, y: number, seed: number): number {
   const n11 = perlinHash(ix + 1, iy + 1, seed);
 
   const nx0 = n00 * (1 - sx) + n10 * sx;
-  const nx1 = n01 * (1 - sx) + n11 * sx;
+  const nx1 = n01 * (1 - sx) + n11 * sy;
   return nx0 * (1 - sy) + nx1 * sy;
 }
 
-/**
- * Fractional Brownian Motion (fBm) Perlin Noise
- */
 export function perlinNoise(seed: number, x: number, y: number, octaves = 4): number {
   let value = 0;
   let amplitude = 1;
@@ -118,137 +127,25 @@ export function perlinNoise(seed: number, x: number, y: number, octaves = 4): nu
   return value / maxVal;
 }
 
-/**
- * Generates a resource gradient based on coordinates
- */
-export function resourceGradient(x: number, y: number, seed: number): number {
-  const rng = seededRandom(seed + x * 31337 + y * 7919);
-  const dist = Math.sqrt(x * x + y * y);
-  return rng() * Math.exp(-dist / (getEffectiveKappa() * 0.5)) * 2;
-}
-
-/**
- * Determines terrain height using noise and resource gradients
- */
 export function terrainHeight(seed: number, x: number, y: number): number {
-  return perlinNoise(seed, x, y) * Math.log(getEffectiveKappa()) + resourceGradient(x, y, seed);
+  return perlinNoise(seed, x, y) * Math.log(getEffectiveKappa()) + (Axioms.Continuity(x, y) * 2);
 }
 
-/**
- * Selects a biome based on probabilistic features derived from noise
- */
-export function biomeSelection(x: number, y: number, seed: number): string {
-  const biomes = ['PLAINS', 'FOREST', 'MOUNTAIN', 'DESERT', 'SWAMP', 'CITY', 'TUNDRA'];
-  const kappa = getEffectiveKappa();
-  const features: number[] = biomes.map((_, i) => {
-    const offset = i * 999;
-    return perlinNoise(seed + offset, x * 0.3, y * 0.3) * 10;
-  });
-
-  const expValues = features.map(f => Math.exp(f / kappa));
-  const sumExp = expValues.reduce((a, b) => a + b, 0);
-  const probabilities = expValues.map(e => e / sumExp);
-
-  let maxIdx = 0;
-  let maxProb = 0;
-  for (let i = 0; i < probabilities.length; i++) {
-    if (probabilities[i] > maxProb) {
-      maxProb = probabilities[i];
-      maxIdx = i;
-    }
-  }
-
-  return biomes[maxIdx];
+export function biomeSelection(x: number, z: number, seed: number): 'CITY' | 'FOREST' | 'MOUNTAIN' | 'DESERT' | 'TUNDRA' | 'PLAINS' {
+  const continuity = Axioms.Continuity(x, z);
+  if (continuity > 0.8) return 'CITY';
+  if (continuity > 0.3) return 'FOREST';
+  if (continuity < -0.5) return 'MOUNTAIN';
+  if (continuity < -0.2) return 'DESERT';
+  return 'PLAINS';
 }
 
-/**
- * Exponential resource decay formula
- */
-export function resourceDecay(
-  r0: number,
-  extractionRate: number,
-  timeDelta: number
-): number {
-  return r0 * Math.exp(-(extractionRate * timeDelta) / getEffectiveKappa());
-}
-
-/**
- * Sigmoid-based dungeon spawn probability
- */
-export function dungeonProbability(
-  heightValue: number,
-  mean = 5.0,
-  sigma = 1.5
-): number {
-  return 1 / (1 + Math.exp(-(heightValue - mean) / sigma));
-}
-
-/**
- * Deterministic market price discovery formula
- */
-export function marketPrice(
-  basePrice: number,
-  demand: number,
-  supply: number
-): number {
-  if (supply <= 0) supply = 0.001;
-  return basePrice * Math.pow(demand / supply, 1 / getEffectiveKappa());
-}
-
-/**
- * Trust and reputation score with exponential time decay
- */
-export function trustScore(
-  positiveInteractions: number,
-  negativeInteractions: number,
-  timeSinceLastInteraction: number,
-  reputationWeight: number
-): number {
-  const rawTrust = positiveInteractions - negativeInteractions;
-  const decayedTrust = rawTrust * Math.exp(-timeSinceLastInteraction / getEffectiveKappa());
-  return decayedTrust + reputationWeight;
-}
-
-/**
- * Utility function for AI goal scoring
- */
-export function decisionFunction(
-  skillGain: number,
-  goldGain: number,
-  safetyIndex: number
-): number {
-  return skillGain + goldGain + safetyIndex;
-}
-
-/**
- * Selects the optimal goal from a list of options based on the decision function
- */
-export function selectBestGoal(
-  options: Array<{ name: string; skillGain: number; goldGain: number; safetyIndex: number }>
-): { name: string; score: number } {
-  let best = { name: 'IDLE', score: -Infinity };
-  for (const opt of options) {
-    const score = decisionFunction(opt.skillGain, opt.goldGain, opt.safetyIndex);
-    if (score > best.score) {
-      best = { name: opt.name, score };
-    }
-  }
-  return best;
-}
-
-/**
- * Generates a unique chunk seed
- */
 export function generateChunkSeed(worldSeed: number, chunkX: number, chunkZ: number): number {
   return (worldSeed * 73856093 + chunkX * 19349663 + chunkZ * 83492791) & 0x7FFFFFFF;
 }
 
-/**
- * Distributes initial resources for a chunk based on biome and height
- */
 export function chunkResources(seed: number, x: number, z: number): Record<string, number> {
-  const rng = seededRandom(seed + x * 997 + z * 991);
-  const height = terrainHeight(seed, x, z);
+  const density = Axioms.ResourceDensity(x, z);
   const biome = biomeSelection(x, z, seed);
 
   const resources: Record<string, number> = {
@@ -256,34 +153,15 @@ export function chunkResources(seed: number, x: number, z: number): Record<strin
     GOLD_ORE: 0, DIAMOND: 0, ANCIENT_RELIC: 0, SUNLEAF_HERB: 0
   };
 
+  if (density > 80) resources.GOLD_ORE = 10;
+  if (density > 50) resources.IRON_ORE = 20;
+
   switch (biome) {
     case 'FOREST':
-      resources.WOOD = Math.floor(rng() * 50 + 30);
-      resources.SUNLEAF_HERB = Math.floor(rng() * 20 + 5);
-      break;
-    case 'MOUNTAIN':
-      resources.STONE = Math.floor(rng() * 60 + 20);
-      resources.IRON_ORE = Math.floor(rng() * 30 + 10);
-      resources.SILVER_ORE = Math.floor(rng() * 15 + 2);
-      resources.GOLD_ORE = Math.floor(rng() * 8);
-      resources.DIAMOND = height > 7 ? Math.floor(rng() * 3) : 0;
-      break;
-    case 'PLAINS':
-      resources.WOOD = Math.floor(rng() * 20 + 5);
-      resources.STONE = Math.floor(rng() * 15 + 5);
-      resources.SUNLEAF_HERB = Math.floor(rng() * 15 + 3);
-      break;
-    case 'DESERT':
-      resources.STONE = Math.floor(rng() * 30 + 10);
-      resources.GOLD_ORE = Math.floor(rng() * 10 + 2);
-      resources.ANCIENT_RELIC = rng() > 0.8 ? Math.floor(rng() * 3 + 1) : 0;
+      resources.WOOD = 50;
       break;
     case 'CITY':
-      resources.ANCIENT_RELIC = Math.floor(rng() * 5 + 1);
-      break;
-    default:
-      resources.WOOD = Math.floor(rng() * 15);
-      resources.STONE = Math.floor(rng() * 15);
+      resources.ANCIENT_RELIC = 5;
       break;
   }
 
