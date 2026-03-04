@@ -12,29 +12,24 @@ import {
   Brain,
   ArrowRight,
   Infinity,
-  Menu,
-  X,
   Layers,
   Activity,
   Globe,
   Zap,
   Play,
   Monitor,
-  Trophy,
-  ShieldCheck,
-  ChevronRight
+  Trophy
 } from "lucide-react"
 import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
 import { doc } from "firebase/firestore"
 import Image from "next/image"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
+import { Header } from "@/components/layout/Header"
 
 export default function MMORPGPortal() {
   const db = useFirestore()
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape')
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
   
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
   const { data: worldState } = useDoc(worldRef)
@@ -42,7 +37,6 @@ export default function MMORPGPortal() {
   useEffect(() => {
     const handleResize = () => {
       setOrientation(window.innerWidth > window.innerHeight ? 'landscape' : 'portrait')
-      setWindowSize({ width: window.innerWidth, height: window.innerHeight })
     }
     handleResize()
     window.addEventListener('resize', handleResize)
@@ -67,68 +61,7 @@ export default function MMORPGPortal() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(123,79,212,0.15),transparent_70%)]" />
       </div>
 
-      {/* Persistent Navigation */}
-      <nav className="fixed top-0 w-full z-[100] bg-black/80 backdrop-blur-2xl border-b border-white/5 px-6 lg:px-12 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4 group cursor-pointer">
-            <div className="h-10 w-10 md:h-12 md:w-12 axiom-gradient rounded-2xl flex items-center justify-center shadow-2xl group-hover:rotate-180 transition-transform duration-1000">
-              <Infinity className="h-6 w-6 md:h-7 md:w-7 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-headline font-black text-xl md:text-2xl tracking-tighter text-white uppercase italic leading-none">Ouroboros</span>
-              <span className="text-[8px] md:text-[9px] text-accent font-black tracking-[0.5em] mt-1 uppercase">Axiom Nexus</span>
-            </div>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-8 xl:gap-12">
-            {["THE WORLD", "SKILL MATRIX", "ECONOMY", "CHRONICLES"].map((item) => (
-              <Link 
-                key={item} 
-                href={`#${item.toLowerCase().replace(' ', '-')}`} 
-                className="text-[10px] xl:text-[11px] font-black tracking-[0.3em] text-white/40 hover:text-accent transition-all uppercase hover:tracking-[0.4em]"
-              >
-                {item}
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-3 md:gap-4">
-            <Button variant="ghost" className="hidden sm:flex text-[10px] font-black tracking-widest uppercase text-white/60 hover:text-white border border-white/5 hover:bg-white/5" asChild>
-              <Link href="/dashboard">CONSOLE</Link>
-            </Button>
-            <Button className="axiom-gradient text-white border-0 px-6 md:px-8 h-10 md:h-12 font-black text-[10px] md:text-[11px] tracking-widest shadow-2xl rounded-xl uppercase italic group" asChild>
-              <Link href="/character-creator">
-                START_JOURNEY <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </Button>
-            <button className="lg:hidden p-2 text-white" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <X /> : <Menu />}
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <AnimatePresence>
-        {isMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
-            className="fixed inset-0 z-[90] bg-black/98 backdrop-blur-3xl lg:hidden flex flex-col items-center justify-center gap-10"
-          >
-            {["WORLD", "SKILLS", "ECONOMY", "LORE", "DASHBOARD"].map((item) => (
-              <Link 
-                key={item} 
-                href={item === 'DASHBOARD' ? '/dashboard' : `#${item.toLowerCase()}`} 
-                onClick={() => setIsMenuOpen(false)} 
-                className="text-3xl md:text-5xl font-headline font-black text-white italic uppercase tracking-widest hover:text-accent transition-colors"
-              >
-                {item}
-              </Link>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <Header />
 
       <main className="relative z-10 pt-24 md:pt-32 lg:pt-48">
         {/* Hero Section */}
@@ -148,7 +81,7 @@ export default function MMORPGPortal() {
             </span>
           </motion.div>
 
-          <h1 className={`font-headline font-black leading-[0.85] text-white italic tracking-tighter mb-8 md:mb-10 drop-shadow-[0_0_60px_rgba(96,212,255,0.4)] uppercase ${
+          <h1 className={`font-heading font-black leading-[0.85] text-white italic tracking-tighter mb-8 md:mb-10 drop-shadow-[0_0_60px_rgba(96,212,255,0.4)] uppercase ${
             orientation === 'portrait' ? 'text-5xl md:text-8xl' : 'text-6xl md:text-9xl lg:text-[10rem]'
           }`}>
             Forge Your<br />
@@ -195,7 +128,7 @@ export default function MMORPGPortal() {
             <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 md:mb-24 gap-10">
               <div className="space-y-4">
                 <Badge variant="outline" className="border-accent/30 text-accent font-black tracking-[0.5em] uppercase text-[10px] px-4 py-1">Classless Progression</Badge>
-                <h3 className="text-4xl md:text-7xl lg:text-8xl font-headline font-black text-white italic uppercase tracking-tighter">The Mastery.</h3>
+                <h3 className="text-4xl md:text-7xl lg:text-8xl font-heading font-black text-white italic uppercase tracking-tighter">The Mastery.</h3>
               </div>
               <p className="text-white/40 text-xs md:text-sm max-w-md uppercase font-bold tracking-[0.2em] leading-loose border-l-2 border-accent pl-8">
                 Your character is a blank slate. Master individual skills through action. Your specialization is a reflection of your journey, not a choice at start.
@@ -221,7 +154,7 @@ export default function MMORPGPortal() {
                     <cls.icon className="h-8 w-8 md:h-10 md:w-10" />
                   </div>
                   <div>
-                    <h4 className="text-2xl md:text-3xl font-headline font-black text-white italic uppercase mb-3 tracking-tighter">{cls.name}</h4>
+                    <h4 className="text-2xl md:text-3xl font-heading font-black text-white italic uppercase mb-3 tracking-tighter">{cls.name}</h4>
                     <p className="text-[10px] md:text-xs text-white/40 leading-relaxed font-bold uppercase tracking-tight">{cls.desc}</p>
                   </div>
                   <div className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
@@ -245,7 +178,7 @@ export default function MMORPGPortal() {
             ].map((stat, i) => (
               <div key={i} className="p-8 md:p-10 rounded-[2.5rem] bg-secondary/10 border border-white/10 backdrop-blur-sm axiom-card-hover flex flex-col items-center text-center">
                 <stat.icon className={`h-10 w-10 md:h-12 md:w-12 mb-6 md:mb-8 ${stat.color}`} />
-                <div className="text-2xl md:text-3xl font-headline font-black text-white mb-2">{stat.val}</div>
+                <div className="text-2xl md:text-3xl font-heading font-black text-white mb-2">{stat.val}</div>
                 <div className="text-[9px] md:text-[10px] font-black text-accent tracking-[0.4em] uppercase mb-4 italic">{stat.title}</div>
                 <p className="text-[10px] md:text-xs text-white/40 font-bold uppercase tracking-tight">{stat.desc}</p>
               </div>
@@ -261,7 +194,7 @@ export default function MMORPGPortal() {
               <Infinity className="h-8 w-8 md:h-10 md:w-10 text-white" />
             </div>
             <div className="flex flex-col">
-              <span className="font-headline font-black text-4xl md:text-5xl tracking-tighter text-white uppercase italic leading-none">Ouroboros</span>
+              <span className="font-heading font-black text-4xl md:text-5xl tracking-tighter text-white uppercase italic leading-none">Ouroboros</span>
               <span className="text-[8px] md:text-[10px] text-accent font-black tracking-[0.6em] mt-2 uppercase">Axiom Frontier Core</span>
             </div>
           </div>

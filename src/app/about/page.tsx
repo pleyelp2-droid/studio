@@ -1,20 +1,23 @@
+
 "use client"
 
 import { Infinity, ShieldCheck, Heart, Zap } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { Header } from "@/components/layout/Header"
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-[#020203] text-[#e8dfc8] font-body flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+    <div className="min-h-screen bg-[#020203] text-[#e8dfc8] font-body flex flex-col relative overflow-hidden">
+      <Header />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(123,79,212,0.1),transparent_70%)] pointer-events-none" />
       
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 max-w-4xl mx-auto"
+        className="relative z-10 max-w-4xl mx-auto flex-1 flex flex-col items-center justify-center p-6 text-center"
       >
-        <div className="mb-12">
+        <div className="mb-12 mt-20">
           <div className="h-20 w-20 axiom-gradient rounded-[2rem] flex items-center justify-center shadow-2xl mx-auto mb-8 group-hover:rotate-180 transition-transform duration-1000">
             <Infinity className="h-12 w-12 text-white" />
           </div>
@@ -47,7 +50,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-8 pb-20">
           <p className="text-white/40 text-lg md:text-xl italic font-medium leading-loose border-l-2 border-accent pl-8 text-left">
             "This is where the simulation meets reality. A place where every decision 
             echoes through the matrix forever. Welcome to the frontier."
@@ -55,7 +58,7 @@ export default function AboutPage() {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8">
             <Link 
-              href="/" 
+              href="/character-creator" 
               className="axiom-gradient text-white px-12 py-5 rounded-2xl font-black text-sm tracking-[0.3em] uppercase italic shadow-2xl hover:scale-105 transition-all"
             >
               Enter the Nexus
@@ -70,7 +73,7 @@ export default function AboutPage() {
         </div>
       </motion.div>
 
-      <footer className="absolute bottom-8 w-full text-[8px] font-black text-white/10 tracking-[0.5em] uppercase italic">
+      <footer className="absolute bottom-8 w-full text-[8px] font-black text-white/10 tracking-[0.5em] uppercase italic text-center">
         Deterministic Engine Stable v1.0.6 // Ouroboros Collective // 2025
       </footer>
     </div>
