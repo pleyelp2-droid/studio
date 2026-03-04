@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -16,10 +15,12 @@ import {
   CheckCircle2,
   Box,
   Layers,
-  Map as MapIcon
+  Map as MapIcon,
+  Terminal
 } from "lucide-react"
 import { getAxiomCompliance } from "@/services/ComplianceManager"
 import WorldMap from "@/components/ui/WorldMap"
+import { MatrixTerminal } from "@/components/ui/MatrixTerminal"
 
 export default function DashboardPage() {
   const db = useFirestore()
@@ -97,17 +98,60 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      {/* World Map Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <MapIcon className="h-5 w-5 text-axiom-cyan" />
-          <h2 className="text-lg font-headline font-black uppercase italic tracking-widest text-white">Neural Sektor Oversight</h2>
+      <div className="grid gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-8 space-y-6">
+          {/* World Map Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <MapIcon className="h-5 w-5 text-axiom-cyan" />
+              <h2 className="text-lg font-headline font-black uppercase italic tracking-widest text-white">Neural Sektor Oversight</h2>
+            </div>
+            <WorldMap chunks={chunks || []} />
+          </div>
         </div>
-        <WorldMap chunks={chunks || []} />
+
+        <div className="lg:col-span-4 space-y-6">
+          {/* Matrix Terminal */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Terminal className="h-5 w-5 text-accent" />
+              <h2 className="text-lg font-headline font-black uppercase italic tracking-widest text-white">Live Intelligence</h2>
+            </div>
+            <MatrixTerminal />
+          </div>
+
+          <Card className="border-border bg-card">
+            <CardHeader className="bg-secondary/10 border-b border-border/50">
+              <CardTitle className="font-headline font-black italic uppercase text-sm tracking-widest text-white">Logic Core Events</CardTitle>
+              <CardDescription className="text-[10px] uppercase font-bold tracking-tight">Stream from the AxiomEnforcer.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                {worldState?.tick ? (
+                  <>
+                    <div className="flex gap-3 text-[11px] items-start p-3 rounded-xl bg-axiom-cyan/5 border border-axiom-cyan/10">
+                      <Activity className="h-4 w-4 text-axiom-cyan shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-black text-white uppercase italic tracking-wider">Heartbeat Signal Detected</p>
+                        <p className="text-muted-foreground mt-0.5 font-bold">Tick {worldState.tick} finalized by Ouroboros Core.</p>
+                        <span className="text-[9px] text-axiom-cyan/50 font-black uppercase mt-1 block tracking-[0.2em]">Deterministic Sync</span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <AlertCircle className="h-10 w-10 text-muted-foreground/20 mb-4" />
+                    <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">Awaiting Engine Boot...</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-7">
-        <Card className="lg:col-span-4 border-border bg-card">
+        <Card className="lg:col-span-7 border-border bg-card">
           <CardHeader className="bg-secondary/10 border-b border-border/50">
             <CardTitle className="font-headline font-black italic uppercase text-sm tracking-widest flex items-center gap-2">
               <Zap className="h-4 w-4 text-axiom-cyan" /> WebGL MMO Compliance Matrix
@@ -141,34 +185,6 @@ export default function DashboardPage() {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-3 border-border bg-card">
-          <CardHeader className="bg-secondary/10 border-b border-border/50">
-            <CardTitle className="font-headline font-black italic uppercase text-sm tracking-widest text-white">Logic Core Events</CardTitle>
-            <CardDescription className="text-[10px] uppercase font-bold tracking-tight">Stream from the AxiomEnforcer.</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              {worldState?.tick ? (
-                <>
-                  <div className="flex gap-3 text-[11px] items-start p-3 rounded-xl bg-axiom-cyan/5 border border-axiom-cyan/10">
-                    <Activity className="h-4 w-4 text-axiom-cyan shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="font-black text-white uppercase italic tracking-wider">Heartbeat Signal Detected</p>
-                      <p className="text-muted-foreground mt-0.5 font-bold">Tick {worldState.tick} finalized by Ouroboros Core.</p>
-                      <span className="text-[9px] text-axiom-cyan/50 font-black uppercase mt-1 block tracking-[0.2em]">Deterministic Sync</span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <AlertCircle className="h-10 w-10 text-muted-foreground/20 mb-4" />
-                  <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">Awaiting Engine Boot...</p>
-                </div>
-              )}
-            </div>
           </CardContent>
         </Card>
       </div>
