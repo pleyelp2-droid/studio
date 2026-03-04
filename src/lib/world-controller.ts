@@ -1,34 +1,85 @@
 'use client';
 
-import { Agent } from './agent';
+import { Agent, AgentState } from '@/types';
 import { InteractionManager } from './interaction-system';
-import { interactionLogger } from './interaction-logger';
 
+/**
+ * WorldController
+ * Handles simulation steps for all active agents.
+ * This class uses functional state transformation to be compatible with plain data objects.
+ */
 export class WorldController {
   private agents: Agent[];
   private interactionManager: InteractionManager;
 
   constructor(agents: Agent[]) {
     this.agents = agents;
-    this.interactionManager = new InteractionManager(agents);
+    this.interactionManager = new InteractionManager(agents as any);
   }
 
-  tick() {
-    // 1. Update all agents
-    this.agents.forEach(agent => {
-      agent.decayTrust();
-      agent.updateTasks();
-      agent.learnFromLogs(interactionLogger.getLogs());
+  /**
+   * Processes one tick of simulation time.
+   * Transforms agent needs, trust matrices, and triggers interactions.
+   */
+  tick(): Agent[] {
+    const updatedAgents = this.agents.map(agent => {
+      const newAgent = { ...agent };
+
+      // 1. Decay Trust (Functional implementation of trust decay)
+      if (newAgent.relationships) {
+        const newRels = { ...newAgent.relationships };
+        Object.keys(newRels).forEach(targetId => {
+          const rel = newRels[targetId];
+          newRels[targetId] = {
+            ...rel,
+            trust: Math.max(-100, rel.trust - 0.1)
+          };
+        });
+        newAgent.relationships = newRels;
+      }
+
+      // 2. Update Tasks
+      if (newAgent.tasks) {
+        newAgent.tasks = newAgent.tasks.map(task => {
+          if (task.status === 'active' && Math.random() > 0.98) {
+            return { ...task, status: 'done' as const };
+          }
+          return task;
+        });
+      }
+
+      // 3. Update Needs (Natural hunger and social decay)
+      if (newAgent.needs) {
+        newAgent.needs = {
+          ...newAgent.needs,
+          hunger: Math.min(100, newAgent.needs.hunger + 0.2),
+          social: Math.max(0, newAgent.needs.social - 0.1)
+        };
+      }
+
+      return newAgent;
     });
 
-    // 2. Agents decide and initiate actions
-    this.agents.forEach(agent => {
-      const interaction = agent.decideAction(this.agents);
-      if (interaction) {
-        const result = this.interactionManager.processInteraction(interaction);
-        console.log(`[Interaction] ${interaction.senderId} -> ${interaction.receiverId}: ${result}`);
+    // 4. Autonomous Peer-to-Peer Interactions
+    updatedAgents.forEach(agent => {
+      if (Math.random() > 0.95) {
+        const targets = updatedAgents.filter(a => a.id !== agent.id);
+        const target = targets[Math.floor(Math.random() * targets.length)];
+        
+        if (target) {
+          const interactionResult = this.interactionManager.processInteraction({
+            type: 'talk',
+            senderId: agent.id,
+            receiverId: target.id,
+            payload: { message: "The Spire rises today, doesn't it?" }
+          } as any);
+          
+          console.log(`[Simulation] ${agent.displayName} -> ${target.displayName}: ${interactionResult}`);
+        }
       }
     });
+
+    return updatedAgents;
   }
 
   getAgents() {

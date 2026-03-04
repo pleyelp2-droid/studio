@@ -1,87 +1,77 @@
 extends Node
 
-# AXIOM FRONTIER - GODOT BRIDGE PROTOCOL v1.0.0
-# Add this script as an Autoload named 'AxiomBridge' in Project Settings.
+# AxiomBridge.gd - Single File Firebase Bridge for Godot
+# Add this as an Autoload named 'AxiomBridge'
 
-const API_KEY: String = "AIzaSyDldbhESThtDQ3YYIPmLEh-cocereahAOE"
-const PROJECT_ID: String = "studio-5485353702-8ce01"
+const API_KEY = "AIzaSyDldbhESThtDQ3YYIPmLEh-cocereahAOE"
+const PROJECT_ID = "studio-5485353702-8ce01"
+const AUTH_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + API_KEY
+const FIRESTORE_URL = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/"
 
-var id_token: String = ""
-var refresh_token: String = ""
-var local_id: String = ""
-var is_connected: bool = false
+var id_token = ""
+var local_id = ""
+var refresh_token = ""
 
-signal connection_established
-signal connection_failed(error_message)
-signal data_synchronized(data)
+signal auth_complete(success, message)
+signal data_received(collection, data)
 
-# --- AUTHENTICATION ---
-
-func connect_to_matrix(email: String, password: String) -> void:
-	var url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + API_KEY
+# Call this to establish the neural link
+func connect_to_matrix(email, password):
+	var http = HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(_on_auth_completed)
+	
 	var body = JSON.stringify({
 		"email": email,
 		"password": password,
 		"returnSecureToken": true
 	})
 	
-	var http = HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(_on_login_completed)
-	http.request(url, ["Content-Type: application/json"], HTTPClient.METHOD_POST, body)
+	var headers = ["Content-Type: application/json"]
+	http.request(AUTH_URL, headers, HTTPClient.METHOD_POST, body)
 
-func _on_login_completed(result, response_code, headers, body):
-	var json = JSON.parse_string(body.get_string_from_utf8())
+func _on_auth_completed(result, response_code, headers, body):
+	var body_str = body.get_string_from_utf8()
+	var json = JSON.parse_string(body_str)
 	if response_code == 200:
-		id_token = json["idToken"]
-		refresh_token = json["refreshToken"]
-		local_id = json["localId"]
-		is_connected = true
-		connection_established.emit()
-		print("[AXIOM_BRIDGE] Link established for Pilot: ", local_id)
+		id_token = json.idToken
+		local_id = json.localId
+		refresh_token = json.refreshToken
+		auth_complete.emit(true, "Synchronized")
+		sync_player_data()
 	else:
-		var err = json.get("error", {}).get("message", "UNKNOWN_ERROR")
-		connection_failed.emit(err)
-		printerr("[AXIOM_BRIDGE] Connection refused: ", err)
+		var err_msg = "Auth Failed"
+		if json and json.has("error"):
+			err_msg = json.error.message
+		auth_complete.emit(false, err_msg)
 
-# --- FIRESTORE SYNC ---
-
-func sync_player_data(data: Dictionary) -> void:
-	if not is_connected: return
-	
-	var url = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/players/" + local_id + "?updateMask.fieldPaths=position&updateMask.fieldPaths=lastUpdate"
-	
-	# Firestore REST API requires specific field typing
-	var fields = {
-		"position": {
-			"mapValue": {
-				"fields": {
-					"x": {"doubleValue": data.get("x", 0.0)},
-					"y": {"doubleValue": data.get("y", 0.0)},
-					"z": {"doubleValue": data.get("z", 0.0)}
-				}
-			}
-		},
-		"lastUpdate": {
-			"timestampValue": Time.get_datetime_string_from_system() + "Z"
-		}
-	}
-	
-	var body = JSON.stringify({"fields": fields})
+func sync_player_data():
 	var http = HTTPRequest.new()
 	add_child(http)
-	http.request(url, [
-		"Content-Type: application/json",
-		"Authorization: Bearer " + id_token
-	], HTTPClient.METHOD_PATCH, body)
+	http.request_completed.connect(_on_player_data_received)
+	
+	var url = FIRESTORE_URL + "players/" + local_id
+	var headers = ["Authorization: Bearer " + id_token]
+	http.request(url, headers, HTTPClient.METHOD_GET)
 
-func get_world_state() -> void:
-	var url = "https://firestore.googleapis.com/v1/projects/" + PROJECT_ID + "/databases/(default)/documents/worldState/global"
-	var http = HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(func(r, c, h, b):
-		if c == 200:
-			var data = JSON.parse_string(b.get_string_from_utf8())
-			data_synchronized.emit(data)
-	)
-	http.request(url, ["Authorization: Bearer " + id_token], HTTPClient.METHOD_GET)
+func _on_player_data_received(result, response_code, headers, body):
+	if response_code == 200:
+		var json = JSON.parse_string(body.get_string_from_utf8())
+		if json and json.has("fields"):
+			var data = _parse_firestore_fields(json.fields)
+			data_received.emit("players", data)
+
+# Helper to recursively parse Firestore REST field format into a standard dictionary
+func _parse_firestore_fields(fields):
+	var result = {}
+	for key in fields:
+		var val_obj = fields[key]
+		var val = null
+		if val_obj.has("stringValue"): val = val_obj.stringValue
+		elif val_obj.has("integerValue"): val = int(val_obj.integerValue)
+		elif val_obj.has("doubleValue"): val = float(val_obj.doubleValue)
+		elif val_obj.has("booleanValue"): val = val_obj.booleanValue
+		elif val_obj.has("mapValue") and val_obj.mapValue.has("fields"): 
+			val = _parse_firestore_fields(val_obj.mapValue.fields)
+		result[key] = val
+	return result
