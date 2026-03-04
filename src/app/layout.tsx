@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { RootProviders } from '@/components/layout/RootProviders';
+import { Header } from '@/components/layout/Header';
 
 export const metadata: Metadata = {
   title: 'Axiom Frontier',
@@ -27,6 +28,7 @@ export default function RootLayout({
     <html lang="en" className="dark scroll-smooth">
       <body className="font-body antialiased bg-background text-foreground custom-scrollbar overflow-x-hidden" suppressHydrationWarning>
         <RootProviders>
+          <Header />
           {children}
         </RootProviders>
       </body>
