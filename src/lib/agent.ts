@@ -6,21 +6,20 @@ import { interactionLogger, InteractionLog } from './interaction-logger';
 export class Agent {
   id: string;
   name: string;
-  displayName: string;
   memory: Memory[] = [];
   relationships: Map<string, Relationship> = new Map();
   tasks: Task[] = [];
   inventory: Record<string, number> = {};
-  needs: Record<string, number> = { hunger: 50, social: 50, wealth: 20 };
+  needs: Record<string, number> = { hunger: 50 };
   longTermGoals: string[] = [];
   groups: SocialGroup[] = [];
 
   constructor(id: string, name: string) {
     this.id = id;
     this.name = name;
-    this.displayName = name;
   }
 
+  // Trust decay logic
   decayTrust(decayRate: number = 0.1) {
     for (const [id, rel] of this.relationships) {
       rel.trust = Math.max(-100, rel.trust - decayRate);
@@ -28,6 +27,7 @@ export class Agent {
     }
   }
 
+  // Update trust level
   updateTrust(targetId: string, delta: number) {
     const rel = this.relationships.get(targetId) || { targetId, trust: 0, type: 'neutral' };
     rel.trust = Math.max(-100, Math.min(100, rel.trust + delta));
@@ -44,101 +44,108 @@ export class Agent {
     if (this.memory.length > 50) this.memory.shift();
   }
 
+  // Task and Memory logic
   updateTasks() {
     this.tasks.forEach(task => {
       if (task.status === 'active') {
         task.status = 'done';
-        this.addMemory(`Erfülltes Ziel: ${task.goal}`, 10);
+        this.addMemory(`Completed task: ${task.goal}`, 10);
       }
     });
   }
 
+  // Learn from interaction logs
   learnFromLogs(logs: InteractionLog[]) {
     logs.forEach(log => {
       if (log.interaction.senderId === this.id) return;
       const rel = this.relationships.get(log.interaction.senderId);
+      // If we trust the sender and it was a successful interaction
       if (rel && rel.trust > 20 && log.trustDelta > 0) {
-        this.addMemory(`Gelernt von ${log.interaction.senderId}: ${log.interaction.type} war erfolgreich`, 1);
+        this.addMemory(`Learned from ${log.interaction.senderId}: ${log.interaction.type} was successful`, 1);
+        // Heuristic adjustment: increase tendency to trade if trading was successful
         if (log.interaction.type === 'trade') {
-          this.needs.wealth = (this.needs.wealth || 0) + 2;
+          this.needs.hunger = (this.needs.hunger || 0) + 5;
         }
       }
     });
   }
 
   decideAction(allAgents: Agent[]): Interaction | null {
-    // 1. Hunger-Priorität
-    if (this.needs.hunger > 70) {
-      const targets = allAgents.filter(a => a.id !== this.id && (a.inventory['food'] || 0) > 0);
-      if (targets.length > 0) {
+    // 1. Goal-driven behavior
+    for (const goal of this.longTermGoals) {
+      if (goal === 'gather_food' && this.needs.hunger > 40) {
+        const targets = allAgents.filter(a => a.id !== this.id && (a.inventory['food'] || 0) > 0);
         targets.sort((a, b) => (this.relationships.get(b.id)?.trust || 0) - (this.relationships.get(a.id)?.trust || 0));
-        return { type: 'trade', senderId: this.id, receiverId: targets[0].id, payload: { item: 'food', amount: 1 } };
+        const target = targets[0];
+        if (target) {
+          return { type: 'trade', senderId: this.id, receiverId: target.id, payload: { item: 'food', amount: 1 } };
+        }
       }
     }
 
-    // 2. Soziale Gruppenbildung
-    const bestFriend = allAgents.find(a => a.id !== this.id && (this.relationships.get(a.id)?.trust || 0) > 80);
-    if (bestFriend && Math.random() > 0.9) {
-      return {
-        type: 'proposeGroup',
-        senderId: this.id,
-        receiverId: bestFriend.id,
-        payload: { groupName: `${this.name}'s Bündnis`, type: 'guild' }
-      };
-    }
-
-    // 3. Ambient Socializing
-    if (this.needs.social < 40 && allAgents.length > 1) {
-      const target = allAgents[Math.floor(Math.random() * allAgents.length)];
-      if (target && target.id !== this.id) {
+    // 2. Propose group formation if trust is high
+    const potentialPartner = allAgents.find(a => a.id !== this.id && (this.relationships.get(a.id)?.trust || 0) > 80);
+    if (potentialPartner && Math.random() > 0.9) {
         return {
-          type: 'talk',
-          senderId: this.id,
-          receiverId: target.id,
-          payload: { message: "Die Matrix fühlt sich heute stabil an." }
+            type: 'proposeGroup',
+            senderId: this.id,
+            receiverId: potentialPartner.id,
+            payload: { groupName: `${this.name}'s Guild`, type: 'guild' }
         };
-      }
     }
 
+    // 3. Socialize based on memory (seek out agents with positive history)
+    const positiveInteractions = this.memory.filter(m => m.trustDelta > 0);
+    if (positiveInteractions.length > 0 && Math.random() > 0.7) {
+        const target = allAgents[Math.floor(Math.random() * allAgents.length)];
+        if (target && target.id !== this.id) {
+            return {
+                type: 'talk',
+                senderId: this.id,
+                receiverId: target.id,
+                payload: { message: "It's good to see you again!" }
+            };
+        }
+    }
     return null;
   }
 
   handleInteraction(interaction: Interaction): string {
     switch (interaction.type) {
       case 'talk':
-        this.updateTrust(interaction.senderId, 2);
-        this.addMemory(`Gespräch mit ${interaction.senderId}`, 2);
+        this.updateTrust(interaction.senderId, 2); // Talking improves trust
+        this.addMemory(`Talked to ${interaction.senderId}`, 2);
         interactionLogger.log(interaction, 2);
         return this.handleTalk(interaction);
       case 'trade':
         return this.handleTrade(interaction);
       case 'proposeGroup':
         this.updateTrust(interaction.senderId, 10);
-        this.addMemory(`Bündnis akzeptiert von ${interaction.senderId}`, 10);
+        this.addMemory(`Accepted group proposal from ${interaction.senderId}`, 10);
         interactionLogger.log(interaction, 10);
-        return `${this.name} hat sich mit ${interaction.payload.groupName} synchronisiert.`;
+        return `${this.name} joined ${interaction.payload.groupName}.`;
       default:
-        return "Neurales Signal nicht erkannt.";
+        return "I don't understand that interaction.";
     }
   }
 
   private handleTalk(interaction: Interaction): string {
     const rel = this.relationships.get(interaction.senderId) || { targetId: interaction.senderId, trust: 0, type: 'neutral' };
     const tone = rel.trust > 50 ? "warm" : rel.trust < -50 ? "kalt" : "neutral";
-    return `[${tone}] ${this.name} antwortet: ${interaction.payload.message}`;
+    return `[${tone}] ${this.name} says: ${interaction.payload.message}`;
   }
 
   private handleTrade(interaction: Interaction): string {
     const { item, amount } = interaction.payload;
     if ((this.inventory[item] || 0) >= amount) {
       this.inventory[item] -= amount;
-      this.updateTrust(interaction.senderId, 5);
-      this.addMemory(`Erfolgreicher Handel: ${item} an ${interaction.senderId}`, 5);
+      this.updateTrust(interaction.senderId, 5); // Trading improves trust
+      this.addMemory(`Traded ${item} to ${interaction.senderId}`, 5);
       interactionLogger.log(interaction, 5);
-      return `${this.name} hat ${amount} ${item} transferiert.`;
+      return `${this.name} traded ${amount} ${item} to ${interaction.senderId}.`;
     }
-    this.updateTrust(interaction.senderId, -5);
+    this.updateTrust(interaction.senderId, -5); // Failed trade hurts trust
     interactionLogger.log(interaction, -5);
-    return `${this.name} meldet: Unzureichende Ressourcen für ${item}.`;
+    return `${this.name} does not have enough ${item}.`;
   }
 }

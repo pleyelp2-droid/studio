@@ -11,10 +11,14 @@ export class InteractionManager {
   }
 
   processInteraction(interaction: Interaction): string {
-    const receiver = this.agents.get(interaction.receiverId);
+    const receiver = this.agents.get(receiverIdFromInteraction(interaction));
     if (!receiver) {
-      return "[system] Ziel-Signatur im lokalen Sektor nicht gefunden.";
+      return "Target not found.";
     }
     return receiver.handleInteraction(interaction);
   }
+}
+
+function receiverIdFromInteraction(interaction: Interaction): string {
+  return interaction.receiverId;
 }
