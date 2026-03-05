@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -14,7 +14,8 @@ import {
   Lock,
   CloudLightning,
   RefreshCw,
-  Search
+  Search,
+  Globe
 } from "lucide-react"
 import { useStore } from "@/store"
 import { Button } from "@/components/ui/button"
@@ -28,19 +29,19 @@ export default function BrainEngineMonitorPage() {
 
   const triggerScan = async () => {
     setIsScanning(true);
-    addBrainLog("Initiating full project matrix scan...");
+    addBrainLog(`Initiating scan on node ${brain.matrixNodeIp}...`);
     try {
       const res = await fetch('/api/brain/scan', {
         method: 'POST',
-        body: JSON.stringify({ tenantId: brain.tenantId })
+        body: JSON.stringify({ tenantId: brain.tenantId, targetDir: process.cwd() })
       });
       const data = await res.json();
       if (data.success) {
         setBrainProjectStats(data.stats);
-        addBrainLog("Project analyzed successfully. Statistics synchronized.");
+        addBrainLog("Project analyzed successfully. Statistics synchronized with GKE node.");
       }
     } catch (e) {
-      addBrainLog("Scan failure: Connection to Axiom Core lost.");
+      addBrainLog("Scan failure: Connection to Axiom GKE Core lost.");
     } finally {
       setIsScanning(false);
     }
@@ -55,11 +56,11 @@ export default function BrainEngineMonitorPage() {
               <BrainCircuit className="h-8 w-8 text-accent animate-pulse" />
               Autonomous Brain Engine
             </h2>
-            <Badge variant="outline" className={`border-accent/30 text-accent font-black tracking-widest uppercase italic bg-accent/5`}>
-              {brain.status}_LINK_ESTABLISHED
+            <Badge variant="outline" className={`border-emerald-500/30 text-emerald-500 font-black tracking-widest uppercase italic bg-emerald-500/5`}>
+              GKE_NODE_{brain.matrixNodeIp}_LIVE
             </Badge>
           </div>
-          <p className="text-muted-foreground text-sm uppercase font-bold tracking-widest italic opacity-60">High-level world management and neural orchestration.</p>
+          <p className="text-muted-foreground text-sm uppercase font-bold tracking-widest italic opacity-60">High-level world management and neural orchestration via Matrix Node.</p>
         </div>
         <Button 
           onClick={triggerScan} 
@@ -75,13 +76,13 @@ export default function BrainEngineMonitorPage() {
         <Card className="bg-secondary/10 border-border group hover:border-accent/40 transition-all">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-[10px] font-black uppercase text-accent tracking-widest">Logic Throughput</CardTitle>
-              <Cpu className="h-4 w-4 text-accent opacity-40 group-hover:rotate-90 transition-transform" />
+              <CardTitle className="text-[10px] font-black uppercase text-accent tracking-widest">GKE Node IP</CardTitle>
+              <Globe className="h-4 w-4 text-accent opacity-40 group-hover:rotate-90 transition-transform" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black font-headline text-white italic">144 Hz</div>
-            <p className="text-[9px] text-muted-foreground uppercase mt-1">Real-time simulation frequency</p>
+            <div className="text-3xl font-black font-headline text-white italic">{brain.matrixNodeIp}</div>
+            <p className="text-[9px] text-muted-foreground uppercase mt-1">Google Kubernetes Engine Endpoint</p>
           </CardContent>
         </Card>
 

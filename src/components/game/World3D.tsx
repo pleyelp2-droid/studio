@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Html, PerspectiveCamera, Float, OrbitControls, Sky, Stars, Environment, ContactShadows } from "@react-three/drei"
@@ -281,9 +280,9 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
-          {settings.enableAmbient && <ambientLight intensity={10.0} />}
-          {settings.enableHemisphere && <hemisphereLight intensity={8.5} groundColor="#050508" color="#ffffff" />}
-          {settings.enableDirectional && <directionalLight position={[100, 200, 100]} intensity={12.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />}
+          {settings.enableAmbient && <ambientLight intensity={12.0} />}
+          {settings.enableHemisphere && <hemisphereLight intensity={10.5} groundColor="#050508" color="#ffffff" />}
+          {settings.enableDirectional && <directionalLight position={[100, 200, 100]} intensity={0.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />}
           <pointLight position={[0, 50, 0]} intensity={50} color="#60D4FF" />
           {settings.enableEnvironment && <Environment preset="city" />}
           <WorldContent localPlayerId={localPlayerId} />

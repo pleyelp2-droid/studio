@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { Agent, Chunk, Language, AgentState, StoreProduct, Task } from './types';
 
@@ -57,6 +56,7 @@ interface AppState {
     cacheHealth: number;
     tenantId: string | null;
     projectStats: any | null;
+    matrixNodeIp: string;
   };
   
   setUser: (user: { id: string; name: string; email: string } | null) => void;
@@ -97,7 +97,6 @@ interface AppState {
   moveInventoryItem: (agentId: string, from: number, to: number) => void;
   allocateStatPoint: (agentId: string, stat: string) => void;
   unstuckPlayer: (agentId: string) => void;
-  setMatrixOverseerOpen: (isOpen: boolean) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -169,13 +168,14 @@ export const useStore = create<AppState>((set) => ({
     forceEmissive: false,
   },
   brainEngine: {
-    status: 'IDLE',
-    lastSync: null,
-    activeNodes: [],
-    logs: [],
+    status: 'ACTIVE',
+    lastSync: Date.now(),
+    activeNodes: ['GKE-Cluster-Alpha', 'Matrix-Node-01'],
+    logs: ['GKE Node Initialized: 35.232.7.105', 'Matrix link established.'],
     cacheHealth: 100,
     tenantId: 'OUROBOROS_CORE_01',
     projectStats: null,
+    matrixNodeIp: '35.232.7.105'
   },
 
   setUser: (user) => set({ user }),
