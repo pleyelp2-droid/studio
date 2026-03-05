@@ -2,36 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * CORE PHILOSOPHY
-     * This ruleset implements a robust, hierarchical security model for "Axiom Frontier." 
-     * It prioritizes Authorization Independence by using path-based ownership for user data 
-     * and a dedicated admin-role collection for global management.
-     *
-     * DATA STRUCTURE
-     * 1. Private User Data: Nested under `/players/{playerId}/` for atomic authorization.
-     * 2. Global Game Data: Top-level collections (NPCs, Items, Assets) are publicly readable 
-     *    by players but restricted for writes.
-     * 3. Administrative Data: `/game_settings` and `/roles_admin` manage global state and access.
-     *
-     * KEY SECURITY DECISIONS
-     * - Authorization Independence: User subcollections use the parent path wildcard for 
-     *   instant ownership verification without extra `get()` calls.
-     * - DBAC (Database Access Control): Admin privileges are verified via an existence 
-     *   check in the `/roles_admin` collection.
-     * - Prototyping Flexibility: Schema types are not strictly enforced, but relational 
-     *   integrity (matching IDs to paths) is strictly maintained.
-     *
-     * DENORMALIZATION FOR AUTHORIZATION
-     * - `playerId` is denormalized into subcollection paths and document fields (e.g., Agents, 
-     *   Transactions) to ensure rules are performant and local to the request.
-     *
-     * STRUCTURAL SEGREGATION
-     * - Quest data is split between `/quests_available` (global definitions) and 
-     *   `/players/{playerId}/quests_player` (user-specific progress) to simplify 
-     *   listing and access logic.
-     */
-
     // --- GLOBAL HELPER FUNCTIONS ---
 
     function isSignedIn() {
@@ -39,7 +9,10 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) ||
+        request.auth.token.email == "pleyelp2@gmail.com"
+      );
     }
 
     function isOwner(userId) {
@@ -52,124 +25,108 @@ service cloud.firestore {
 
     // --- COLLECTION RULES ---
 
-    /**
-     * @description Rules for the core player profile. Users manage their own profile; admins have full access.
-     * @path /players/{playerId}
-     * @allow (create) if auth.uid matches playerId and data.id matches path.
-     * @deny (update) if user attempts to change another player's profile.
-     * @principle Validates identity-to-path consistency and ownership.
-     */
     match /players/{playerId} {
       allow get: if isOwner(playerId) || isAdmin();
-      allow list: if isAdmin();
-      allow create: if isOwner(playerId) && request.resource.data.id == playerId;
-      allow update: if (isExistingOwner(playerId) || isAdmin()) && request.resource.data.id == playerId;
+      allow list: if isAdmin() || isSignedIn();
+      allow create: if isOwner(playerId);
+      allow update: if isOwner(playerId) || isAdmin();
       allow delete: if isAdmin();
 
-      /**
-       * @description Agents owned by the player. Authorized via the parent path.
-       * @path /players/{playerId}/agents/{agentId}
-       * @allow (list) if request.auth.uid matches the parent playerId.
-       * @deny (create) if agent.playerId field does not match the parent path playerId.
-       * @principle Path-based authorization for user-scoped subcollections.
-       */
       match /agents/{agentId} {
-        allow get, list: if isOwner(playerId) || isAdmin();
-        allow create: if isOwner(playerId) && request.resource.data.playerId == playerId;
-        allow update: if (isExistingOwner(playerId) || isAdmin()) && request.resource.data.playerId == playerId;
-        allow delete: if isExistingOwner(playerId) || isAdmin();
+        allow read: if isOwner(playerId) || isAdmin();
+        allow write: if isOwner(playerId) || isAdmin();
       }
-
-      /**
-       * @description User-specific quest instances (active/completed).
-       * @path /players/{playerId}/quests_player/{questId}
-       * @allow (get) if the player owns this quest subcollection.
-       * @deny (list) for anyone other than the specific player or an admin.
-       * @principle Structural segregation of player-state from global-definitions.
-       */
+      
       match /quests_player/{questId} {
-        allow get, list: if isOwner(playerId) || isAdmin();
-        allow create, update: if isOwner(playerId) || isAdmin();
-        allow delete: if isAdmin();
-      }
-
-      /**
-       * @description Financial transactions for a specific player.
-       * @path /players/{playerId}/transactions/{transactionId}
-       * @allow (get) if the player owns the transaction.
-       * @deny (update) as transactions are immutable records.
-       * @principle Enforces immutable audit trails for financial data.
-       */
-      match /transactions/{transactionId} {
-        allow get, list: if isOwner(playerId) || isAdmin();
-        allow create: if isOwner(playerId) && request.resource.data.playerId == playerId;
-        allow update, delete: if false; // Transactions should be immutable
+        allow read: if isOwner(playerId) || isAdmin();
+        allow write: if isOwner(playerId) || isAdmin();
       }
     }
 
-    /**
-     * @description Definitions for game entities. Publicly readable by players.
-     * @path /npcs/{npcId}, /quests_available/{questId}, /items/{itemId}, /assets/{assetId}
-     * @allow (list) for any authenticated user to populate the game world.
-     * @deny (write) for standard players; only admins can modify game data.
-     * @principle Public Read with Admin-Only Writes.
-     */
+    match /worldState/global {
+      allow get: if isSignedIn();
+      allow list, create, update, delete: if isAdmin();
+    }
+
+    match /questLines/{questId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /npcDialogs/{dialogId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /loreEntries/{loreId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /worldAssets/{assetId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /matrixTransactions/{txId} {
+      allow read: if isSignedIn() && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid || isAdmin());
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    match /adminAuditLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /contentLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /youtubeScripts/{scriptId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /combatLogs/{logId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn(); 
+    }
+
+    match /trustRelationships/{relId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /thoughtCache/{thoughtId} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /tickState/{tickId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /anomalyLogs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
     match /npcs/{npcId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /quests_available/{questId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
     match /items/{itemId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    match /assets/{assetId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
-    }
-
-    /**
-     * @description Global world parameters (singleton).
-     * @path /world_state/global
-     * @allow (get) for all players to sync world environment.
-     * @deny (update) for non-admin users.
-     * @principle Singleton access control for global synchronization.
-     */
-    match /world_state/global {
-      allow get: if isSignedIn();
-      allow list: if isAdmin();
-      allow create, update, delete: if isAdmin();
-    }
-
-    /**
-     * @description Configurable game parameters.
-     * @path /game_settings/{settingId}
-     * @allow (get) for players to see current game rules/difficulty.
-     * @deny (create) for any non-admin.
-     * @principle Admin-driven configuration with public visibility.
-     */
     match /game_settings/{settingId} {
-      allow get, list: if isSignedIn();
-      allow create, update, delete: if isAdmin();
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    /**
-     * @description Collection containing Admin UIDs as document IDs for role verification.
-     * @path /roles_admin/{adminId}
-     * @allow (get) for admins to verify their own status.
-     * @deny (list) to prevent discovering the full list of administrators.
-     * @principle Database Access Control (DBAC) via existence checks.
-     */
     match /roles_admin/{adminId} {
       allow get: if isOwner(adminId) || isAdmin();
       allow list: if isAdmin();
-      allow create, update, delete: if isAdmin();
+      allow write: if isAdmin();
     }
   }
 }
