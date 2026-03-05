@@ -67,22 +67,22 @@ export const generateDialogue = (sender: Agent, receiver: Agent, intent: 'social
   
   const dialogues = {
     social: [
-      `Grüße, ${recName}. Das Axiom fließt heute stark.`,
-      `Hast du die neuesten Logik-Drifts im Spire bemerkt?`,
-      `Meine neurale Matrix resoniert mit deiner Signatur.`,
-      `Die Stabilität in Sektor 0_0 scheint zuzunehmen.`
+      `Greetings, ${recName}. The Axiom flows strong today.`,
+      `Have you noticed the recent logic drifts in the Spire?`,
+      `My neural matrix resonates with your signature.`,
+      `The stability in Sector 0_0 seems to be increasing.`
     ],
     trade: [
-      `Ich habe Logik-Fragmente anzubieten. Besteht Interesse?`,
-      `Tausche AXM gegen Energie. Lass uns das Ledger aktualisieren.`,
-      `Der Markt-Fluss deutet darauf hin, dass ein Handel vorteilhaft wäre.`,
-      `Meine Bestände an Eisen-Logik sind hoch. Brauchst du etwas?`
+      `I have logic fragments to offer. Any interest?`,
+      `Trading AXM for energy. Let's update the ledger.`,
+      `Market flow suggests a trade would be beneficial.`,
+      `My stocks of iron-logic are high. Do you need anything?`
     ],
     combat: [
-      `Dein Protokoll ist veraltet. Terminierung eingeleitet.`,
-      `Ziel erfasst. Neurale Disruptions-Sequenz gestartet.`,
-      `Die Matrix benötigt deine Signatur nicht länger.`,
-      `Erosion wird dich zu binärem Staub zerfallen lassen.`
+      `Your protocol is outdated. Termination initiated.`,
+      `Target locked. Neural disruption sequence started.`,
+      `The Matrix no longer requires your signature.`,
+      `Erosion will turn you to binary dust.`
     ]
   };
 
@@ -97,12 +97,10 @@ export const generateDialogue = (sender: Agent, receiver: Agent, intent: 'social
 export const getXPForNextLevel = (currentLevel: number): number => {
     const baseXP = 100;
     if (currentLevel < 100) {
-        // Standard geometrisches Wachstum (1.5x)
         return Math.floor(baseXP * Math.pow(1.5, currentLevel - 1));
     } else {
-        // High Science Era: Jedes Level ab 100 kostet 225% mehr als das davor (Faktor 3.25)
         const xpAt99 = Math.floor(baseXP * Math.pow(1.5, 98));
-        const levelsOver 99 = currentLevel - 99;
+        const levelsOver99 = currentLevel - 99;
         return Math.floor(xpAt99 * Math.pow(3.25, levelsOver99));
     }
 };
@@ -161,7 +159,7 @@ export const generateLoot = (monsterType: string): Item | null => {
         rarity,
         stats,
         value: Math.floor(10 * multiplier),
-        description: `Ein ${rarity} Gegenstand von einem ${monsterType}.`
+        description: `An item of ${rarity} quality dropped by a ${monsterType}.`
     };
 };
 

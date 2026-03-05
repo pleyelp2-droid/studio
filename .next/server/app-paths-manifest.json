@@ -6,5 +6,6 @@
   "/settings/page": "app/settings/page.js",
   "/agents/page": "app/agents/page.js",
   "/players/page": "app/players/page.js",
-  "/landing/page": "app/landing/page.js"
+  "/landing/page": "app/landing/page.js",
+  "/dashboard/page": "app/dashboard/page.js"
 }

@@ -50,16 +50,16 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
           metalness={0.8} 
           roughness={0.2} 
           emissive={color} 
-          emissiveIntensity={archTex ? 0.6 : 1.5} 
+          emissiveIntensity={archTex ? 1.2 : 2.5} 
         />
       </mesh>
       <Float speed={3} rotationIntensity={4} floatIntensity={2}>
         <mesh position={[0, 35, 0]} scale={3}>
           <octahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={10} toneMapped={false} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={15} toneMapped={false} />
         </mesh>
       </Float>
-      <pointLight position={[0, 35, 0]} intensity={50} color={color} distance={300} decay={2} />
+      <pointLight position={[0, 35, 0]} intensity={100} color={color} distance={500} decay={2} />
     </group>
   );
 };
@@ -92,7 +92,7 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
           map={terrainTex || undefined}
           roughness={0.7} 
           metalness={0.1} 
-          emissive="#111111"
+          emissive="#222222"
         />
       </mesh>
       <gridHelper args={[400, 20, ARL_COLORS.teal, "#1a1a24"]} position={[0, 0.05, 0]} />
@@ -138,12 +138,12 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
 
   const lastThought = agent.memoryCache && agent.memoryCache.length > 0 
     ? agent.memoryCache[agent.memoryCache.length - 1] 
-    : agent.state === AgentState.IDLE ? "Berechne Zyklus..." : `Status: ${agent.state}`;
+    : agent.state === AgentState.IDLE ? "Calculating Cycle..." : `Status: ${agent.state}`;
 
   return (
     <group ref={groupRef}>
       <primitive object={model.group} />
-      {isLocal && <pointLight position={[0, 3, 0]} intensity={30} color="#60D4FF" distance={40} />}
+      {isLocal && <pointLight position={[0, 3, 0]} intensity={50} color="#60D4FF" distance={100} />}
       <Html position={[0, 4.0, 0]} center distanceFactor={15}>
         <div className="flex flex-col items-center gap-2 pointer-events-none">
           <div className="bg-black/80 backdrop-blur-md border border-axiom-cyan/40 px-3 py-1.5 rounded-2xl shadow-2xl animate-bounce">
@@ -258,18 +258,17 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
   const controlMode = useStore(state => state.controlMode);
   return (
     <div className="w-full h-full bg-[#010102] touch-none">
-      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Initialisierung...</div>}>
+      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Initialisation...</div>}>
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
-          <ambientLight intensity={3.5} />
-          <hemisphereLight intensity={2.0} groundColor="#050508" color="#ffffff" />
-          <directionalLight position={[100, 200, 100]} intensity={8.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
-          <pointLight position={[0, 50, 0]} intensity={25} color="#60D4FF" />
+          <ambientLight intensity={4.5} />
+          <hemisphereLight intensity={3.5} groundColor="#050508" color="#ffffff" />
+          <directionalLight position={[100, 200, 100]} intensity={12.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
+          <pointLight position={[0, 50, 0]} intensity={50} color="#60D4FF" />
           <Environment preset="city" />
           <WorldContent localPlayerId={localPlayerId} />
-          {/* Relaxed fog for better visibility */}
-          <fog attach="fog" args={["#010102", 100, 2500]} />
+          <fog attach="fog" args={["#010102", 200, 3000]} />
         </Canvas>
       </Suspense>
     </div>
