@@ -10,7 +10,6 @@ import simpleGit from 'simple-git';
 
 /**
  * GameBrain: The high-level orchestrator for Ouroboros content automation.
- * Integrates scanning, watching, caching, and repository mixing.
  */
 export class GameBrain {
   private scanner = new BrainScanner();
@@ -50,7 +49,6 @@ export class GameBrain {
       await this.cache.set(`project_stats_${this.tenantId}`, this.stats);
     }
 
-    // Start watching for filesystem events
     this.watchdog.watch(targetDir);
   }
 

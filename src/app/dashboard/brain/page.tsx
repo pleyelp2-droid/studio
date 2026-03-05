@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -11,26 +12,63 @@ import {
   Zap, 
   History,
   Lock,
-  CloudLightning
+  CloudLightning,
+  RefreshCw,
+  Search
 } from "lucide-react"
 import { useStore } from "@/store"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
 
 export default function BrainEngineMonitorPage() {
   const brain = useStore(state => state.brainEngine)
+  const [isScanning, setIsScanning] = useState(false)
+  const setBrainProjectStats = useStore(state => state.setBrainProjectStats)
+  const addBrainLog = useStore(state => state.addBrainLog)
+
+  const triggerScan = async () => {
+    setIsScanning(true);
+    addBrainLog("Initiating full project matrix scan...");
+    try {
+      const res = await fetch('/api/brain/scan', {
+        method: 'POST',
+        body: JSON.stringify({ tenantId: brain.tenantId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setBrainProjectStats(data.stats);
+        addBrainLog("Project analyzed successfully. Statistics synchronized.");
+      }
+    } catch (e) {
+      addBrainLog("Scan failure: Connection to Axiom Core lost.");
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   return (
     <main className="p-6 space-y-8 max-w-7xl mx-auto w-full">
-      <div className="flex flex-col space-y-2">
-        <div className="flex items-center gap-4">
-          <h2 className="text-3xl font-headline font-black uppercase italic tracking-tighter flex items-center gap-3">
-            <BrainCircuit className="h-8 w-8 text-accent animate-pulse" />
-            Autonomous Brain Engine
-          </h2>
-          <Badge variant="outline" className={`border-accent/30 text-accent font-black tracking-widest uppercase italic bg-accent/5`}>
-            {brain.status}_LINK_ESTABLISHED
-          </Badge>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-4">
+            <h2 className="text-3xl font-headline font-black uppercase italic tracking-tighter flex items-center gap-3">
+              <BrainCircuit className="h-8 w-8 text-accent animate-pulse" />
+              Autonomous Brain Engine
+            </h2>
+            <Badge variant="outline" className={`border-accent/30 text-accent font-black tracking-widest uppercase italic bg-accent/5`}>
+              {brain.status}_LINK_ESTABLISHED
+            </Badge>
+          </div>
+          <p className="text-muted-foreground text-sm uppercase font-bold tracking-widest italic opacity-60">High-level world management and neural orchestration.</p>
         </div>
-        <p className="text-muted-foreground text-sm uppercase font-bold tracking-widest italic opacity-60">High-level world management and neural orchestration.</p>
+        <Button 
+          onClick={triggerScan} 
+          disabled={isScanning}
+          className="axiom-gradient text-white h-12 px-8 font-black uppercase italic tracking-widest rounded-xl shadow-xl"
+        >
+          {isScanning ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Search className="h-4 w-4 mr-2" />}
+          Trigger Matrix Scan
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -71,7 +109,7 @@ export default function BrainEngineMonitorPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black font-headline text-white italic">{brain.activeNodes.length > 0 ? brain.activeNodes.length : "84.2"}%</div>
+            <div className="text-3xl font-black font-headline text-white italic">{brain.projectStats ? (brain.projectStats.gameRules * 4.2).toFixed(1) : "84.2"}%</div>
             <p className="text-[9px] text-muted-foreground uppercase mt-1">Axiomatic Information Density</p>
           </CardContent>
         </Card>
@@ -130,16 +168,29 @@ export default function BrainEngineMonitorPage() {
                 <Progress value={brain.cacheHealth} className="h-1.5" />
               </div>
 
-              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-white/5">
-                <div className="p-3 rounded-lg bg-secondary/20 text-center border border-white/5">
-                  <div className="text-[7px] text-gray-500 uppercase font-black">Region</div>
-                  <div className="text-[10px] text-white font-bold">us-east-2</div>
+              {brain.projectStats && (
+                <div className="pt-4 border-t border-white/5 space-y-3">
+                  <h4 className="text-[10px] font-black uppercase text-white/40 tracking-widest">Project Matrix Stats</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-2 rounded-lg bg-secondary/20 border border-white/5">
+                      <div className="text-[7px] text-gray-500 uppercase font-black">Type</div>
+                      <div className="text-[10px] text-white font-bold uppercase">{brain.projectStats.type}</div>
+                    </div>
+                    <div className="p-2 rounded-lg bg-secondary/20 border border-white/5">
+                      <div className="text-[7px] text-gray-500 uppercase font-black">Textures</div>
+                      <div className="text-[10px] text-white font-bold">{brain.projectStats.textures}</div>
+                    </div>
+                    <div className="p-2 rounded-lg bg-secondary/20 border border-white/5">
+                      <div className="text-[7px] text-gray-500 uppercase font-black">Quests</div>
+                      <div className="text-[10px] text-white font-bold">{brain.projectStats.quests}</div>
+                    </div>
+                    <div className="p-2 rounded-lg bg-secondary/20 border border-white/5">
+                      <div className="text-[7px] text-gray-500 uppercase font-black">Lore</div>
+                      <div className="text-[10px] text-white font-bold">{brain.projectStats.lore}</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-3 rounded-lg bg-secondary/20 text-center border border-white/5">
-                  <div className="text-[7px] text-gray-500 uppercase font-black">Engine</div>
-                  <div className="text-[10px] text-white font-bold">1.6.22</div>
-                </div>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -147,5 +198,3 @@ export default function BrainEngineMonitorPage() {
     </main>
   )
 }
-
-import { Label } from "@/components/ui/label"

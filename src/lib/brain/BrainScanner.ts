@@ -24,7 +24,7 @@ export class BrainScanner {
     return {
       type,
       graphicsModules: files.filter(f => f.includes('graphics') || f.includes('shaders')).length,
-      textures: files.filter(f => f.match(/\.(png|jpg|tga|dds)$/)).length,
+      textures: files.filter(f => f.match(/\.(png|jpg|tga|dds)$/i)).length,
       gameRules: files.filter(f => f.includes('rules') || f.includes('logic')).length,
       characters: files.filter(f => f.includes('character') || f.includes('npc')).length,
       lore: files.filter(f => f.includes('lore') || f.includes('story')).length,

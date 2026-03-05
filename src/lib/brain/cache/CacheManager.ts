@@ -4,8 +4,6 @@ export class CacheManager {
   private client: any;
 
   constructor(endpoint: string) {
-    // AWS ElastiCache Serverless Endpoint: arn:aws:elasticache:us-east-2:986523046654:serverlesscache:memory
-    // Typically requires a hostname:port formatted string
     this.client = memjs.Client.create(endpoint);
   }
 
