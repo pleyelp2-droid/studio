@@ -77,7 +77,7 @@ export default function WorldPreviewPage() {
         int: 10,
         vit: 10,
         // Spawn offset to avoid getting stuck in Spire center
-        position: { x: 10, y: 0, z: 10 },
+        position: { x: 20, y: 0, z: 20 },
         visionRange: 100,
         state: AgentState.IDLE,
         inventory: Array(10).fill(null),
