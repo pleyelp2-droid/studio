@@ -1,3 +1,9 @@
 {
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/world-preview/page": "app/world-preview/page.js",
+  "/character-creator/page": "app/character-creator/page.js",
+  "/admin/content/page": "app/admin/content/page.js",
+  "/settings/page": "app/settings/page.js",
+  "/agents/page": "app/agents/page.js",
+  "/players/page": "app/players/page.js"
 }
