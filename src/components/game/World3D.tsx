@@ -51,7 +51,7 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
           metalness={forceEmissive ? 0 : 0.8} 
           roughness={forceEmissive ? 1 : 0.2} 
           emissive={forceEmissive ? (archTex ? "#ffffff" : color) : color} 
-          emissiveIntensity={forceEmissive ? 1.0 : (archTex ? 1.2 : 2.5)} 
+          emissiveIntensity={forceEmissive ? 1.0 : (archTex ? 0.5 : 0.2)} 
         />
       </mesh>
       <Float speed={3} rotationIntensity={4} floatIntensity={2}>
@@ -94,8 +94,8 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
           map={terrainTex || undefined}
           roughness={forceEmissive ? 1 : 0.7} 
           metalness={forceEmissive ? 0 : 0.1} 
-          emissive={forceEmissive ? (terrainTex ? "#ffffff" : "#222222") : "#222222"}
-          emissiveIntensity={forceEmissive ? 0.5 : 1.0}
+          emissive={forceEmissive ? (terrainTex ? "#ffffff" : "#222222") : "#000000"}
+          emissiveIntensity={forceEmissive ? 0.5 : 0}
         />
       </mesh>
       <gridHelper args={[400, 20, ARL_COLORS.teal, "#1a1a24"]} position={[0, 0.05, 0]} />
@@ -128,6 +128,9 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
           if (forceEmissive) {
             humanoid.mesh.material.emissive = new THREE.Color(appearance.skinTone);
             humanoid.mesh.material.emissiveIntensity = 0.5;
+          } else {
+            humanoid.mesh.material.emissive = new THREE.Color(0x000000);
+            humanoid.mesh.material.emissiveIntensity = 0;
           }
         }
       }
@@ -278,8 +281,8 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
-          {settings.enableAmbient && <ambientLight intensity={settings.forceEmissive ? 1.0 : 4.5} />}
-          {settings.enableHemisphere && <hemisphereLight intensity={3.5} groundColor="#050508" color="#ffffff" />}
+          {settings.enableAmbient && <ambientLight intensity={8.0} />}
+          {settings.enableHemisphere && <hemisphereLight intensity={6.5} groundColor="#050508" color="#ffffff" />}
           {settings.enableDirectional && <directionalLight position={[100, 200, 100]} intensity={12.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />}
           <pointLight position={[0, 50, 0]} intensity={50} color="#60D4FF" />
           {settings.enableEnvironment && <Environment preset="city" />}

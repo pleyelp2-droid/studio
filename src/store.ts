@@ -142,13 +142,13 @@ export const useStore = create<AppState>((set) => ({
   },
   shaderSettings: {
     enableFog: true,
-    enableSky: true,
+    enableSky: false, // Default off per user feedback
     enableStars: true,
     enableAmbient: true,
     enableHemisphere: true,
-    enableDirectional: true,
+    enableDirectional: false, // Destroyed textures, set to false
     enableEnvironment: true,
-    forceEmissive: false,
+    forceEmissive: false, // Reasons for no textures, set to false
   },
 
   setUser: (user) => set({ user }),
@@ -238,6 +238,6 @@ export const useStore = create<AppState>((set) => ({
     })
   })),
   unstuckPlayer: (agentId) => set((state) => ({
-    agents: state.agents.map(a => a.id === agentId ? { ...a, position: { x: 10, y: 0, z: 10 }, state: AgentState.IDLE } : a)
+    agents: state.agents.map(a => a.id === agentId ? { ...a, position: { x: 15, y: 0, z: 15 }, state: AgentState.IDLE } : a)
   })),
 }));
