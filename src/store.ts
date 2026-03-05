@@ -37,6 +37,16 @@ interface AppState {
     physicsBasedActivation: boolean;
     showAxiomaticOverlay: boolean;
   };
+  shaderSettings: {
+    enableFog: boolean;
+    enableSky: boolean;
+    enableStars: boolean;
+    enableAmbient: boolean;
+    enableHemisphere: boolean;
+    enableDirectional: boolean;
+    enableEnvironment: boolean;
+    forceEmissive: boolean;
+  };
   
   setUser: (user: { id: string; name: string; email: string } | null) => void;
   setAxiomAuthenticated: (isAuth: boolean) => void;
@@ -59,6 +69,7 @@ interface AppState {
   releaseControl: () => void;
   bidOnAuction: (auctionId: string, bidderId: string, amount: number) => void;
   setEmergenceSetting: (key: string, value: boolean) => void;
+  setShaderSetting: (key: keyof AppState['shaderSettings'], value: boolean) => void;
   
   // Agent-Core Actions
   updateTrust: (agentId: string, targetId: string, delta: number) => void;
@@ -129,6 +140,16 @@ export const useStore = create<AppState>((set) => ({
     physicsBasedActivation: true,
     showAxiomaticOverlay: false,
   },
+  shaderSettings: {
+    enableFog: true,
+    enableSky: true,
+    enableStars: true,
+    enableAmbient: true,
+    enableHemisphere: true,
+    enableDirectional: true,
+    enableEnvironment: true,
+    forceEmissive: false,
+  },
 
   setUser: (user) => set({ user }),
   setAxiomAuthenticated: (isAuth) => set({ isAxiomAuthenticated: isAuth }),
@@ -160,6 +181,9 @@ export const useStore = create<AppState>((set) => ({
   })),
   setEmergenceSetting: (key, value) => set((state) => ({
     emergenceSettings: { ...state.emergenceSettings, [key]: value }
+  })),
+  setShaderSetting: (key, value) => set((state) => ({
+    shaderSettings: { ...state.shaderSettings, [key]: value }
   })),
 
   // Agent-Core Actions Implementation

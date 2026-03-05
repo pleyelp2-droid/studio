@@ -14,6 +14,7 @@ import { CharacterSheet } from "@/components/ui/CharacterSheet"
 import { AuctionHouseOverlay } from "@/components/ui/AuctionHouseOverlay"
 import { QuestBoardOverlay } from "@/components/ui/QuestBoardOverlay"
 import { SkillBar } from "@/components/ui/SkillBar"
+import { ShaderController } from "@/components/ui/ShaderController"
 
 const World3D = dynamic(() => import('@/components/game/World3D'), { 
   ssr: false,
@@ -132,15 +133,19 @@ export default function WorldPreviewPage() {
 
       {/* World HUD */}
       <div className="absolute top-0 left-0 w-full p-6 pointer-events-none flex justify-between items-start z-40">
-        <div className="bg-black/60 backdrop-blur-xl border border-white/10 p-4 rounded-2xl space-y-1 pointer-events-auto shadow-2xl">
-          <div className="text-[8px] font-black text-axiom-cyan uppercase tracking-[0.3em] italic">Axiom Frontier Core</div>
-          <div className="text-xl font-headline font-black text-white italic tracking-tighter uppercase leading-none">
-            CI: {worldState?.civilizationIndex?.toFixed(2) || "0.00"}
+        <div className="flex flex-col gap-4 pointer-events-auto">
+          <div className="bg-black/60 backdrop-blur-xl border border-white/10 p-4 rounded-2xl space-y-1 shadow-2xl">
+            <div className="text-[8px] font-black text-axiom-cyan uppercase tracking-[0.3em] italic">Axiom Frontier Core</div>
+            <div className="text-xl font-headline font-black text-white italic tracking-tighter uppercase leading-none">
+              CI: {worldState?.civilizationIndex?.toFixed(2) || "0.00"}
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[8px] font-bold text-white/60 uppercase">Sync: Tick {worldState?.tick || 0}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[8px] font-bold text-white/60 uppercase">Sync: Tick {worldState?.tick || 0}</span>
-          </div>
+          
+          <ShaderController />
         </div>
       </div>
 

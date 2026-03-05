@@ -25,6 +25,7 @@ const ARL_COLORS = {
 
 const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [number, number, number], rotationY: number, color: string, seed: number }) => {
   const [archTex, setArchTex] = useState<THREE.Texture | null>(null);
+  const forceEmissive = useStore(state => state.shaderSettings.forceEmissive);
 
   useEffect(() => {
     const updateTex = async () => {
@@ -47,10 +48,10 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
         <meshStandardMaterial 
           color={archTex ? "#ffffff" : color} 
           map={archTex || undefined}
-          metalness={0.8} 
-          roughness={0.2} 
-          emissive={color} 
-          emissiveIntensity={archTex ? 1.2 : 2.5} 
+          metalness={forceEmissive ? 0 : 0.8} 
+          roughness={forceEmissive ? 1 : 0.2} 
+          emissive={forceEmissive ? (archTex ? "#ffffff" : color) : color} 
+          emissiveIntensity={forceEmissive ? 1.0 : (archTex ? 1.2 : 2.5)} 
         />
       </mesh>
       <Float speed={3} rotationIntensity={4} floatIntensity={2}>
@@ -66,6 +67,7 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
 
 const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
   const [terrainTex, setTerrainTex] = useState<THREE.Texture | null>(null);
+  const forceEmissive = useStore(state => state.shaderSettings.forceEmissive);
   const chunkOffsetX = chunk.x * 400;
   const chunkOffsetZ = chunk.z * 400;
 
@@ -90,9 +92,10 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
         <meshStandardMaterial 
           color={terrainTex ? "#ffffff" : "#3a3a4a"} 
           map={terrainTex || undefined}
-          roughness={0.7} 
-          metalness={0.1} 
-          emissive="#222222"
+          roughness={forceEmissive ? 1 : 0.7} 
+          metalness={forceEmissive ? 0 : 0.1} 
+          emissive={forceEmissive ? (terrainTex ? "#ffffff" : "#222222") : "#222222"}
+          emissiveIntensity={forceEmissive ? 0.5 : 1.0}
         />
       </mesh>
       <gridHelper args={[400, 20, ARL_COLORS.teal, "#1a1a24"]} position={[0, 0.05, 0]} />
@@ -104,6 +107,7 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
   const groupRef = useRef<THREE.Group>(null);
   const [model, setModel] = useState<any>(null);
   const [animController, setAnimController] = useState<any>(null);
+  const forceEmissive = useStore(state => state.shaderSettings.forceEmissive);
 
   useEffect(() => {
     if (!agent) return;
@@ -118,9 +122,17 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
         const clips = createAnimationClips(humanoid.bones);
         const controller = new AnimationController(humanoid.mesh, clips);
         setAnimController(controller);
+        
+        // Apply emissive debugging
+        if (humanoid.mesh.material instanceof THREE.MeshStandardMaterial) {
+          if (forceEmissive) {
+            humanoid.mesh.material.emissive = new THREE.Color(appearance.skinTone);
+            humanoid.mesh.material.emissiveIntensity = 0.5;
+          }
+        }
       }
     }, null, "AgentModelCreation");
-  }, [agent.id, agent.appearance?.skinTone, agent.appearance?.bodyScale]);
+  }, [agent.id, agent.appearance?.skinTone, agent.appearance?.bodyScale, forceEmissive]);
 
   useEffect(() => {
     if (animController && agent.state) animController.playForState(agent.state);
@@ -187,6 +199,8 @@ const CameraController = () => {
 const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
   const agents = useStore(state => state.agents) || [];
   const chunks = useStore(state => state.loadedChunks) || [];
+  const settings = useStore(state => state.shaderSettings);
+  
   const localAgent = useMemo(() => agents.find(a => a.id === localPlayerId), [agents, localPlayerId]);
   const otherAgents = useMemo(() => agents.filter(a => a.id !== localPlayerId), [agents, localPlayerId]);
 
@@ -201,8 +215,8 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
 
   return (
     <>
-      <Stars radius={400} depth={80} count={25000} factor={8} saturation={0} fade speed={1.5} />
-      <Sky sunPosition={[100, 20, 100]} turbidity={0.1} rayleigh={0.5} />
+      {settings.enableStars && <Stars radius={400} depth={80} count={25000} factor={8} saturation={0} fade speed={1.5} />}
+      {settings.enableSky && <Sky sunPosition={[100, 20, 100]} turbidity={0.1} rayleigh={0.5} />}
       {chunks.map(c => <ChunkTerrain key={c.id} chunk={c} />)}
       {localAgent && <LocalPlayerController agent={localAgent} />}
       {otherAgents.map(a => <AgentModelWrapper key={a.id} agent={a} />)}
@@ -256,19 +270,21 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
 const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, localPlayerId?: string | null }) => {
   const setTargetPosition = useStore(state => state.setTargetPosition);
   const controlMode = useStore(state => state.controlMode);
+  const settings = useStore(state => state.shaderSettings);
+
   return (
     <div className="w-full h-full bg-[#010102] touch-none">
       <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Initialisation...</div>}>
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
-          <ambientLight intensity={4.5} />
-          <hemisphereLight intensity={3.5} groundColor="#050508" color="#ffffff" />
-          <directionalLight position={[100, 200, 100]} intensity={12.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
+          {settings.enableAmbient && <ambientLight intensity={settings.forceEmissive ? 1.0 : 4.5} />}
+          {settings.enableHemisphere && <hemisphereLight intensity={3.5} groundColor="#050508" color="#ffffff" />}
+          {settings.enableDirectional && <directionalLight position={[100, 200, 100]} intensity={12.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />}
           <pointLight position={[0, 50, 0]} intensity={50} color="#60D4FF" />
-          <Environment preset="city" />
+          {settings.enableEnvironment && <Environment preset="city" />}
           <WorldContent localPlayerId={localPlayerId} />
-          <fog attach="fog" args={["#010102", 200, 3000]} />
+          {settings.enableFog && <fog attach="fog" args={["#010102", 200, 3000]} />}
         </Canvas>
       </Suspense>
     </div>
