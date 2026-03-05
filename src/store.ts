@@ -54,6 +54,8 @@ interface AppState {
     activeNodes: string[];
     logs: string[];
     cacheHealth: number;
+    tenantId: string | null;
+    projectStats: any | null;
   };
   
   setUser: (user: { id: string; name: string; email: string } | null) => void;
@@ -83,6 +85,7 @@ interface AppState {
   updateBrainStatus: (status: AppState['brainEngine']['status']) => void;
   addBrainLog: (log: string) => void;
   setCacheHealth: (health: number) => void;
+  setBrainProjectStats: (stats: any) => void;
 
   // Agent-Core Actions
   updateTrust: (agentId: string, targetId: string, delta: number) => void;
@@ -169,6 +172,8 @@ export const useStore = create<AppState>((set) => ({
     activeNodes: [],
     logs: [],
     cacheHealth: 100,
+    tenantId: 'OUROBOROS_CORE_01',
+    projectStats: null,
   },
 
   setUser: (user) => set({ user }),
@@ -210,6 +215,7 @@ export const useStore = create<AppState>((set) => ({
   updateBrainStatus: (status) => set((state) => ({ brainEngine: { ...state.brainEngine, status, lastSync: Date.now() } })),
   addBrainLog: (log) => set((state) => ({ brainEngine: { ...state.brainEngine, logs: [log, ...state.brainEngine.logs].slice(0, 50) } })),
   setCacheHealth: (cacheHealth) => set((state) => ({ brainEngine: { ...state.brainEngine, cacheHealth } })),
+  setBrainProjectStats: (projectStats) => set((state) => ({ brainEngine: { ...state.brainEngine, projectStats } })),
 
   updateTrust: (agentId, targetId, delta) => set((state) => ({
     agents: state.agents.map(a => {

@@ -33,6 +33,11 @@
   --color-axiom-cyan: hsl(196 100% 69%);
   --color-axiom-gold: hsl(45 67% 47%);
 
+  /* Brain Engine Colors */
+  --color-brain-bg: #E4E3E0;
+  --color-brain-ink: #141414;
+  --color-brain-line: rgba(20, 20, 20, 0.1);
+
   --color-sidebar: var(--color-card);
   --color-sidebar-foreground: var(--color-foreground);
   --color-sidebar-primary: var(--color-primary);
@@ -125,5 +130,23 @@
     position: absolute;
     bottom: 100%;
     @apply animate-scanline;
+  }
+
+  /* Brain Engine Utility Classes */
+  .data-grid {
+    display: grid;
+    border-top: 1px solid var(--color-brain-line);
+    border-left: 1px solid var(--color-brain-line);
+  }
+  .data-cell {
+    border-right: 1px solid var(--color-brain-line);
+    border-bottom: 1px solid var(--color-brain-line);
+    padding: 1rem;
+  }
+  .technical-label {
+    @apply font-display italic text-xs uppercase tracking-widest opacity-60;
+  }
+  .mono-value {
+    @apply font-code tracking-tighter;
   }
 }
