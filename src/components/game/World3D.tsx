@@ -48,10 +48,10 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
         <meshStandardMaterial 
           color={archTex ? "#ffffff" : color} 
           map={archTex || undefined}
-          metalness={forceEmissive ? 0 : 0.8} 
-          roughness={forceEmissive ? 1 : 0.2} 
-          emissive={forceEmissive ? (archTex ? "#ffffff" : color) : color} 
-          emissiveIntensity={forceEmissive ? 1.0 : (archTex ? 0.5 : 0.2)} 
+          metalness={0.8} 
+          roughness={0.2} 
+          emissive={forceEmissive ? (archTex ? "#ffffff" : color) : "#111111"} 
+          emissiveIntensity={forceEmissive ? 1.0 : 0.5} 
         />
       </mesh>
       <Float speed={3} rotationIntensity={4} floatIntensity={2}>
@@ -92,8 +92,8 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
         <meshStandardMaterial 
           color={terrainTex ? "#ffffff" : "#3a3a4a"} 
           map={terrainTex || undefined}
-          roughness={forceEmissive ? 1 : 0.7} 
-          metalness={forceEmissive ? 0 : 0.1} 
+          roughness={0.7} 
+          metalness={0.1} 
           emissive={forceEmissive ? (terrainTex ? "#ffffff" : "#222222") : "#000000"}
           emissiveIntensity={forceEmissive ? 0.5 : 0}
         />
@@ -123,14 +123,13 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
         const controller = new AnimationController(humanoid.mesh, clips);
         setAnimController(controller);
         
-        // Apply emissive debugging
         if (humanoid.mesh.material instanceof THREE.MeshStandardMaterial) {
           if (forceEmissive) {
             humanoid.mesh.material.emissive = new THREE.Color(appearance.skinTone);
             humanoid.mesh.material.emissiveIntensity = 0.5;
           } else {
-            humanoid.mesh.material.emissive = new THREE.Color(0x000000);
-            humanoid.mesh.material.emissiveIntensity = 0;
+            humanoid.mesh.material.emissive = new THREE.Color(0x111111);
+            humanoid.mesh.material.emissiveIntensity = 0.2;
           }
         }
       }

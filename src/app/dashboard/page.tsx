@@ -16,7 +16,8 @@ import {
   Box,
   Layers,
   Map as MapIcon,
-  Terminal
+  Terminal,
+  Cpu
 } from "lucide-react"
 import { getAxiomCompliance } from "@/services/ComplianceManager"
 import WorldMap from "@/components/ui/WorldMap"
@@ -39,7 +40,10 @@ export default function DashboardPage() {
   return (
     <main className="p-6 space-y-6 max-w-7xl mx-auto w-full">
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="axiom-card-hover border-border bg-card">
+        <Card className="axiom-card-hover border-border bg-card shadow-2xl overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-4 opacity-5">
+            <Globe className="h-24 w-24" />
+          </div>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Civilization Index</CardTitle>
             <Globe className="h-4 w-4 text-axiom-cyan" />
@@ -55,7 +59,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="axiom-card-hover border-border bg-card">
+        <Card className="axiom-card-hover border-border bg-card shadow-2xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Current Tick</CardTitle>
             <Clock className="h-4 w-4 text-axiom-cyan" />
@@ -68,10 +72,10 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="axiom-card-hover border-border bg-card">
+        <Card className="axiom-card-hover border-border bg-card shadow-2xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Matrix Load</CardTitle>
-            <Layers className="h-4 w-4 text-axiom-cyan" />
+            <Cpu className="h-4 w-4 text-axiom-cyan" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black font-headline text-white italic">
@@ -81,18 +85,18 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="axiom-card-hover border-border bg-card">
+        <Card className="axiom-card-hover border-border bg-card shadow-2xl text-axiom-gold">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Graphics Layer</CardTitle>
-            <Box className="h-4 w-4 text-axiom-cyan" />
+            <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60">Engine Status</CardTitle>
+            <Activity className="h-4 w-4 opacity-60" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-black font-headline text-white italic">
-              PBR_V1
+            <div className="text-2xl font-black font-headline italic">
+              RELEASE_V1
             </div>
-            <div className="flex items-center gap-1 text-[10px] font-bold text-axiom-cyan mt-1 uppercase tracking-wider">
+            <div className="flex items-center gap-1 text-[10px] font-bold mt-1 uppercase tracking-wider opacity-60">
               <CheckCircle2 className="h-3 w-3" />
-              <span>Skeletal Active</span>
+              <span>Stable Core Pulse</span>
             </div>
           </CardContent>
         </Card>
@@ -100,7 +104,6 @@ export default function DashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="lg:col-span-8 space-y-6">
-          {/* World Map Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <MapIcon className="h-5 w-5 text-axiom-cyan" />
@@ -111,7 +114,6 @@ export default function DashboardPage() {
         </div>
 
         <div className="lg:col-span-4 space-y-6">
-          {/* Matrix Terminal */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Terminal className="h-5 w-5 text-accent" />
@@ -120,7 +122,7 @@ export default function DashboardPage() {
             <MatrixTerminal />
           </div>
 
-          <Card className="border-border bg-card">
+          <Card className="border-border bg-card shadow-xl">
             <CardHeader className="bg-secondary/10 border-b border-border/50">
               <CardTitle className="font-headline font-black italic uppercase text-sm tracking-widest text-white">Logic Core Events</CardTitle>
               <CardDescription className="text-[10px] uppercase font-bold tracking-tight">Stream from the AxiomEnforcer.</CardDescription>
@@ -151,7 +153,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-7">
-        <Card className="lg:col-span-7 border-border bg-card">
+        <Card className="lg:col-span-7 border-border bg-card shadow-2xl">
           <CardHeader className="bg-secondary/10 border-b border-border/50">
             <CardTitle className="font-headline font-black italic uppercase text-sm tracking-widest flex items-center gap-2">
               <Zap className="h-4 w-4 text-axiom-cyan" /> WebGL MMO Compliance Matrix
