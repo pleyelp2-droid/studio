@@ -141,14 +141,14 @@ export const useStore = create<AppState>((set) => ({
     showAxiomaticOverlay: false,
   },
   shaderSettings: {
-    enableFog: true,
-    enableSky: false, // Default off per user feedback
+    enableFog: false, // RELEASE: Deactivated to prevent texture washout
+    enableSky: false, // RELEASE: Deactivated to prevent texture washout
     enableStars: true,
     enableAmbient: true,
     enableHemisphere: true,
-    enableDirectional: false, // Destroyed textures, set to false
+    enableDirectional: false, // RELEASE: Deactivated to prevent texture washout
     enableEnvironment: true,
-    forceEmissive: false, // Reasons for no textures, set to false
+    forceEmissive: false, // RELEASE: Deactivated to show real textures
   },
 
   setUser: (user) => set({ user }),
@@ -238,6 +238,6 @@ export const useStore = create<AppState>((set) => ({
     })
   })),
   unstuckPlayer: (agentId) => set((state) => ({
-    agents: state.agents.map(a => a.id === agentId ? { ...a, position: { x: 15, y: 0, z: 15 }, state: AgentState.IDLE } : a)
+    agents: state.agents.map(a => a.id === agentId ? { ...a, position: { x: 20, y: 0, z: 20 }, state: AgentState.IDLE } : a)
   })),
 }));
