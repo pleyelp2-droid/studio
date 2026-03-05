@@ -25,10 +25,10 @@ export const SkillBar = () => {
   const handleAction = (id: string) => {
     if (id === 'unstuck') {
       unstuckPlayer(agent.id);
-      addLog(`Teleporting to safe coordinates...`, 'SYSTEM');
+      addLog(`Teleporting consciousness to safe coordinate matrix...`, 'SYSTEM');
       return;
     }
-    addLog(`Action triggered: ${id.toUpperCase()}`, 'SYSTEM');
+    addLog(`Axiomatic action triggered: ${id.toUpperCase()}`, 'SYSTEM');
   }
 
   return (

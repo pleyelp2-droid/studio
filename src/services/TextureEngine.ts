@@ -11,7 +11,7 @@ import { initializeFirebase } from '@/firebase';
 
 const { firestore: db } = initializeFirebase();
 
-// Emergency Protocols: High-quality tech-grid patterns
+// Emergency Protocols: High-quality tech-grid patterns (Data URIs for instant visibility)
 const INTERNAL_TECH_GRID = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABAAQMAAACQX01BAAAABlBMVEUAAAD///+l2Z/dAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5wgKCQYdBZ8yFAAAADFJREFUKM9jYGBgYWBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGAEAAChAFH/v8MAAAAASUVORK5CYII=";
 const INTERNAL_BIO_PATTERN = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABAAQMAAACQX01BAAAABlBMVEUAAAD///+l2Z/dAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5wgKCQYdBZ8yFAAAADFJREFUKM9jYGBgYWBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGAEAAChAFH/v8MAAAAASUVORK5CYII=";
 
@@ -40,9 +40,9 @@ class TextureEngine {
   private async init() {
     if (typeof window === 'undefined') return;
 
-    // Load internal fallbacks first
-    this.addInternalTexture('INTERNAL_TERRAIN', 'Axiom Grid', INTERNAL_TECH_GRID, 'TERRAIN');
-    this.addInternalTexture('INTERNAL_ARCH', 'Axiom Core', INTERNAL_BIO_PATTERN, 'ARCHITECTURE');
+    // Load internal fallbacks first to ensure the world is never empty/black
+    this.addInternalTexture('INTERNAL_TERRAIN_GRID', 'Axiom Grid', INTERNAL_TECH_GRID, 'TERRAIN');
+    this.addInternalTexture('INTERNAL_ARCH_CORE', 'Axiom Core', INTERNAL_BIO_PATTERN, 'ARCHITECTURE');
 
     if (db) {
       onSnapshot(collection(db, 'worldAssets'), (snap) => {
@@ -86,10 +86,18 @@ class TextureEngine {
 
   /**
    * Returns a deterministically picked texture from the active pool.
+   * Prioritizes internal fallbacks if no assets are found in DB.
    */
   async getProceduralTexture(cat: TextureCategory, seed: number): Promise<THREE.Texture | null> {
-    const pool = Array.from(this.registry.values()).filter(s => s.category === cat && s.isActive);
+    let pool = Array.from(this.registry.values()).filter(s => s.category === cat && s.isActive);
+    
+    // If empty pool, force internal fallbacks
+    if (pool.length === 0) {
+      pool = Array.from(this.registry.values()).filter(s => s.tags.includes('INTERNAL') && s.category === cat);
+    }
+
     if (pool.length === 0) return null;
+    
     const index = Math.abs(seed) % pool.length;
     return this.getTexture(pool[index].id);
   }

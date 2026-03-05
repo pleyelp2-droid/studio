@@ -86,7 +86,7 @@ export const generateDialogue = (sender: Agent, receiver: Agent, intent: 'social
     ]
   };
 
-  const pool = dialogues[intent] || dialogues.social;
+  const pool = dialogues[intent as keyof typeof dialogues] || dialogues.social;
   return pool[Math.floor(Math.random() * pool.length)];
 };
 

@@ -28,6 +28,7 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
 
   useEffect(() => {
     const updateTex = async () => {
+      // Use Architecture Pool
       const tex = await textureEngine.getProceduralTexture('ARCHITECTURE', seed);
       if (tex) {
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
@@ -71,6 +72,7 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
 
   useEffect(() => {
     const updateTex = async () => {
+      // Use Terrain Pool (Internal Emergency textures are prioritized if empty)
       const tex = await textureEngine.getProceduralTexture('TERRAIN', chunk.seed);
       if (tex) {
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
@@ -128,7 +130,6 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
   useFrame((_state, delta) => {
     if (animController) animController.update(delta);
     if (groupRef.current && agent.position) {
-      // Smoother lerping for all agents
       const targetPos = new THREE.Vector3(agent.position.x, 0, agent.position.z);
       groupRef.current.position.lerp(targetPos, isLocal ? 0.2 : 0.1);
     }
@@ -217,20 +218,18 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
 
 const LocalPlayerController = ({ agent }: { agent: Agent }) => {
   const { virtualInput, controlMode, targetPosition, setAgents, agents } = useStore();
-  const moveSpeed = 0.8; // Increased for better feel
+  const moveSpeed = 0.8; 
   
   useFrame(() => {
     if (!agent || !agent.position) return;
     let moving = false;
     let dx = 0; let dz = 0;
     
-    // Joystick / Keyboard Input
     if ((controlMode === 'JOYSTICK' || controlMode === 'KEYBOARD') && (Math.abs(virtualInput.x) > 0.05 || Math.abs(virtualInput.z) > 0.05)) {
       dx = virtualInput.x * moveSpeed; 
       dz = virtualInput.z * moveSpeed; 
       moving = true;
     } 
-    // Point-and-Click Movement
     else if (targetPosition && controlMode === 'PUSH_TO_WALK') {
       const diffX = targetPosition.x - agent.position.x;
       const diffZ = targetPosition.z - agent.position.z;
@@ -264,8 +263,8 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
-          <ambientLight intensity={1.0} />
-          <directionalLight position={[100, 200, 100]} intensity={3.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
+          <ambientLight intensity={1.5} />
+          <directionalLight position={[100, 200, 100]} intensity={4.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
           <Environment preset="night" />
           <WorldContent localPlayerId={localPlayerId} />
           <fog attach="fog" args={["#010102", 50, 1500]} />
