@@ -141,14 +141,14 @@ export const useStore = create<AppState>((set) => ({
     showAxiomaticOverlay: false,
   },
   shaderSettings: {
-    enableFog: false, // RELEASE: Deactivated to prevent texture washout
-    enableSky: false, // RELEASE: Deactivated to prevent texture washout
+    enableFog: false, // FINAL: Deactivated to ensure texture visibility
+    enableSky: false, // FINAL: Deactivated to ensure texture visibility
     enableStars: true,
     enableAmbient: true,
     enableHemisphere: true,
-    enableDirectional: false, // RELEASE: Deactivated to prevent texture washout
+    enableDirectional: false, // FINAL: Deactivated to prevent texture washout
     enableEnvironment: true,
-    forceEmissive: false, // RELEASE: Deactivated to show real textures
+    forceEmissive: false, // FINAL: Deactivated to show real texture mappings
   },
 
   setUser: (user) => set({ user }),
@@ -186,7 +186,6 @@ export const useStore = create<AppState>((set) => ({
     shaderSettings: { ...state.shaderSettings, [key]: value }
   })),
 
-  // Agent-Core Actions Implementation
   updateTrust: (agentId, targetId, delta) => set((state) => ({
     agents: state.agents.map(a => {
       if (a.id !== agentId) return a;
