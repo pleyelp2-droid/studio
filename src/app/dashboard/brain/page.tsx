@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -15,7 +15,8 @@ import {
   CloudLightning,
   RefreshCw,
   Search,
-  Globe
+  Globe,
+  Layers
 } from "lucide-react"
 import { useStore } from "@/store"
 import { Button } from "@/components/ui/button"
@@ -26,6 +27,7 @@ export default function BrainEngineMonitorPage() {
   const [isScanning, setIsScanning] = useState(false)
   const setBrainProjectStats = useStore(state => state.setBrainProjectStats)
   const addBrainLog = useStore(state => state.addBrainLog)
+  const updatePostgresStatus = useStore(state => state.updatePostgresStatus)
 
   const triggerScan = async () => {
     setIsScanning(true);
@@ -38,7 +40,11 @@ export default function BrainEngineMonitorPage() {
       const data = await res.json();
       if (data.success) {
         setBrainProjectStats(data.stats);
+        updatePostgresStatus(data.postgres_active ? 'CONNECTED' : 'OFFLINE');
         addBrainLog("Project analyzed successfully. Statistics synchronized with GKE node.");
+        if (data.postgres_active) {
+          addBrainLog("PostgreSQL Relational Core: Link established.");
+        }
       }
     } catch (e) {
       addBrainLog("Scan failure: Connection to Axiom GKE Core lost.");
@@ -72,7 +78,7 @@ export default function BrainEngineMonitorPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-4">
         <Card className="bg-secondary/10 border-border group hover:border-accent/40 transition-all">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
@@ -82,7 +88,22 @@ export default function BrainEngineMonitorPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black font-headline text-white italic">{brain.matrixNodeIp}</div>
-            <p className="text-[9px] text-muted-foreground uppercase mt-1">Google Kubernetes Engine Endpoint</p>
+            <p className="text-[9px] text-muted-foreground uppercase mt-1">GCP Kubernetes Cluster</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-secondary/10 border-border">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-[10px] font-black uppercase text-axiom-purple tracking-widest">PostgreSQL Core</CardTitle>
+              <Layers className={`h-4 w-4 ${brain.postgresStatus === 'CONNECTED' ? 'text-emerald-500' : 'text-gray-500'} opacity-40`} />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-3xl font-black font-headline italic ${brain.postgresStatus === 'CONNECTED' ? 'text-emerald-500' : 'text-white'}`}>
+              {brain.postgresStatus}
+            </div>
+            <p className="text-[9px] text-muted-foreground uppercase mt-1">34.185.177.59:5432</p>
           </CardContent>
         </Card>
 
@@ -105,13 +126,13 @@ export default function BrainEngineMonitorPage() {
         <Card className="bg-secondary/10 border-border">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-[10px] font-black uppercase text-axiom-purple tracking-widest">Neural Complexity</CardTitle>
+              <CardTitle className="text-[10px] font-black uppercase text-axiom-purple tracking-widest">Complexity</CardTitle>
               <Zap className="h-4 w-4 text-axiom-purple opacity-40" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-black font-headline text-white italic">{brain.projectStats ? (brain.projectStats.gameRules * 4.2).toFixed(1) : "84.2"}%</div>
-            <p className="text-[9px] text-muted-foreground uppercase mt-1">Axiomatic Information Density</p>
+            <p className="text-[9px] text-muted-foreground uppercase mt-1">Information Density</p>
           </CardContent>
         </Card>
       </div>
@@ -149,15 +170,22 @@ export default function BrainEngineMonitorPage() {
         <Card className="lg:col-span-4 border-border bg-card">
           <CardHeader className="bg-secondary/10 border-b border-border/50">
             <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-              <Lock className="h-4 w-4 text-axiom-gold" /> AWS Infrastructure
+              <Lock className="h-4 w-4 text-axiom-gold" /> Cloud Infrastructure
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
             <div className="space-y-4">
               <div className="p-4 rounded-xl bg-black/40 border border-white/5">
-                <Label className="text-[8px] font-black uppercase text-gray-500 tracking-widest block mb-2">Resource ARN</Label>
+                <Label className="text-[8px] font-black uppercase text-gray-500 tracking-widest block mb-2">AWS Redis ARN</Label>
                 <code className="text-[9px] text-axiom-gold break-all font-mono opacity-80">
                   arn:aws:elasticache:us-east-2:986523046654:serverlesscache:memory
+                </code>
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/40 border border-white/5">
+                <Label className="text-[8px] font-black uppercase text-gray-500 tracking-widest block mb-2">Postgres Node</Label>
+                <code className="text-[9px] text-emerald-500 break-all font-mono opacity-80">
+                  34.185.177.59:5432/ouroboros_db
                 </code>
               </div>
               

@@ -50,6 +50,7 @@ interface AppState {
   // Brain Engine Integration State
   brainEngine: {
     status: 'IDLE' | 'ACTIVE' | 'CALIBRATING' | 'ERROR';
+    postgresStatus: 'OFFLINE' | 'CONNECTED' | 'ERROR';
     lastSync: number | null;
     activeNodes: string[];
     logs: string[];
@@ -84,6 +85,7 @@ interface AppState {
   
   // Brain Engine Actions
   updateBrainStatus: (status: AppState['brainEngine']['status']) => void;
+  updatePostgresStatus: (status: AppState['brainEngine']['postgresStatus']) => void;
   addBrainLog: (log: string) => void;
   setCacheHealth: (health: number) => void;
   setBrainProjectStats: (stats: any) => void;
@@ -169,6 +171,7 @@ export const useStore = create<AppState>((set) => ({
   },
   brainEngine: {
     status: 'ACTIVE',
+    postgresStatus: 'OFFLINE',
     lastSync: Date.now(),
     activeNodes: ['GKE-Cluster-Alpha', 'Matrix-Node-01'],
     logs: ['GKE Node Initialized: 35.232.7.105', 'Matrix link established.'],
@@ -215,6 +218,7 @@ export const useStore = create<AppState>((set) => ({
 
   // Brain Engine State Setters
   updateBrainStatus: (status) => set((state) => ({ brainEngine: { ...state.brainEngine, status, lastSync: Date.now() } })),
+  updatePostgresStatus: (status) => set((state) => ({ brainEngine: { ...state.brainEngine, postgresStatus: status } })),
   addBrainLog: (log) => set((state) => ({ brainEngine: { ...state.brainEngine, logs: [log, ...state.brainEngine.logs].slice(0, 50) } })),
   setCacheHealth: (cacheHealth) => set((state) => ({ brainEngine: { ...state.brainEngine, cacheHealth } })),
   setBrainProjectStats: (projectStats) => set((state) => ({ brainEngine: { ...state.brainEngine, projectStats } })),
