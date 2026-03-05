@@ -1,4 +1,11 @@
 {
   "/page": "app/page.js",
-  "/character-creator/page": "app/character-creator/page.js"
+  "/character-creator/page": "app/character-creator/page.js",
+  "/world-preview/page": "app/world-preview/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/players/page": "app/players/page.js",
+  "/agents/page": "app/agents/page.js",
+  "/admin/audit-logs/page": "app/admin/audit-logs/page.js",
+  "/dashboard/brain/page": "app/dashboard/brain/page.js",
+  "/api/brain/scan/route": "app/api/brain/scan/route.js"
 }
