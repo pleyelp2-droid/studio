@@ -1,26 +1,23 @@
 'use client';
 /**
  * @fileOverview Axiom Frontier - Neural Cache Service (AWS ElastiCache Interface)
- * Handles fast synchronization of heuristic 'thoughts' and network logic.
+ * Enhanced for Brain Engine integration.
  * Integration Point: arn:aws:elasticache:us-east-2:986523046654:serverlesscache:memory
  */
 
 import { initializeFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useStore } from '@/store';
 
 const { firestore: db } = initializeFirebase();
 
 export interface NeuralThought {
   agentId: string;
   thought: string;
-  origin: 'HEURISTIC' | 'NETWORK' | 'AXIOM';
+  origin: 'HEURISTIC' | 'NETWORK' | 'AXIOM' | 'BRAIN_ENGINE';
   timestamp: number;
 }
 
-/**
- * NeuralCacheManager
- * Schnittstelle zur AWS ElastiCache Instanz 'memory' (Engine 1.6.22).
- */
 export const NeuralCacheManager = {
   /**
    * Caches a thought pattern. 
@@ -28,15 +25,18 @@ export const NeuralCacheManager = {
   async cacheThought(thought: NeuralThought) {
     console.log(`[NEURAL_CACHE_SYNC] Thinking: ${thought.agentId} -> ${thought.thought}`);
     
+    // Log brain engine activity specifically to the store
+    if (thought.origin === 'BRAIN_ENGINE') {
+      useStore.getState().addBrainLog(`Thought Manifested: ${thought.thought.slice(0, 30)}...`);
+    }
+
     if (!db) return;
 
     try {
-      // In der GKE-Phase wird hier ein direkter VPC-Call zur ElastiCache ARN erfolgen.
-      // Derzeit nutzen wir Firestore 'thoughtCache' als persistenten Puffer für die Audit-Logs.
       await addDoc(collection(db, 'thoughtCache'), {
         ...thought,
         createdAt: serverTimestamp(),
-        engineVersion: '1.6.22', // Mirroring AWS ElastiCache Version
+        engineVersion: '1.6.22', 
         status: 'CACHED',
         arn: 'arn:aws:elasticache:us-east-2:986523046654:serverlesscache:memory'
       });

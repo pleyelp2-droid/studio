@@ -47,6 +47,14 @@ interface AppState {
     enableEnvironment: boolean;
     forceEmissive: boolean;
   };
+  // Brain Engine Integration State
+  brainEngine: {
+    status: 'IDLE' | 'ACTIVE' | 'CALIBRATING' | 'ERROR';
+    lastSync: number | null;
+    activeNodes: string[];
+    logs: string[];
+    cacheHealth: number;
+  };
   
   setUser: (user: { id: string; name: string; email: string } | null) => void;
   setAxiomAuthenticated: (isAuth: boolean) => void;
@@ -71,6 +79,11 @@ interface AppState {
   setEmergenceSetting: (key: string, value: boolean) => void;
   setShaderSetting: (key: keyof AppState['shaderSettings'], value: boolean) => void;
   
+  // Brain Engine Actions
+  updateBrainStatus: (status: AppState['brainEngine']['status']) => void;
+  addBrainLog: (log: string) => void;
+  setCacheHealth: (health: number) => void;
+
   // Agent-Core Actions
   updateTrust: (agentId: string, targetId: string, delta: number) => void;
   addAgentTask: (agentId: string, task: Task) => void;
@@ -141,14 +154,21 @@ export const useStore = create<AppState>((set) => ({
     showAxiomaticOverlay: false,
   },
   shaderSettings: {
-    enableFog: false, // FINAL: Deactivated to ensure texture visibility
-    enableSky: false, // FINAL: Deactivated to ensure texture visibility
+    enableFog: false,
+    enableSky: false,
     enableStars: true,
     enableAmbient: true,
     enableHemisphere: true,
-    enableDirectional: false, // FINAL: Deactivated to prevent texture washout
+    enableDirectional: false,
     enableEnvironment: true,
-    forceEmissive: false, // FINAL: Deactivated to show real texture mappings
+    forceEmissive: false,
+  },
+  brainEngine: {
+    status: 'IDLE',
+    lastSync: null,
+    activeNodes: [],
+    logs: [],
+    cacheHealth: 100,
   },
 
   setUser: (user) => set({ user }),
@@ -185,6 +205,11 @@ export const useStore = create<AppState>((set) => ({
   setShaderSetting: (key, value) => set((state) => ({
     shaderSettings: { ...state.shaderSettings, [key]: value }
   })),
+
+  // Brain Engine State Setters
+  updateBrainStatus: (status) => set((state) => ({ brainEngine: { ...state.brainEngine, status, lastSync: Date.now() } })),
+  addBrainLog: (log) => set((state) => ({ brainEngine: { ...state.brainEngine, logs: [log, ...state.brainEngine.logs].slice(0, 50) } })),
+  setCacheHealth: (cacheHealth) => set((state) => ({ brainEngine: { ...state.brainEngine, cacheHealth } })),
 
   updateTrust: (agentId, targetId, delta) => set((state) => ({
     agents: state.agents.map(a => {

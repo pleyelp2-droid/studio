@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -23,7 +22,8 @@ import {
   User as UserIcon,
   ClipboardList,
   ShieldCheck,
-  Github
+  Github,
+  Cpu
 } from "lucide-react"
 
 import {
@@ -53,6 +53,7 @@ const mainItems = [
 ]
 
 const contentItems = [
+  { title: "Brain Engine", icon: Cpu, url: "/dashboard/brain" },
   { title: "Content Brain", icon: BrainCircuit, url: "/admin/content" },
   { title: "Quest Engine", icon: ScrollText, url: "/quests" },
   { title: "NPC Architect", icon: UserPlus, url: "/npcs" },
@@ -147,7 +148,7 @@ export function AppSidebar() {
                     <SidebarMenuButton onClick={() => setAuthModalOpen(true)} tooltip="Sign In">
                       <LogIn className="h-4 w-4" />
                       <span>Sign In</span>
-                    </SidebarMenuButton>
+                    </LogIn>
                   </SidebarMenuItem>
                 )}
               </SidebarMenu>
