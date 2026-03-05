@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { Agent, Chunk, Language, AgentState, StoreProduct, Task } from './types';
 
@@ -96,6 +97,7 @@ interface AppState {
   moveInventoryItem: (agentId: string, from: number, to: number) => void;
   allocateStatPoint: (agentId: string, stat: string) => void;
   unstuckPlayer: (agentId: string) => void;
+  setMatrixOverseerOpen: (isOpen: boolean) => void;
 }
 
 export const useStore = create<AppState>((set) => ({

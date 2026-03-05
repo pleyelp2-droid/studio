@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -148,7 +149,7 @@ export function AppSidebar() {
                     <SidebarMenuButton onClick={() => setAuthModalOpen(true)} tooltip="Sign In">
                       <LogIn className="h-4 w-4" />
                       <span>Sign In</span>
-                    </LogIn>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 )}
               </SidebarMenu>

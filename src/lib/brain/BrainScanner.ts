@@ -1,3 +1,4 @@
+
 import { glob } from 'glob';
 
 export type ProjectType = 'godot' | 'unity' | 'unreal' | 'generic';
