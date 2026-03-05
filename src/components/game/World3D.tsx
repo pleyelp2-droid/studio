@@ -28,7 +28,6 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
 
   useEffect(() => {
     const updateTex = async () => {
-      // Use Architecture Pool
       const tex = await textureEngine.getProceduralTexture('ARCHITECTURE', seed);
       if (tex) {
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
@@ -46,21 +45,21 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
       <mesh position={[0, 15, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[2, 5, 30, 6]} />
         <meshStandardMaterial 
-          color={archTex ? "#ffffff" : ARL_COLORS.arcane} 
+          color={archTex ? "#ffffff" : color} 
           map={archTex || undefined}
-          metalness={0.9} 
-          roughness={0.1} 
+          metalness={0.8} 
+          roughness={0.2} 
           emissive={color} 
-          emissiveIntensity={archTex ? 0.2 : 0.8} 
+          emissiveIntensity={archTex ? 0.6 : 1.5} 
         />
       </mesh>
       <Float speed={3} rotationIntensity={4} floatIntensity={2}>
         <mesh position={[0, 35, 0]} scale={3}>
           <octahedronGeometry args={[1, 0]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={5} toneMapped={false} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={10} toneMapped={false} />
         </mesh>
       </Float>
-      <pointLight position={[0, 35, 0]} intensity={25} color={color} distance={200} decay={2} />
+      <pointLight position={[0, 35, 0]} intensity={50} color={color} distance={300} decay={2} />
     </group>
   );
 };
@@ -72,7 +71,6 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
 
   useEffect(() => {
     const updateTex = async () => {
-      // Use Terrain Pool (Internal Emergency textures are prioritized if empty)
       const tex = await textureEngine.getProceduralTexture('TERRAIN', chunk.seed);
       if (tex) {
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
@@ -90,13 +88,14 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[400, 400]} />
         <meshStandardMaterial 
-          color={terrainTex ? "#ffffff" : "#1a1a24"} 
+          color={terrainTex ? "#ffffff" : "#3a3a4a"} 
           map={terrainTex || undefined}
-          roughness={0.8} 
-          metalness={0.2} 
+          roughness={0.7} 
+          metalness={0.1} 
+          emissive="#111111"
         />
       </mesh>
-      <gridHelper args={[400, 20, ARL_COLORS.border, "#0a0a14"]} position={[0, 0.05, 0]} />
+      <gridHelper args={[400, 20, ARL_COLORS.teal, "#1a1a24"]} position={[0, 0.05, 0]} />
     </group>
   );
 };
@@ -131,7 +130,7 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
     if (animController) animController.update(delta);
     if (groupRef.current && agent.position) {
       const targetPos = new THREE.Vector3(agent.position.x, 0, agent.position.z);
-      groupRef.current.position.lerp(targetPos, isLocal ? 0.2 : 0.1);
+      groupRef.current.position.lerp(targetPos, isLocal ? 0.3 : 0.1);
     }
   });
 
@@ -144,8 +143,8 @@ const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?:
   return (
     <group ref={groupRef}>
       <primitive object={model.group} />
-      {isLocal && <pointLight position={[0, 2, 0]} intensity={15} color="#60D4FF" distance={25} />}
-      <Html position={[0, 3.5, 0]} center distanceFactor={15}>
+      {isLocal && <pointLight position={[0, 3, 0]} intensity={30} color="#60D4FF" distance={40} />}
+      <Html position={[0, 4.0, 0]} center distanceFactor={15}>
         <div className="flex flex-col items-center gap-2 pointer-events-none">
           <div className="bg-black/80 backdrop-blur-md border border-axiom-cyan/40 px-3 py-1.5 rounded-2xl shadow-2xl animate-bounce">
             <p className="text-[9px] font-medium text-axiom-cyan italic whitespace-nowrap">{String(lastThought)}</p>
@@ -169,7 +168,7 @@ const CameraController = () => {
   useFrame(() => {
     if (controlledAgent && controlledAgent.position) {
       const { x, z } = controlledAgent.position;
-      const targetPos = new THREE.Vector3(x, 15, z + 40); 
+      const targetPos = new THREE.Vector3(x, 20, z + 50); 
       const lookAtPos = new THREE.Vector3(x, 2, z); 
       
       camera.position.lerp(targetPos, 0.1);
@@ -182,7 +181,7 @@ const CameraController = () => {
     }
   });
 
-  return <OrbitControls ref={controlsRef} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.2} minDistance={5} maxDistance={1000} />;
+  return <OrbitControls ref={controlsRef} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.1} minDistance={5} maxDistance={1500} />;
 };
 
 const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
@@ -202,8 +201,8 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
 
   return (
     <>
-      <Stars radius={300} depth={60} count={20000} factor={7} saturation={0} fade speed={1} />
-      <Sky sunPosition={[100, 20, 100]} />
+      <Stars radius={400} depth={80} count={25000} factor={8} saturation={0} fade speed={1.5} />
+      <Sky sunPosition={[100, 20, 100]} turbidity={0.1} rayleigh={0.5} />
       {chunks.map(c => <ChunkTerrain key={c.id} chunk={c} />)}
       {localAgent && <LocalPlayerController agent={localAgent} />}
       {otherAgents.map(a => <AgentModelWrapper key={a.id} agent={a} />)}
@@ -211,14 +210,14 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
         if (p.type === 'BUILDING' || p.type === 'WALL') return <HighScienceSpire key={p.id} position={p.position} rotationY={p.rotationY} color={ARL_COLORS.arcane} seed={p.seed} />;
         return null;
       })}
-      <ContactShadows resolution={1024} scale={100} blur={2} opacity={0.4} far={10} color="#000000" />
+      <ContactShadows resolution={1024} scale={150} blur={2.5} opacity={0.5} far={15} color="#000000" />
     </>
   );
 }
 
 const LocalPlayerController = ({ agent }: { agent: Agent }) => {
   const { virtualInput, controlMode, targetPosition, setAgents, agents } = useStore();
-  const moveSpeed = 0.8; 
+  const moveSpeed = 1.0; 
   
   useFrame(() => {
     if (!agent || !agent.position) return;
@@ -263,11 +262,14 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
-          <ambientLight intensity={1.5} />
-          <directionalLight position={[100, 200, 100]} intensity={4.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
-          <Environment preset="night" />
+          <ambientLight intensity={3.5} />
+          <hemisphereLight intensity={2.0} groundColor="#050508" color="#ffffff" />
+          <directionalLight position={[100, 200, 100]} intensity={8.0} castShadow shadow-mapSize={[2048, 2048]} shadow-bias={-0.0005} />
+          <pointLight position={[0, 50, 0]} intensity={25} color="#60D4FF" />
+          <Environment preset="city" />
           <WorldContent localPlayerId={localPlayerId} />
-          <fog attach="fog" args={["#010102", 50, 1500]} />
+          {/* Relaxed fog for better visibility */}
+          <fog attach="fog" args={["#010102", 100, 2500]} />
         </Canvas>
       </Suspense>
     </div>

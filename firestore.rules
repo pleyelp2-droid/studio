@@ -21,11 +21,21 @@ service cloud.firestore {
 
     // --- COLLECTION RULES ---
 
-    // World State (Singleton) - Erlaubt get für alle angemeldeten User
-    match /worldState/global {
-      allow get: if isSignedIn();
-      allow list: if isAdmin();
-      allow create, update, delete: if isAdmin();
+    // World State (Global singleton)
+    match /worldState/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // World Data & Assets
+    match /worldAssets/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /chunks/{document=**} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
     // Players collection
@@ -41,30 +51,35 @@ service cloud.firestore {
       }
     }
 
-    // Game Metadata & Lore
-    match /questLines/{questId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
-    match /loreEntries/{loreId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
-    match /worldAssets/{assetId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
-    match /npcDialogs/{dialogId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    // Content & Lore
+    match /questLines/{document=**} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /loreEntries/{document=**} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /npcDialogs/{document=**} { allow read: if isSignedIn(); allow write: if isAdmin(); }
 
-    // Audit & Logs
-    match /adminAuditLogs/{logId} { allow read, write: if isAdmin(); }
-    match /contentLogs/{logId} { allow read, write: if isAdmin(); }
-    match /youtubeScripts/{scriptId} { allow read, write: if isAdmin(); }
-    match /anomalyLogs/{logId} { allow read, write: if isAdmin(); }
+    // Logs & Diagnostics
+    match /adminAuditLogs/{document=**} { allow read, write: if isAdmin(); }
+    match /contentLogs/{document=**} { allow read, write: if isAdmin(); }
+    match /youtubeScripts/{document=**} { allow read, write: if isAdmin(); }
+    match /anomalyLogs/{document=**} { allow read, write: if isAdmin(); }
     
-    // Transactions & Economics
+    // Transactions & Cache
     match /matrixTransactions/{txId} {
       allow read: if isSignedIn() && (resource.data.fromUid == request.auth.uid || resource.data.toUid == request.auth.uid || isAdmin());
       allow create: if isSignedIn();
     }
 
-    match /thoughtCache/{thoughtId} { allow read, write: if isSignedIn(); }
-    match /tickState/{tickId} { allow read: if isSignedIn(); allow write: if isAdmin(); }
+    match /thoughtCache/{document=**} { allow read, write: if isSignedIn(); }
+    match /tickState/{document=**} { allow read: if isSignedIn(); allow write: if isAdmin(); }
     
     match /roles_admin/{adminId} {
       allow get: if isOwner(adminId) || isAdmin();
       allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+    
+    // Fallback for everything else
+    match /{document=**} {
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
   }

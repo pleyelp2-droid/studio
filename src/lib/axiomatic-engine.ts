@@ -102,7 +102,7 @@ export const getXPForNextLevel = (currentLevel: number): number => {
     } else {
         // High Science Era: Jedes Level ab 100 kostet 225% mehr als das davor (Faktor 3.25)
         const xpAt99 = Math.floor(baseXP * Math.pow(1.5, 98));
-        const levelsOver99 = currentLevel - 99;
+        const levelsOver 99 = currentLevel - 99;
         return Math.floor(xpAt99 * Math.pow(3.25, levelsOver99));
     }
 };
