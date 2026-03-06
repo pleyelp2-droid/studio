@@ -1,9 +1,9 @@
-
 'use client';
 
 /**
  * @fileOverview Axiom Frontier - High Performance Anti-Artifact Shaders
  * Permanently stripped of Fog, Sky, and Sun logic to ensure 100% texture clarity.
+ * Optimized for "High Science" visibility.
  */
 
 export const axiomVertexShader = `
@@ -48,9 +48,11 @@ void main() {
     vec3 normal = normalize(vNormal);
     float lighting = 1.0; // Locked full bright for High Science
 
-    vec3 finalColor = vec3(0.04, 0.05, 0.1);
-    if (abs(uBiome - 0.0) < 0.1) finalColor = vec3(0.01, 0.02, 0.06); 
-    else if (abs(uBiome - 1.0) < 0.1) finalColor = vec3(0.01, 0.06, 0.03); 
+    // Biome-based base colors
+    vec3 finalColor = vec3(0.04, 0.05, 0.1); // Default
+    if (abs(uBiome - 0.0) < 0.1) finalColor = vec3(0.01, 0.02, 0.06); // data-plains
+    else if (abs(uBiome - 1.0) < 0.1) finalColor = vec3(0.01, 0.06, 0.03); // crystal-forest
+    else if (abs(uBiome - 2.0) < 0.1) finalColor = vec3(0.05, 0.05, 0.05); // tech-ruins
 
     float dist = distance(vPosition, uCameraPosition);
     float gridFade = clamp(1.0 - (dist - 200.0) / 300.0, 0.0, 1.0);
@@ -63,8 +65,9 @@ void main() {
     vec3 gridColor = vec3(0.1, 0.6, 0.6);
     finalColor = mix(finalColor, gridColor, clamp(gridPattern, 0.0, 1.0) * 0.15 * gridFade);
 
-    // FOG AND ATMOSPHERE LOGIC PERMANENTLY REMOVED AT SOURCE
-    // All textures are 100% visible with zero atmospheric washout.
+    // ATMOSPHERIC HARDENING:
+    // Mist, Fog, and Sun-Bleaching logic are PERMANENTLY REMOVED.
+    // Every pixel is rendered at maximum clarity.
     gl_FragColor = vec4(finalColor * lighting, 1.0);
 }
 `;

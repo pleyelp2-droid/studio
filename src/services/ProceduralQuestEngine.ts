@@ -1,17 +1,16 @@
 'use client';
 /**
  * @fileOverview Ouroboros Procedural Quest Engine
- * Dynamically generates mission objectives based on Civilization Needs.
+ * Dynamically generates mission objectives based on Civilization Needs and "Axiom Frontier" vision.
  */
 
 import { initializeFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { generateLoot } from './LootManager';
 import { QuestLine } from '@/types';
 
 const { firestore: db } = initializeFirebase();
 
-export type QuestArchetype = 'gather' | 'kill' | 'deliver' | 'explore' | 'diplomatic' | 'dungeon' | 'escort' | 'defend';
+export type QuestArchetype = 'gather' | 'kill' | 'explore' | 'spire_narrative' | 'logic_sync';
 
 interface QuestTemplate {
   type: QuestArchetype;
@@ -25,58 +24,37 @@ const ARCHETYPES: Record<QuestArchetype, QuestTemplate> = {
   gather: {
     type: 'gather',
     titlePatterns: ['Resource Requisition', 'Supply the Core', '{resource} Collection'],
-    descriptionPatterns: ['The collective requires {amount} {resource} for operations.', 'Gather {amount} {resource} from local sectors.'],
-    lorePatterns: ['Expansion demands materials. Your contribution is vital.'],
+    descriptionPatterns: ['Expansion demands materials. Gather {amount} {resource} for spire optimization.'],
+    lorePatterns: ['Mathematical purity requires perfect components.'],
     baseDifficulty: 2
   },
   kill: {
     type: 'kill',
     titlePatterns: ['Elimination Cycle', 'Clear the Threat', 'Hunt the {enemy}'],
-    descriptionPatterns: ['Anomalies detected. Purge {amount} {enemy} signatures.', 'Hostile protocols active. Eradicate {enemy} units.'],
+    descriptionPatterns: ['Eradicate {amount} {enemy} units to stabilize the local code-field.'],
     lorePatterns: ['Corruption must be pruned from the matrix.'],
     baseDifficulty: 4
   },
   explore: {
     type: 'explore',
     titlePatterns: ['Chart the Unknown', 'Survey the Frontier', 'Reconnaissance'],
-    descriptionPatterns: ['Explore {amount} undiscovered nodes.', 'Scan the perimeter for logic drifts.'],
+    descriptionPatterns: ['Scan the perimeter for logic drifts in {amount} sectors.'],
     lorePatterns: ['Knowledge is the only shield against entropy.'],
     baseDifficulty: 3
   },
-  deliver: {
-    type: 'deliver',
-    titlePatterns: ['Urgent Delivery', 'Trade Caravan', 'Data Packet Sync'],
-    descriptionPatterns: ['Transport encrypted data to the target node.', 'Deliver physical shards to the extraction point.'],
-    lorePatterns: ['Information flow must never be interrupted.'],
-    baseDifficulty: 3
-  },
-  diplomatic: {
-    type: 'diplomatic',
-    titlePatterns: ['Peace Negotiations', 'Alliance Proposal', 'Embassy Mission'],
-    descriptionPatterns: ['Establish a neutral link with the local faction.', 'Negotiate resource rights with Pilot leaders.'],
-    lorePatterns: ['Words can stabilize what force cannot.'],
+  spire_narrative: {
+    type: 'spire_narrative',
+    titlePatterns: ['The Great Spire Signal', 'Axiomatic Resonance', 'Tracing the Origin'],
+    descriptionPatterns: ['A unique signal has manifested at the Spire. Investigate the source.'],
+    lorePatterns: ['The equation is shifting. We must find the new variable.'],
     baseDifficulty: 5
   },
-  dungeon: {
-    type: 'dungeon',
-    titlePatterns: ['Void Delve', 'Reclaim the Depths', 'Vault Breach'],
-    descriptionPatterns: ['Descend into the unstable sector and purge the core.', 'Retrieve the ancient data fragment from the depths.'],
-    lorePatterns: ['In the deepest layers, the first code still whispers.'],
-    baseDifficulty: 7
-  },
-  escort: {
-    type: 'escort',
-    titlePatterns: ['Safe Passage', 'Protect the Manifest', 'Guardian Duty'],
-    descriptionPatterns: ['Ensure the transport reaches the spire center.', 'Guard the neural entity through the desert wastes.'],
-    lorePatterns: ['Vulnerable data is a target for the Void.'],
-    baseDifficulty: 6
-  },
-  defend: {
-    type: 'defend',
-    titlePatterns: ['Hold the Line', 'Defense Protocol', 'Repel the Drift'],
-    descriptionPatterns: ['Defend the local node from 3 waves of corruption.', 'Ensure the sector stability remains above 80%.'],
-    lorePatterns: ['The foundation must not crumble.'],
-    baseDifficulty: 6
+  logic_sync: {
+    type: 'logic_sync',
+    titlePatterns: ['Logic Sync: {resource}', 'Memory Buffer Calibration', 'Network Handshake'],
+    descriptionPatterns: ['Synchronize {amount} logic-nodes to prevent matrix fragmentation.'],
+    lorePatterns: ['Connectivity is the lifeblood of the Frontier.'],
+    baseDifficulty: 3
   }
 };
 

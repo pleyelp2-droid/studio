@@ -1,10 +1,13 @@
-
 import { Chunk, POI, Monster, ResourceNode, MONSTER_TEMPLATES } from '../types';
 
+/**
+ * WorldBuildingService
+ * Generates procedural content based on "Axiom Frontier" mathematical vision.
+ */
 export class WorldBuildingService {
   /**
    * Enhanced Procedural Content Generation
-   * Generates dense cities, active monsters, and resource fields.
+   * Generates dense cities, active monsters, and resource fields based on biomes.
    */
   static generateAxiomaticContent(chunk: Chunk) {
     if (!chunk) return { pois: [], monsters: [], resources: [] };
@@ -22,7 +25,7 @@ export class WorldBuildingService {
       return x - Math.floor(x);
     };
 
-    // 1. POI Manifestation
+    // 1. POI Manifestation based on vision
     if (chunk.biome === 'CITY') {
       // Main Spire
       pois.push({
@@ -33,62 +36,52 @@ export class WorldBuildingService {
         isDiscovered: true
       });
 
-      // City Walls
-      const wallCount = 8;
-      for (let i = 0; i < wallCount; i++) {
-        const angle = (i / wallCount) * Math.PI * 2;
+      // Data Pylons
+      for (let i = 0; i < 4; i++) {
+        const angle = (i / 4) * Math.PI * 2;
         pois.push({
-          id: `wall-${chunk.id}-${i}`,
-          type: 'WALL',
-          position: [
-            chunkOffsetX + Math.cos(angle) * 180,
-            0,
-            chunkOffsetZ + Math.sin(angle) * 180
-          ],
-          rotationY: angle + Math.PI / 2,
-          isDiscovered: true
-        });
-      }
-
-      // Houses
-      for (let i = 0; i < 10; i++) {
-        const angle = pseudoRandom(i) * Math.PI * 2;
-        const dist = 60 + pseudoRandom(i * 2) * 80;
-        pois.push({
-          id: `house-${chunk.id}-${i}`,
+          id: `pylon-${chunk.id}-${i}`,
           type: 'BUILDING',
           position: [
-            chunkOffsetX + Math.cos(angle) * dist,
+            chunkOffsetX + Math.cos(angle) * 100,
             0,
-            chunkOffsetZ + Math.sin(angle) * dist
+            chunkOffsetZ + Math.sin(angle) * 100
           ],
           rotationY: angle,
           isDiscovered: true
         });
       }
-    } else {
-      // Wilderness POIs
-      if (pseudoRandom(1) > 0.7) {
+    } else if (chunk.biome === 'FOREST') {
+      // Crystal Trees
+      for (let i = 0; i < 15; i++) {
+        const angle = pseudoRandom(i) * Math.PI * 2;
+        const dist = 50 + pseudoRandom(i * 2) * 120;
         pois.push({
-          id: `shrine-${chunk.id}`,
-          type: 'SHRINE',
+          id: `tree-${chunk.id}-${i}`,
+          type: 'TREE',
           position: [
-            chunkOffsetX + (pseudoRandom(2) - 0.5) * 200,
+            chunkOffsetX + Math.cos(angle) * dist,
             0,
-            chunkOffsetZ + (pseudoRandom(3) - 0.5) * 200
+            chunkOffsetZ + Math.sin(angle) * dist
           ],
-          isDiscovered: false
+          rotationY: pseudoRandom(i * 3) * Math.PI,
+          isDiscovered: true
         });
       }
     }
 
-    // 2. Resource Manifestation
-    const resTypes = ['IRON_ORE', 'WOOD', 'GOLD_ORE', 'STONE'];
-    const nodeCount = 5 + Math.floor(pseudoRandom(10) * 10);
+    // 2. Resource Manifestation (Distance-based density as per vision)
+    const distToCenter = Math.hypot(chunk.x, chunk.z);
+    const densityMult = 1 + (distToCenter / 5); // Further out = more resources
+    
+    const resTypes = ['IRON_ORE', 'GOLD_ORE', 'LOGIC_NODE'];
+    const nodeCount = Math.floor((5 + pseudoRandom(10) * 10) * densityMult);
+    
     for (let i = 0; i < nodeCount; i++) {
+      const type = resTypes[Math.floor(pseudoRandom(i + 20) * resTypes.length)];
       resources.push({
         id: `res-${chunk.id}-${i}`,
-        type: resTypes[Math.floor(pseudoRandom(i + 20) * resTypes.length)],
+        type,
         position: [
           chunkOffsetX + (pseudoRandom(i + 30) - 0.5) * 350,
           0,
