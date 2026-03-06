@@ -23,7 +23,7 @@ NPCs ("Neural Entities") agieren nach dem Prinzip der Nutzwert-Maximierung.
 ## 3. HYBRIDE INFRASTRUKTUR
 - **GKE Node (35.232.7.105):** Verarbeitet die rechenintensiven neuronalen Pfade und die Gemini-Synthese.
 - **PostgreSQL Core (34.185.177.59):** Fungiert als das "Ewige Ledger". Hier werden alle Transaktionen, Level-Ups und Welt-Events relational und unveränderlich gespeichert.
-- **Firestore:** Dient als High-Speed-Schnittstelle für die Echtzeit-Synchronisation zwischen Godot und React.
+- **Firestore:** Dient als High-Speed-Schnittstelle für die Echtzeit-Synchronisation zwischen Godot and React.
 
 ## 4. VISUELLE PHILOSOPHIE (HIGH-SCIENCE)
 - **Shader-Regel:** Mist (Nebel), Sonne und Atmosphäre sind zu 100% deaktiviert. 

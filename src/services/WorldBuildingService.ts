@@ -2,11 +2,11 @@ import { Chunk, POI, Monster, ResourceNode, MONSTER_TEMPLATES } from '../types';
 
 /**
  * WorldBuildingService
- * Generates procedural content based on "Axiom Frontier" mathematical vision.
+ * Generates procedural content based on "Axiom Frontier" high-performance mathematical vision.
+ * Supports Data Plains, Crystal Forest, Tech Ruins, and Energy Fields.
  */
 export class WorldBuildingService {
   /**
-   * Enhanced Procedural Content Generation
    * Generates dense cities, active monsters, and resource fields based on biomes.
    */
   static generateAxiomaticContent(chunk: Chunk) {
@@ -26,7 +26,7 @@ export class WorldBuildingService {
     };
 
     // 1. POI Manifestation based on vision
-    if (chunk.biome === 'CITY') {
+    if (chunk.biome === 'CITY' || chunk.biome === 'PLAINS') {
       // Main Spire
       pois.push({
         id: `spire-${chunk.id}`,
@@ -70,9 +70,9 @@ export class WorldBuildingService {
       }
     }
 
-    // 2. Resource Manifestation (Distance-based density as per vision)
+    // 2. Resource Manifestation (Distance-based density)
     const distToCenter = Math.hypot(chunk.x, chunk.z);
-    const densityMult = 1 + (distToCenter / 5); // Further out = more resources
+    const densityMult = 1 + (distToCenter / 5); 
     
     const resTypes = ['IRON_ORE', 'GOLD_ORE', 'LOGIC_NODE'];
     const nodeCount = Math.floor((5 + pseudoRandom(10) * 10) * densityMult);
@@ -91,7 +91,7 @@ export class WorldBuildingService {
       });
     }
 
-    // 3. Autonomous Life (NPCs / Monsters)
+    // 3. Autonomous Life
     const lifeCount = chunk.biome === 'CITY' ? 6 : 3;
     for (let i = 0; i < lifeCount; i++) {
       const type = pseudoRandom(i + 50) > 0.8 ? 'DRAGON' : (pseudoRandom(i + 51) > 0.5 ? 'ORC' : 'GOBLIN');

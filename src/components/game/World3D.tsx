@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Html, PerspectiveCamera, Float, OrbitControls, Environment, ContactShadows } from "@react-three/drei"
@@ -302,8 +301,7 @@ const SceneController = ({ setVfx }: { setVfx: (vfx: VFXEngine) => void }) => {
   }, [scene, setVfx]);
 
   useFrame((_state, delta) => {
-    // VFX Updates are handled by systems internally if managed by scene, 
-    // but here we could call engine.update(delta) if we kept a ref.
+    // VFX engine handles updates internally if needed
   });
 
   return null;

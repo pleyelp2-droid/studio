@@ -65,9 +65,7 @@ void main() {
     vec3 gridColor = vec3(0.1, 0.6, 0.6);
     finalColor = mix(finalColor, gridColor, clamp(gridPattern, 0.0, 1.0) * 0.15 * gridFade);
 
-    // ATMOSPHERIC HARDENING:
-    // Mist, Fog, and Sun-Bleaching logic are PERMANENTLY REMOVED.
-    // Every pixel is rendered at maximum clarity.
+    // VISUAL CLARITY LOCK: Fog, atmosphere, and sun logic are permanently disabled.
     gl_FragColor = vec4(finalColor * lighting, 1.0);
 }
 `;
