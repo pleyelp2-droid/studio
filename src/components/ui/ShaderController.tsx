@@ -1,19 +1,17 @@
 "use client";
 
 import { useStore } from '@/store';
-import { Eye, EyeOff, Sun, Moon, CloudFog, Sparkles, Box, Globe, Zap } from 'lucide-react';
+import { Moon, Sparkles, Box, Globe, Zap, ShieldCheck } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 
 export const ShaderController = () => {
   const shaderSettings = useStore(state => state.shaderSettings);
   const setShaderSetting = useStore(state => state.setShaderSetting);
 
+  // Filtered to only stable settings that don't cause "White Screen"
   const controls = [
-    { key: 'enableFog', label: 'Fog Shader', icon: CloudFog },
-    { key: 'enableSky', label: 'Atmosphere', icon: Sun },
     { key: 'enableStars', label: 'Star Field', icon: Sparkles },
     { key: 'enableAmbient', label: 'Ambient Light', icon: Moon },
-    { key: 'enableDirectional', label: 'Sun Light', icon: Sun },
     { key: 'enableEnvironment', label: 'IBL Maps', icon: Globe },
     { key: 'forceEmissive', label: 'Force Glow', icon: Zap },
   ];
@@ -51,9 +49,10 @@ export const ShaderController = () => {
       </div>
 
       <div className="mt-6 pt-4 border-t border-white/10">
-        <div className="bg-black/40 p-3 rounded-xl border border-white/5">
-          <p className="text-[8px] text-gray-500 leading-tight uppercase font-bold italic">
-            Tip: If textures are missing, try disabling "Atmosphere" and "Fog" or enabling "Force Glow".
+        <div className="bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20 flex items-center gap-2">
+          <ShieldCheck className="h-3 w-3 text-emerald-500" />
+          <p className="text-[8px] text-emerald-400 leading-tight uppercase font-black italic">
+            Matrix stabilized. Problematic shaders (Fog/Atmosphere) bypassed to ensure texture clarity.
           </p>
         </div>
       </div>

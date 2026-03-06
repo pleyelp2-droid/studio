@@ -167,7 +167,7 @@ export const useStore = create<AppState>((set) => ({
     enableHemisphere: true,
     enableDirectional: false,
     enableEnvironment: true,
-    forceEmissive: false,
+    forceEmissive: true,
   },
   brainEngine: {
     status: 'ACTIVE',
