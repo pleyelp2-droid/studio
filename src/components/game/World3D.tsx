@@ -152,20 +152,12 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
   );
 };
 
-/**
- * Tactical Grid Overlay
- * Synchronized to the 10-unit tactical scale requested in the design snippet.
- * Renders at the 400x400 chunk scale with CX/CY positioning.
- */
 const ChunkGridOverlay = ({ chunks }: { chunks: Chunk[] }) => {
   return (
     <group name="AxiomChunkGrid">
       {chunks.map((chunk) => (
         <group key={`grid-group-${chunk.id}`} position={[chunk.x * 400, 0.1, chunk.z * 400]}>
-          {/* Tactical 10-unit Wireframe Layer */}
           <gridHelper args={[400, 40, 0x223344, 0x111111]} />
-          
-          {/* Visual Chunk Border */}
           <mesh rotation={[-Math.PI / 2, 0, 0]}>
             <planeGeometry args={[400, 400]} />
             <meshBasicMaterial color={0x4cafcb} wireframe transparent opacity={0.05} />
@@ -351,7 +343,7 @@ const World3D = ({ localPlayerId }: { localPlayerId?: string | null }) => {
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
           
-          {/* HIGH SCIENCE LIGHTING LOGIC (12.0 INTENSITY TARGET) */}
+          {/* HIGH SCIENCE LIGHTING (12.0 TARGET) */}
           <ambientLight intensity={12.0} color={preset.light.sunColor} />
           <hemisphereLight intensity={2.0} groundColor={preset.light.groundColor} color={preset.light.sunColor} />
           

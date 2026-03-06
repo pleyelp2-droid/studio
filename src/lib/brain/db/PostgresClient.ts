@@ -1,30 +1,43 @@
+
 /**
  * @fileOverview Axiom Frontier - PostgreSQL Relational Core
- * Integration point for high-density world data and persistent ledger.
- * Connection: postgresql://projectouroboroscollective@gmail.com@34.185.177.59:5432/ouroboros_db
+ * Handles connection to the AWS RDS instance via environment variables.
  */
 
 import { Pool } from 'pg';
-
-const connectionString = 'postgresql://projectouroboroscollective@gmail.com@34.185.177.59:5432/ouroboros_db';
+import fs from 'fs';
 
 export class PostgresClient {
   private pool: Pool | null = null;
 
   constructor() {
-    // Only initialize if we're on the server
+    // Ensure this only runs server-side
     if (typeof window === 'undefined') {
+      const host = process.env.PGHOST || 'database-1.cjyis4meesmc.us-west-2.rds.amazonaws.com';
+      const user = process.env.PGUSER || 'postgres';
+      const password = process.env.PGPASSWORD || '2N00py123-';
+      const database = process.env.PGDATABASE || 'postgres';
+      const port = parseInt(process.env.PGPORT || '5432');
+      
       this.pool = new Pool({
-        connectionString,
-        ssl: {
-          rejectUnauthorized: false
+        host,
+        port,
+        database,
+        user,
+        password,
+        ssl: { 
+          rejectUnauthorized: false, 
+          // Load SSL certificate if present in standard location
+          ca: fs.existsSync('/certs/global-bundle.pem') 
+            ? fs.readFileSync('/certs/global-bundle.pem').toString() 
+            : undefined
         }
       });
     }
   }
 
   async query(text: string, params?: any[]) {
-    if (!this.pool) throw new Error('PostgresClient called on client side or not initialized.');
+    if (!this.pool) throw new Error('PostgresClient not initialized or running client-side.');
     return this.pool.query(text, params);
   }
 
@@ -36,6 +49,17 @@ export class PostgresClient {
     } catch (e) {
       console.error('[POSTGRES_CONNECT_ERROR]', e);
       return false;
+    }
+  }
+
+  async getVersion(): Promise<string | null> {
+    if (!this.pool) return null;
+    try {
+      const res = await this.pool.query('SELECT version()');
+      return res.rows[0].version;
+    } catch (e) {
+      console.error('[POSTGRES_VERSION_ERROR]', e);
+      return null;
     }
   }
 }

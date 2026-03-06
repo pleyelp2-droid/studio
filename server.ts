@@ -7,19 +7,19 @@ const dev = process.env.NODE_ENV !== 'production';
 const nextApp = next({ dev });
 const handle = nextApp.getRequestHandler();
 
-// --- Konfiguration ---
+// --- Configuration ---
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
-// --- Globales Error Handling ---
+// --- Global Error Handling ---
 process.on('uncaughtException', (err) => {
-  console.error('KRITISCH: Unbehandelte Exception:', err);
+  console.error('CRITICAL: Uncaught Exception:', err);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('KRITISCH: Unbehandelter Rejection bei:', promise, 'Grund:', reason);
+  console.error('CRITICAL: Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// --- Welt-Status ---
+// --- World State ---
 interface Agent {
   id: string;
   name: string;
@@ -30,13 +30,13 @@ interface Agent {
 }
 
 interface RenderEntity {
- id: string;
- type: 'npc' | 'object';
- position: { x: number; y: number; z: number };
- asset: {
-   scene: string;
-   texture: string;
- };
+  id: string;
+  type: 'npc' | 'object';
+  position: { x: number; y: number; z: number };
+  asset: {
+    scene: string;
+    texture: string;
+  };
 }
 
 interface CityState {
@@ -55,8 +55,8 @@ interface CityState {
 
 let worldState = {
   tick: 0,
-  region_state: 'Stabil',
-  biome_type: 'Gemäßigter Wald',
+  region_state: 'Stable',
+  biome_type: 'Temperate Forest',
   active_players: 0,
   recent_events: [] as string[],
   
@@ -86,27 +86,27 @@ let worldState = {
   ] as CityState[],
 
   agents: [
-    { id: 'agent_01', name: 'Arelor Wache', x: 10, y: 0, z: 10, state: 'IDLE' },
-    { id: 'agent_02', name: 'Waldläufer', x: -20, y: 0, z: 15, state: 'WANDERING' }
+    { id: 'agent_01', name: 'Arelor Guard', x: 10, y: 0, z: 10, state: 'IDLE' },
+    { id: 'agent_02', name: 'Forest Stalker', x: -20, y: 0, z: 15, state: 'WANDERING' }
  ] as Agent[],
 
  entities: [] as RenderEntity[]
 };
 
 function buildRenderableEntities(agents: Agent[]): RenderEntity[] {
- return agents.map((agent) => ({
- id: agent.id,
- type: 'npc',
- position: { x: agent.x, y: agent.y, z: agent.z },
- asset: {
-   scene: 'res://scenes/Entity.tscn',
-   texture: 'res://textures/default_npc.png'
- }
- }));
+  return agents.map((agent) => ({
+    id: agent.id,
+    type: 'npc',
+    position: { x: agent.x, y: agent.y, z: agent.z },
+    asset: {
+      scene: 'res://scenes/Entity.tscn',
+      texture: 'res://textures/default_npc.png'
+    }
+  }));
 }
 
 function syncRenderableState() {
- worldState.entities = buildRenderableEntities(worldState.agents);
+  worldState.entities = buildRenderableEntities(worldState.agents);
 }
 
 syncRenderableState();
@@ -139,7 +139,7 @@ nextApp.prepare().then(() => {
 
   wss.on('connection', (ws: WebSocket, req) => {
     const ip = req.socket.remoteAddress;
-    console.log(`Godot/Client verbunden von ${ip}`);
+    console.log(`Godot/Client connected from ${ip}`);
     worldState.active_players++;
 
     syncRenderableState();
@@ -149,16 +149,16 @@ nextApp.prepare().then(() => {
       try {
         const data = JSON.parse(message.toString());
         if (data.type === 'MOVE') {
-          console.log(`Spieler bewegt nach: ${data.x}, ${data.y}, ${data.z}`);
+          console.log(`Player moved to: ${data.x}, ${data.y}, ${data.z}`);
         }
       } catch (e) {
-        console.error('WS Message Parse Fehler:', e);
+        console.error('WS Message Parse Error:', e);
       }
     });
 
     ws.on('close', () => {
       worldState.active_players--;
-      console.log(`Client ${ip} getrennt`);
+      console.log(`Client ${ip} disconnected`);
     });
   });
 
@@ -177,7 +177,7 @@ nextApp.prepare().then(() => {
         city.ci = calculateCI(city);
         
         if (city.ci < 0.25) {
-          worldState.recent_events.push(`${city.name} hat Probleme. Gebäude verfallen.`);
+          worldState.recent_events.push(`${city.name} is struggling. Buildings decaying.`);
         }
       }
     });
@@ -192,8 +192,8 @@ nextApp.prepare().then(() => {
   }, 1000);
 
   server.listen(PORT, () => {
-    console.log(`Arelorian Hybrid Server läuft auf Port ${PORT}`);
+    console.log(`Arelorian Hybrid Server running on port ${PORT}`);
   });
 }).catch((err) => {
-  console.error('Next.js Vorbereitung fehlgeschlagen:', err);
+  console.error('Next.js preparation failed:', err);
 });
