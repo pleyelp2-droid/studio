@@ -18,7 +18,7 @@ import {
   Globe,
   Zap 
 } from "lucide-react"
-import { useFirestore, useDoc, useMemoFirebase } from "@/firebase"
+import { useFirestore, useDoc, useMemoFirebase, useUser } from "@/firebase"
 import { doc } from "firebase/firestore"
 import Image from "next/image"
 import { PlaceHolderImages } from "@/lib/placeholder-images"
@@ -26,8 +26,10 @@ import { motion } from "framer-motion"
 
 export default function MMORPGPortal() {
   const db = useFirestore()
+  const { user } = useUser()
   const [orientation, setOrientation] = useState<'portrait' | 'landscape'>('landscape')
   
+  // Publicly readable world state
   const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
   const { data: worldState } = useDoc(worldRef)
 
@@ -115,7 +117,7 @@ export default function MMORPGPortal() {
         </div>
 
         <section id="skill-matrix" className="px-6 lg:px-12 py-20 md:py-32 bg-black/40">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-7xl auto">
             <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 md:mb-24 gap-10">
               <div className="space-y-4">
                 <Badge variant="outline" className="border-accent/30 text-accent font-black tracking-[0.5em] uppercase text-[10px] px-4 py-1">Classless Progression</Badge>

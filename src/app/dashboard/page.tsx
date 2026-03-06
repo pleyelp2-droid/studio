@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useFirestore, useDoc, useMemoFirebase, useCollection } from "@/firebase"
+import { useFirestore, useDoc, useMemoFirebase, useCollection, useUser } from "@/firebase"
 import { doc, collection, query, limit, orderBy } from "firebase/firestore"
 import { 
   Globe, 
@@ -25,14 +25,15 @@ import { MatrixTerminal } from "@/components/ui/MatrixTerminal"
 
 export default function DashboardPage() {
   const db = useFirestore()
+  const { user } = useUser()
   
-  const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
+  const worldRef = useMemoFirebase(() => (db && user) ? doc(db, "worldState", "global") : null, [db, user])
   const { data: worldState, isLoading } = useDoc(worldRef)
 
   const chunksQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    if (!db || !user) return null;
     return query(collection(db, "chunks"), orderBy("lastUpdate", "desc"), limit(100));
-  }, [db]);
+  }, [db, user]);
   const { data: chunks } = useCollection(chunksQuery);
 
   const compliance = getAxiomCompliance(!!db, !!worldState?.tick)

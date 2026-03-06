@@ -23,7 +23,7 @@ service cloud.firestore {
 
     // World State (Global singleton)
     match /worldState/{document=**} {
-      allow read: if isSignedIn();
+      allow read: if true; // Public read for landing page stats and CI index
       allow write: if isAdmin();
     }
 

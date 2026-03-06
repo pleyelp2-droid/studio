@@ -152,6 +152,23 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
   );
 };
 
+const ChunkGridOverlay = ({ chunks }: { chunks: Chunk[] }) => {
+  return (
+    <group name="AxiomChunkGrid">
+      {chunks.map((chunk) => (
+        <mesh 
+          key={`wire-${chunk.id}`} 
+          position={[chunk.x * 10, 0.05, chunk.z * 10]} 
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
+          <planeGeometry args={[10, 10]} />
+          <meshBasicMaterial color={0x223344} wireframe transparent opacity={0.5} />
+        </mesh>
+      ))}
+    </group>
+  );
+};
+
 const AgentModelWrapper = ({ agent, isLocal = false, vfx }: { agent: Agent; isLocal?: boolean; vfx: VFXEngine | null }) => {
   const groupRef = useRef<THREE.Group>(null);
   const [model, setModel] = useState<any>(null);
@@ -260,6 +277,7 @@ const WorldContent = ({ localPlayerId, vfx }: { localPlayerId?: string | null; v
   return (
     <>
       {chunks.map(c => <ChunkTerrain key={c.id} chunk={c} />)}
+      <ChunkGridOverlay chunks={chunks} />
       {localAgent && <LocalPlayerController agent={localAgent} vfx={vfx} />}
       {otherAgents.map(a => <AgentModelWrapper key={a.id} agent={a} vfx={vfx} />)}
       {pois.map(p => {
@@ -313,7 +331,6 @@ const LocalPlayerController = ({ agent, vfx }: { agent: Agent; vfx: VFXEngine | 
 };
 
 const World3D = ({ localPlayerId }: { localPlayerId?: string | null }) => {
-  const controlMode = useStore(state => state.controlMode);
   const shaderSettings = useStore(state => state.shaderSettings);
   const timeOfDay = useStore(state => state.timeOfDay);
   const [vfxEngine, setVfxEngine] = useState<VFXEngine | null>(null);

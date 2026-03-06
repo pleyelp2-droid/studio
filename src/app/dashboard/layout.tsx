@@ -1,10 +1,9 @@
-
 "use client"
 
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/AppSidebar"
 import { Badge } from "@/components/ui/badge"
-import { useDoc, useFirestore, useMemoFirebase } from "@/firebase"
+import { useDoc, useFirestore, useMemoFirebase, useUser } from "@/firebase"
 import { doc } from "firebase/firestore"
 import { AxiomHandshakeModal } from "@/components/game/AxiomHandshakeModal"
 import { useState } from "react"
@@ -16,7 +15,8 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const db = useFirestore()
-  const worldRef = useMemoFirebase(() => db ? doc(db, "worldState", "global") : null, [db])
+  const { user } = useUser()
+  const worldRef = useMemoFirebase(() => (db && user) ? doc(db, "worldState", "global") : null, [db, user])
   const { data: worldState } = useDoc(worldRef)
   const isAxiomAuthenticated = useStore(state => state.isAxiomAuthenticated)
   const [handshakeOpen, setHandshakeOpen] = useState(!isAxiomAuthenticated)
