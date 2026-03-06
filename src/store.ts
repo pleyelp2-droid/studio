@@ -3,6 +3,13 @@ import { Agent, Chunk, Language, AgentState, StoreProduct, Task, Guild, Procedur
 
 export type TimeOfDay = 'day' | 'dusk' | 'night';
 
+export interface GitHubSyncConfig {
+  token: string;
+  owner: string;
+  repo: string;
+  branch: string;
+}
+
 interface AppState {
   agents: Agent[];
   loadedChunks: Chunk[];
@@ -15,12 +22,7 @@ interface AppState {
   selectedAgentId: string | null;
   language: Language;
   timeOfDay: TimeOfDay;
-  githubConfig: {
-    token: string;
-    owner: string;
-    repo: string;
-    branch: string;
-  };
+  githubConfig: GitHubSyncConfig;
   device: {
     isMobile: boolean;
     width: number;
@@ -71,7 +73,7 @@ interface AppState {
   selectAgent: (id: string | null) => void;
   setLanguage: (lang: Language) => void;
   setTimeOfDay: (time: TimeOfDay) => void;
-  setGithubConfig: (config: Partial<AppState['githubConfig']>) => void;
+  setGithubConfig: (config: Partial<GitHubSyncConfig>) => void;
   setIsMobile: (isMobile: boolean) => void;
   setControlMode: (mode: 'JOYSTICK' | 'PUSH_TO_WALK' | 'KEYBOARD') => void;
   setVirtualInput: (input: { x: number; z: number }) => void;

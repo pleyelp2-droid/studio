@@ -154,20 +154,22 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
 
 /**
  * Tactical Grid Overlay
- * Corrected to match 400x400 chunk scale while providing the 10-unit wireframe grid logic.
+ * Synchronized to the 10-unit tactical scale requested in the design snippet.
+ * Renders at the 400x400 chunk scale with CX/CY positioning.
  */
 const ChunkGridOverlay = ({ chunks }: { chunks: Chunk[] }) => {
   return (
     <group name="AxiomChunkGrid">
       {chunks.map((chunk) => (
         <group key={`grid-group-${chunk.id}`} position={[chunk.x * 400, 0.1, chunk.z * 400]}>
-          {/* Main Chunk Border */}
+          {/* Tactical 10-unit Wireframe Layer */}
+          <gridHelper args={[400, 40, 0x223344, 0x111111]} />
+          
+          {/* Visual Chunk Border */}
           <mesh rotation={[-Math.PI / 2, 0, 0]}>
             <planeGeometry args={[400, 400]} />
-            <meshBasicMaterial color={0x4cafcb} wireframe transparent opacity={0.1} />
+            <meshBasicMaterial color={0x4cafcb} wireframe transparent opacity={0.05} />
           </mesh>
-          {/* Tactical 10-unit Wireframe requested by user */}
-          <gridHelper args={[400, 40, 0x223344, 0x111111]} />
         </group>
       ))}
     </group>
@@ -349,12 +351,13 @@ const World3D = ({ localPlayerId }: { localPlayerId?: string | null }) => {
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
           
-          <ambientLight intensity={preset.light.ambientIntensity * 2} color={preset.light.sunColor} />
-          <hemisphereLight intensity={1.5} groundColor={preset.light.groundColor} color={preset.light.sunColor} />
+          {/* HIGH SCIENCE LIGHTING LOGIC (12.0 INTENSITY TARGET) */}
+          <ambientLight intensity={12.0} color={preset.light.sunColor} />
+          <hemisphereLight intensity={2.0} groundColor={preset.light.groundColor} color={preset.light.sunColor} />
           
           <directionalLight 
             position={preset.light.sunDirection as [number, number, number]} 
-            intensity={preset.light.sunIntensity} 
+            intensity={2.5} 
             color={preset.light.sunColor}
             castShadow
           />

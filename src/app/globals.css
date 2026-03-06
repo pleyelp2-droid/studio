@@ -1,8 +1,7 @@
 @import "tailwindcss";
-@plugin "tailwindcss-animate";
-
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Audiowide&family=Courier+Prime:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&family=JetBrains+Mono:wght@300;400;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=Rajdhani:wght@300;500;700&family=Inter:wght@400;700;900&display=swap');
+@plugin "tailwindcss-animate";
 
 @theme {
   --font-display: "Orbitron", serif;
@@ -74,4 +73,5 @@
   .axiom-gradient { background: linear-gradient(135deg, #4cafcb 0%, #7b4fd4 100%); }
   .heartbeat-pulse { @apply animate-heartbeat; }
   .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .axiom-card-hover { @apply hover:border-accent/40 transition-all duration-500 hover:shadow-[0_0_30px_rgba(96,212,255,0.15)]; }
 }
