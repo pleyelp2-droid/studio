@@ -2,7 +2,7 @@
 
 /**
  * @fileOverview Axiom Frontier - High Performance Anti-Artifact Shaders
- * Optimized for maximum FPS. Fog and Sky logic are stripped to ensure texture visibility.
+ * Permanently stripped of Fog, Sky, and Sun logic to ensure 100% texture clarity.
  */
 
 export const axiomVertexShader = `
@@ -11,7 +11,6 @@ varying vec3 vPosition;
 varying vec3 vNormal;
 
 uniform float uTime;
-uniform float uAwakeningDensity;
 uniform float uBiome; 
 
 void main() {
@@ -41,20 +40,19 @@ varying vec3 vPosition;
 varying vec3 vNormal;
 
 uniform float uTime;
-uniform float uAwakeningDensity; 
 uniform float uBiome;
 uniform vec3 uCameraPosition;
 
 void main() {
     vec3 normal = normalize(vNormal);
-    float lighting = 0.8 + 0.2 * max(normal.y, 0.0);
+    float lighting = 1.0; // Locked full bright for High Science
 
     vec3 finalColor = vec3(0.04, 0.05, 0.1);
     if (abs(uBiome - 0.0) < 0.1) finalColor = vec3(0.01, 0.02, 0.06); 
     else if (abs(uBiome - 1.0) < 0.1) finalColor = vec3(0.01, 0.06, 0.03); 
 
     float dist = distance(vPosition, uCameraPosition);
-    float gridFade = clamp(1.0 - (dist - 100.0) / 150.0, 0.0, 1.0);
+    float gridFade = clamp(1.0 - (dist - 200.0) / 300.0, 0.0, 1.0);
     
     vec2 gridUV = vPosition.xz * 0.25; 
     vec2 grid = abs(fract(gridUV - 0.5) - 0.5);
@@ -64,9 +62,7 @@ void main() {
     vec3 gridColor = vec3(0.1, 0.6, 0.6);
     finalColor = mix(finalColor, gridColor, clamp(gridPattern, 0.0, 1.0) * 0.15 * gridFade);
 
-    finalColor *= lighting;
-
-    // FOG AND SUN PERMANENTLY BYPASSED FOR CLARITY
-    gl_FragColor = vec4(finalColor, 1.0);
+    // DESTRUCTIVE SHADERS (FOG/SUN/SKY) PERMANENTLY REMOVED AT SOURCE
+    gl_FragColor = vec4(finalColor * lighting, 1.0);
 }
 `;

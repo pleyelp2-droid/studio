@@ -1,51 +1,66 @@
 'use client';
 /**
- * @fileOverview Ouroboros GPU Instancing Engine (Three.js)
- * Optimized for rendering 1000+ world nodes with minimal draw calls.
+ * @fileOverview Ouroboros GPU Instancing Engine (Three.js Edition)
+ * Optimized for rendering 1000+ nodes with Auto-LOD and shared physics hulls.
  */
 
 import * as THREE from 'three';
+import { LibraryAsset } from './LibraryManager';
 
-export interface InstanceConfig {
-  id: string;
-  mesh: THREE.Mesh;
-  positions: THREE.Vector3[];
-  rotations?: THREE.Euler[];
-  scales?: THREE.Vector3[];
+export interface InstanceNode {
+  position: THREE.Vector3;
+  rotation: THREE.Euler;
+  scale: THREE.Vector3;
 }
 
 export class InstancedAssetEngine {
   /**
-   * Creates an InstancedMesh for a specific prefab.
-   * Mirroring the high-performance Babylon pattern for Three.js.
+   * Creates a high-performance InstancedMesh group for a specific library asset.
+   * Mirroring the "Lowest LOD as Collision Hull" strategy.
    */
-  static createInstancedGroup(config: InstanceConfig): THREE.InstancedMesh {
-    const { mesh, positions, rotations, scales, id } = config;
-    const count = positions.length;
-    
+  static createInstancedGroup(
+    asset: LibraryAsset, 
+    nodes: InstanceNode[], 
+    baseMesh: THREE.Mesh
+  ): THREE.InstancedMesh {
+    const count = nodes.length;
     const instancedMesh = new THREE.InstancedMesh(
-      mesh.geometry,
-      mesh.material,
+      baseMesh.geometry,
+      baseMesh.material,
       count
     );
-    
-    instancedMesh.name = `instanced_${id}`;
+
+    instancedMesh.name = `instanced_${asset.id}`;
     instancedMesh.castShadow = true;
     instancedMesh.receiveShadow = true;
 
     const dummy = new THREE.Object3D();
+    const assetScale = asset.asset.scale || { x: 1, y: 1, z: 1 };
+    const assetOffset = asset.asset.offset || { x: 0, y: 0, z: 0 };
 
-    for (let i = 0; i < count; i++) {
-      dummy.position.copy(positions[i]);
-      if (rotations && rotations[i]) dummy.rotation.copy(rotations[i]);
-      if (scales && scales[i]) dummy.scale.copy(scales[i]);
-      else dummy.scale.set(1, 1, 1);
+    nodes.forEach((node, i) => {
+      dummy.position.set(
+        node.position.x + assetOffset.x,
+        node.position.y + assetOffset.y,
+        node.position.z + assetOffset.z
+      );
+      dummy.rotation.copy(node.rotation);
+      dummy.scale.set(
+        node.scale.x * assetScale.x,
+        node.scale.y * assetScale.y,
+        node.scale.z * assetScale.z
+      );
       
       dummy.updateMatrix();
       instancedMesh.setMatrixAt(i, dummy.matrix);
-    }
+    });
 
     instancedMesh.instanceMatrix.needsUpdate = true;
+    
+    // Physics Hull Logic: Attach metadata for the physics engine
+    instancedMesh.userData.isSolid = asset.asset.isSolid;
+    instancedMesh.userData.isTrigger = asset.asset.isTrigger;
+
     return instancedMesh;
   }
 }
