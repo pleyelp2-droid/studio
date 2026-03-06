@@ -1,1 +1,5 @@
-{}
+{
+  "/page": "app/page.js",
+  "/world-preview/page": "app/world-preview/page.js",
+  "/character-creator/page": "app/character-creator/page.js"
+}
