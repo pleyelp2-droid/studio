@@ -23,36 +23,36 @@ interface QuestTemplate {
 const ARCHETYPES: Record<QuestArchetype, QuestTemplate> = {
   gather: {
     type: 'gather',
-    titlePatterns: ['Resource Requisition', 'Supply the Core', '{resource} Collection'],
-    descriptionPatterns: ['Expansion demands materials. Gather {amount} {resource} for spire optimization.'],
+    titlePatterns: ['Material Acquisition', 'Supply the Core', '{resource} Requisition'],
+    descriptionPatterns: ['Expansion demands high-purity components. Gather {amount} {resource} for Spire calibration.'],
     lorePatterns: ['Mathematical purity requires perfect components.'],
     baseDifficulty: 2
   },
   kill: {
     type: 'kill',
-    titlePatterns: ['Elimination Cycle', 'Clear the Threat', 'Hunt the {enemy}'],
-    descriptionPatterns: ['Eradicate {amount} {enemy} units to stabilize the local code-field.'],
+    titlePatterns: ['Elimination Cycle', 'Stabilization Protocol', 'Purge {enemy}'],
+    descriptionPatterns: ['Eradicate {amount} {enemy} units to stabilize the local data-field.'],
     lorePatterns: ['Corruption must be pruned from the matrix.'],
     baseDifficulty: 4
   },
   explore: {
     type: 'explore',
-    titlePatterns: ['Chart the Unknown', 'Survey the Frontier', 'Reconnaissance'],
-    descriptionPatterns: ['Scan the perimeter for logic drifts in {amount} sectors.'],
+    titlePatterns: ['Reconnaissance', 'Survey the Frontier', 'Deep Matrix Scan'],
+    descriptionPatterns: ['Map the perimeter for logic drifts in {amount} unexplored sectors.'],
     lorePatterns: ['Knowledge is the only shield against entropy.'],
     baseDifficulty: 3
   },
   spire_narrative: {
     type: 'spire_narrative',
-    titlePatterns: ['The Great Spire Signal', 'Axiomatic Resonance', 'Tracing the Origin'],
-    descriptionPatterns: ['A unique signal has manifested at the Spire. Investigate the source.'],
+    titlePatterns: ['Tracing the Origin', 'Axiomatic Resonance', 'The First Heartbeat'],
+    descriptionPatterns: ['A unique signal has manifested at the central Spire. Investigate the source node.'],
     lorePatterns: ['The equation is shifting. We must find the new variable.'],
     baseDifficulty: 5
   },
   logic_sync: {
     type: 'logic_sync',
-    titlePatterns: ['Logic Sync: {resource}', 'Memory Buffer Calibration', 'Network Handshake'],
-    descriptionPatterns: ['Synchronize {amount} logic-nodes to prevent matrix fragmentation.'],
+    titlePatterns: ['Logic Sync: {resource}', 'Memory Calibration', 'Network Handshake'],
+    descriptionPatterns: ['Synchronize {amount} logic-nodes to prevent matrix fragmentation in the sector.'],
     lorePatterns: ['Connectivity is the lifeblood of the Frontier.'],
     baseDifficulty: 3
   }
@@ -66,8 +66,8 @@ export const ProceduralQuestEngine = {
     const template = ARCHETYPES[archetype];
     const difficulty = Math.min(10, Math.max(1, template.baseDifficulty + Math.floor(level / 10)));
     
-    const resource = ['Iron Shards', 'Axiom Fragments', 'Neon Timber', 'Neural Dust'][Math.floor(Math.random() * 4)];
-    const enemy = ['Glitched Sentinel', 'Void Wraith', 'Corruption Golem'][Math.floor(Math.random() * 3)];
+    const resource = ['Iron Shards', 'Axiom Fragments', 'Logic Packets', 'Neural Dust'][Math.floor(Math.random() * 4)];
+    const enemy = ['Glitched Sentinel', 'Void Wraith', 'Corruption Protocol'][Math.floor(Math.random() * 3)];
     const amount = 5 + level;
 
     const title = template.titlePatterns[Math.floor(Math.random() * template.titlePatterns.length)]
@@ -88,7 +88,7 @@ export const ProceduralQuestEngine = {
       status: 'active',
       npc_id: 'axiom_orchestrator',
       quest_steps: [
-        { type: 'task', description: `Finalize objective: ${archetype.toUpperCase()}`, count: amount }
+        { type: 'task', description: `Finalize protocol: ${archetype.toUpperCase()}`, count: amount }
       ]
     };
   },

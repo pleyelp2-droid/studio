@@ -68,6 +68,18 @@ export class WorldBuildingService {
           isDiscovered: true
         });
       }
+    } else if (chunk.biome === 'MOUNTAIN') {
+      // Iron Formations
+      for (let i = 0; i < 8; i++) {
+        const x = (pseudoRandom(i) - 0.5) * 300;
+        const z = (pseudoRandom(i + 1) - 0.5) * 300;
+        pois.push({
+          id: `iron-${chunk.id}-${i}`,
+          type: 'MINE',
+          position: [chunkOffsetX + x, 0, chunkOffsetZ + z],
+          isDiscovered: true
+        });
+      }
     }
 
     // 2. Resource Manifestation (Distance-based density)

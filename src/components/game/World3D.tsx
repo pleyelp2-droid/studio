@@ -15,10 +15,10 @@ import { VFXEngine } from "@/services/VFXEngine"
 
 const ARL_COLORS = {
   void: "#020203",
-  arcane: "#7b4fd4",
-  teal: "#1fb8b8",
-  gold: "#c9a227",
-  blood: "#c0392b",
+  arcane: "#4cafcb",
+  teal: "#4cafcb",
+  gold: "#ffd700",
+  silver: "#e8f0f8",
   border: "#1e2a4a",
   white: "#ffffff",
   ground: "#050508"
@@ -153,18 +153,18 @@ const AgentModelWrapper = ({ agent, isLocal = false, vfx }: { agent: Agent; isLo
 
   const lastThought = agent.memoryCache && agent.memoryCache.length > 0 
     ? agent.memoryCache[agent.memoryCache.length - 1] 
-    : agent.state === AgentState.IDLE ? "Calculating Cycle..." : `Status: ${agent.state}`;
+    : agent.state === AgentState.IDLE ? "Syncing..." : `Status: ${agent.state}`;
 
   return (
     <group ref={groupRef}>
       <primitive object={model.group} />
-      {isLocal && <pointLight position={[0, 3, 0]} intensity={20} color="#60D4FF" distance={50} />}
+      {isLocal && <pointLight position={[0, 3, 0]} intensity={20} color="#4cafcb" distance={50} />}
       <Html position={[0, 4.0, 0]} center distanceFactor={15}>
         <div className="flex flex-col items-center gap-2 pointer-events-none">
           <div className="bg-black/80 backdrop-blur-md border border-axiom-cyan/40 px-3 py-1.5 rounded-2xl shadow-2xl animate-bounce">
-            <p className="text-[9px] font-medium text-axiom-cyan italic whitespace-nowrap">{String(lastThought)}</p>
+            <p className="text-[9px] font-medium text-axiom-cyan italic whitespace-nowrap font-code">{String(lastThought)}</p>
           </div>
-          <div className={`px-4 py-1 rounded-full bg-black/60 border-2 ${isLocal ? 'border-axiom-cyan shadow-[0_0_15px_rgba(6,182,212,0.5)]' : 'border-white/10'} text-white text-[10px] font-black uppercase tracking-[0.2em] backdrop-blur-md italic whitespace-nowrap`}>
+          <div className={`px-4 py-1 rounded-full bg-black/60 border-2 ${isLocal ? 'border-axiom-cyan shadow-[0_0_15px_rgba(76,175,203,0.5)]' : 'border-white/10'} text-white text-[10px] font-display font-black uppercase tracking-[0.2em] backdrop-blur-md italic whitespace-nowrap`}>
             {agent.displayName || agent.name || "Pilot"}
           </div>
         </div>
@@ -275,15 +275,15 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
 
   return (
     <div className="w-full h-full bg-[#050508] touch-none">
-      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Initialisation...</div>}>
+      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-display animate-pulse uppercase tracking-[0.5em] text-xl">Materializing...</div>}>
         <Canvas gl={{ antialias: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
           
-          {/* HIGH SCIENCE LIGHTING - Normalized Intensities */}
-          <ambientLight intensity={1.5} />
-          <hemisphereLight intensity={1.0} groundColor="#050508" color="#ffffff" />
-          <pointLight position={[100, 100, 100]} intensity={2.0} color="#ffffff" />
+          {/* HIGH SCIENCE LIGHTING - Normalized for Visibility */}
+          <ambientLight intensity={2.0} />
+          <hemisphereLight intensity={2.0} groundColor="#050508" color="#ffffff" />
+          <pointLight position={[100, 100, 100]} intensity={3.0} color="#ffffff" />
           
           {settings.enableEnvironment && <Environment preset="city" />}
           <SceneController setVfx={setVfxEngine} />

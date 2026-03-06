@@ -61,11 +61,6 @@ const contentItems = [
   { title: "Asset Hub", icon: Database, url: "/assets" },
 ]
 
-const godotItems = [
-  { title: "Bridge Protocol", icon: HardDriveDownload, url: "/godot" },
-  { title: "Project Sync", icon: Wifi, url: "/godot#sync" },
-]
-
 const ADMIN_EMAIL = 'pleyelp2@gmail.com';
 
 export function AppSidebar() {
@@ -90,7 +85,7 @@ export function AppSidebar() {
               <Zap className="h-6 w-6 text-white" />
             </div>
             <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-              <span className="text-lg font-headline font-bold leading-none text-white uppercase italic">AXIOM</span>
+              <span className="text-lg font-display font-bold leading-none text-white uppercase italic">AXIOM</span>
               <span className="text-[10px] text-accent tracking-[0.2em] font-black">CORE_FRONTIER</span>
             </div>
           </div>
@@ -113,7 +108,7 @@ export function AppSidebar() {
                       <Github className="h-6 w-6 shrink-0" />
                       <div className="flex flex-col items-start ml-2 group-data-[collapsible=icon]:hidden">
                         <span className="font-black text-[11px] tracking-widest uppercase italic">SYNC TO GITHUB</span>
-                        <span className="text-[8px] font-bold text-white/60 uppercase">Manual Snapshot v1.0.4</span>
+                        <span className="text-[8px] font-bold text-white/60 uppercase">Manual Snapshot v1.0.6</span>
                       </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -127,7 +122,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {user ? (
-                  <>
+                  <React.Fragment>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild isActive={pathname === '/profile'} tooltip="Profile">
                         <Link href="/profile">
@@ -142,7 +137,7 @@ export function AppSidebar() {
                         <span>Sign Out</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  </>
+                  </React.Fragment>
                 ) : (
                   <SidebarMenuItem>
                     <SidebarMenuButton onClick={() => setAuthModalOpen(true)} tooltip="Sign In">
@@ -178,24 +173,6 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {contentItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
-                      <Link href={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
-            <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Integration</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {godotItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
                       <Link href={item.url}>

@@ -46,16 +46,17 @@ uniform vec3 uCameraPosition;
 
 void main() {
     vec3 normal = normalize(vNormal);
-    float lighting = 1.0; // Locked full bright for High Science
+    float lighting = 1.0; 
 
     // Biome-based base colors
     vec3 finalColor = vec3(0.04, 0.05, 0.1); // Default
     if (abs(uBiome - 0.0) < 0.1) finalColor = vec3(0.01, 0.02, 0.06); // data-plains
     else if (abs(uBiome - 1.0) < 0.1) finalColor = vec3(0.01, 0.06, 0.03); // crystal-forest
     else if (abs(uBiome - 2.0) < 0.1) finalColor = vec3(0.05, 0.05, 0.05); // tech-ruins
+    else if (abs(uBiome - 3.0) < 0.1) finalColor = vec3(0.08, 0.04, 0.08); // energy-fields
 
     float dist = distance(vPosition, uCameraPosition);
-    float gridFade = clamp(1.0 - (dist - 200.0) / 300.0, 0.0, 1.0);
+    float gridFade = clamp(1.0 - (dist - 300.0) / 500.0, 0.0, 1.0);
     
     vec2 gridUV = vPosition.xz * 0.25; 
     vec2 grid = abs(fract(gridUV - 0.5) - 0.5);

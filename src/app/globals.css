@@ -1,46 +1,41 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&family=JetBrains+Mono:wght@300;400;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&family=Rajdhani:wght@300;500;700&family=Inter:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Audiowide&family=Courier+Prime:wght@400;700&family=Inter:wght@400;700;900&display=swap');
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
 @theme {
-  --font-display: "Cinzel Decorative", serif;
-  --font-heading: "Cinzel", serif;
+  --font-display: "Orbitron", serif;
+  --font-heading: "Audiowide", serif;
   --font-body: "Inter", sans-serif;
-  --font-code: "JetBrains Mono", monospace;
+  --font-code: "Courier Prime", monospace;
 
   --color-background: hsl(240 10% 2%);
-  --color-foreground: hsl(45 40% 85%);
+  --color-foreground: hsl(196 100% 95%);
   --color-card: hsl(240 10% 4%);
-  --color-card-foreground: hsl(45 40% 85%);
+  --color-card-foreground: hsl(196 100% 95%);
   --color-popover: hsl(240 10% 2%);
-  --color-popover-foreground: hsl(45 40% 85%);
-  --color-primary: hsl(231 60% 44%);
-  --color-primary-foreground: hsl(45 40% 95%);
+  --color-popover-foreground: hsl(196 100% 95%);
+  --color-primary: hsl(196 100% 50%);
+  --color-primary-foreground: hsl(240 10% 2%);
   --color-secondary: hsl(240 10% 13%);
-  --color-secondary-foreground: hsl(45 40% 85%);
+  --color-secondary-foreground: hsl(196 100% 95%);
   --color-muted: hsl(240 10% 8%);
   --color-muted-foreground: hsl(220 20% 60%);
   --color-accent: hsl(196 100% 69%);
   --color-accent-foreground: hsl(240 10% 2%);
   --color-destructive: hsl(0 65% 46%);
   --color-destructive-foreground: hsl(45 40% 95%);
-  --color-border: hsl(231 60% 20%);
-  --color-input: hsl(231 60% 20%);
-  --color-ring: hsl(231 60% 44%);
+  --color-border: hsl(196 100% 20%);
+  --color-input: hsl(196 100% 20%);
+  --color-ring: hsl(196 100% 50%);
 
-  --color-axiom-dark: #020203;
-  --color-axiom-purple: hsl(263 60% 57%);
-  --color-axiom-cyan: hsl(196 100% 69%);
-  --color-axiom-gold: hsl(45 67% 47%);
+  --color-axiom-cyan: #4cafcb;
+  --color-axiom-gold: #ffd700;
+  --color-axiom-silver: #e8f0f8;
 
   @keyframes gradient {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
-  }
-  @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
   }
   @keyframes matrix-scan {
     0% { transform: translateY(-100%); }
@@ -50,16 +45,10 @@
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: .5; transform: scale(1.2); }
   }
-  @keyframes scanline {
-    0% { bottom: 100%; }
-    100% { bottom: 0%; }
-  }
 
   --animate-gradient: gradient 8s ease infinite;
-  --animate-marquee: marquee 30s linear infinite;
   --animate-matrix-scan: matrix-scan 4s linear infinite;
   --animate-heartbeat: heartbeat 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  --animate-scanline: scanline 8s linear infinite;
 }
 
 @layer base {
@@ -69,24 +58,13 @@
   body {
     @apply bg-background text-foreground font-body antialiased overflow-x-hidden;
     margin: 0;
-    overscroll-behavior-y: contain;
   }
 }
 
 @layer utilities {
   .custom-scrollbar::-webkit-scrollbar { width: 4px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: #020203; }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background: #2E2EB3; border-radius: 3px; }
-  .axiom-gradient { background: linear-gradient(135deg, #2E2EB3 0%, #60D4FF 100%); }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #4cafcb; border-radius: 3px; }
+  .axiom-gradient { background: linear-gradient(135deg, #4cafcb 0%, #7b4fd4 100%); }
   .heartbeat-pulse { @apply animate-heartbeat; }
-  .matrix-terminal-overlay {
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-    background-size: 100% 2px, 3px 100%;
-    pointer-events: none;
-  }
-  .scanline {
-    width: 100%; height: 100px; z-index: 10;
-    background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(96, 212, 255, 0.1) 50%, rgba(0, 0, 0, 0) 100%);
-    opacity: 0.1; position: absolute; bottom: 100%; @apply animate-scanline;
-  }
 }
