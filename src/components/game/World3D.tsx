@@ -158,7 +158,7 @@ const AgentModelWrapper = ({ agent, isLocal = false, vfx }: { agent: Agent; isLo
   return (
     <group ref={groupRef}>
       <primitive object={model.group} />
-      {isLocal && <pointLight position={[0, 3, 0]} intensity={50} color="#60D4FF" distance={100} />}
+      {isLocal && <pointLight position={[0, 3, 0]} intensity={20} color="#60D4FF" distance={50} />}
       <Html position={[0, 4.0, 0]} center distanceFactor={15}>
         <div className="flex flex-col items-center gap-2 pointer-events-none">
           <div className="bg-black/80 backdrop-blur-md border border-axiom-cyan/40 px-3 py-1.5 rounded-2xl shadow-2xl animate-bounce">
@@ -276,13 +276,14 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
   return (
     <div className="w-full h-full bg-[#050508] touch-none">
       <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-headline animate-pulse uppercase tracking-[0.5em] text-xl">Initialisation...</div>}>
-        <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
+        <Canvas gl={{ antialias: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
           
-          {/* HIGH SCIENCE LIGHTING - Locked Intensities */}
-          <ambientLight intensity={12.0} />
-          <hemisphereLight intensity={10.5} groundColor="#050508" color="#ffffff" />
+          {/* HIGH SCIENCE LIGHTING - Normalized Intensities */}
+          <ambientLight intensity={1.5} />
+          <hemisphereLight intensity={1.0} groundColor="#050508" color="#ffffff" />
+          <pointLight position={[100, 100, 100]} intensity={2.0} color="#ffffff" />
           
           {settings.enableEnvironment && <Environment preset="city" />}
           <SceneController setVfx={setVfxEngine} />
@@ -299,10 +300,6 @@ const SceneController = ({ setVfx }: { setVfx: (vfx: VFXEngine) => void }) => {
     const engine = new VFXEngine(scene);
     setVfx(engine);
   }, [scene, setVfx]);
-
-  useFrame((_state, delta) => {
-    // VFX engine handles updates internally if needed
-  });
 
   return null;
 };
