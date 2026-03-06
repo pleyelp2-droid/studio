@@ -1,7 +1,7 @@
-extends Node
+extends Node3D
 
 # --- OUROBOROS AUTO-SYNC MANAGER ---
-# This script connects Godot to your Firebase Backend automatically.
+# Dieses Script verbindet Godot automatisch mit deinem Firebase-Backend.
 
 var player_id = ""
 var world_state = {}
@@ -10,49 +10,58 @@ var entity_nodes = {}
 @export var entity_scene: PackedScene
 
 func _ready():
-	# 1. Initialize Firebase (Ensure GodotFirebase plugin is installed)
+	# 1. Firebase initialisieren (GodotFirebase Plugin muss installiert sein)
 	Firebase.Auth.login_anonymous()
 	Firebase.Auth.login_succeeded.connect(_on_login_success)
 	
-	# 2. Listen to Realtime World Pulse
+	# 2. Auf Echtzeit-Welt-Pulse hören
 	var rtdb_ref = Firebase.Database.get_ref("live_world")
 	rtdb_ref.on_value_changed.connect(_on_world_tick)
 
 func _on_login_success(auth):
 	player_id = auth.localid
-	print("Connected to Ouroboros Firebase as: ", player_id)
+	print("Verbunden mit Ouroboros Firebase als: ", player_id)
 	
-	# Load initial world state from Firestore
+	# Initialen Welt-Status aus Firestore laden
 	var firestore_doc = Firebase.Firestore.collection("world_state").doc("current")
 	firestore_doc.get_doc()
 	firestore_doc.get_document_finished.connect(_on_state_loaded)
 
 func _on_state_loaded(doc):
 	world_state = doc.doc_fields
-	print("World State Loaded. Tick: ", world_state.get("tick", 0))
+	print("Welt-Status geladen. Tick: ", world_state.get("tick", 0))
 	_apply_world_state(world_state)
 
 func _on_world_tick(data):
-	# This runs every minute when the Firebase Heartbeat triggers
+	# Läuft jede Minute, wenn der Firebase-Heartbeat auslöst
 	world_state = data.data
-	print("World Heartbeat received. Tick: ", world_state.get("tick", 0))
+	print("Welt-Heartbeat empfangen. Tick: ", world_state.get("tick", 0))
 	_apply_world_state(world_state)
 
 func _apply_world_state(state: Dictionary):
 	if not state.has("entities"):
 		return
 
-	for entity_id in state.entities.keys():
-		var entity = state.entities[entity_id]
-		_ensure_entity_exists(entity_id)
-		_update_entity_transform(entity_id, entity)
+	# Entities als Liste behandeln (RenderEntity Array)
+	var entities = state.get("entities", [])
+	if entities is Array:
+		for entity in entities:
+			var entity_id = entity.get("id", "unbekannt")
+			_ensure_entity_exists(entity_id)
+			_update_entity_transform(entity_id, entity)
+	# Entities als Dictionary behandeln (Legacy-Support)
+	elif state.entities is Dictionary:
+		for entity_id in state.entities.keys():
+			var entity = state.entities[entity_id]
+			_ensure_entity_exists(entity_id)
+			_update_entity_transform(entity_id, entity)
 
 func _ensure_entity_exists(entity_id: String):
 	if entity_nodes.has(entity_id):
 		return
 
 	if entity_scene == null:
-		push_warning("No entity_scene assigned. Cannot render world entities.")
+		push_warning("Keine entity_scene zugewiesen. Kann Welt-Entities nicht rendern.")
 		return
 
 	var node = entity_scene.instantiate()
@@ -74,15 +83,15 @@ func _update_entity_transform(entity_id: String, entity: Dictionary):
 	)
 
 func sync_position(pos: Vector3):
-	# High-speed position sync
+	# Hochgeschwindigkeits-Positions-Sync
 	var pos_ref = Firebase.Database.get_ref("live_positions/" + player_id)
 	pos_ref.update({"x": pos.x, "y": pos.y, "z": pos.z})
 
 func request_ai_quest():
-	# Call the Firebase Cloud Function
+	# Firebase Cloud Function aufrufen
 	var function = Firebase.Functions.get_function("generateGameContent")
 	function.execute({"type": "quest", "context": world_state})
 	function.function_executed.connect(_on_quest_received)
 
 func _on_quest_received(result):
-	print("New AI Quest generated: ", result)
+	print("Neue KI Quest generiert: ", result)
