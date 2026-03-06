@@ -19,9 +19,11 @@ interface VFXPreset {
   color2: [number, number, number, number];
   colorDead: [number, number, number, number];
   emitPower: { min: number; max: number };
-  direction: [number, number, number];
+  direction1: [number, number, number];
+  direction2: [number, number, number];
   gravity: [number, number, number];
   targetStopDuration?: number;
+  blendMode?: 'add' | 'standard' | 'multiply';
 }
 
 const PRESETS = presetsJson as Record<string, VFXPreset>;
@@ -32,15 +34,18 @@ class VFXSystem {
   preset: VFXPreset;
   active = false;
   clock = new THREE.Clock();
+  texture: THREE.Texture;
 
   constructor(preset: VFXPreset, texture: THREE.Texture) {
     this.preset = preset;
+    this.texture = texture;
+    
     const geometry = new THREE.BufferGeometry();
     const material = new THREE.PointsMaterial({
       size: preset.size.max,
       map: texture,
       transparent: true,
-      blending: THREE.AdditiveBlending,
+      blending: preset.blendMode === 'add' ? THREE.AdditiveBlending : THREE.NormalBlending,
       depthWrite: false,
       vertexColors: true
     });
@@ -54,15 +59,15 @@ class VFXSystem {
     this.points.frustumCulled = false;
   }
 
-  spawn(position: THREE.Vector3) {
+  spawn(origin: THREE.Vector3) {
     if (this.particles.length >= this.preset.capacity) return;
     
     const particle = {
-      position: position.clone(),
+      position: origin.clone(),
       velocity: new THREE.Vector3(
-        (Math.random() - 0.5) * this.preset.emitPower.max,
-        (Math.random() * 0.5 + 0.5) * this.preset.emitPower.max,
-        (Math.random() - 0.5) * this.preset.emitPower.max
+        (Math.random() * (this.preset.direction2[0] - this.preset.direction1[0]) + this.preset.direction1[0]) * this.preset.emitPower.max,
+        (Math.random() * (this.preset.direction2[1] - this.preset.direction1[1]) + this.preset.direction1[1]) * this.preset.emitPower.max,
+        (Math.random() * (this.preset.direction2[2] - this.preset.direction1[2]) + this.preset.direction1[2]) * this.preset.emitPower.max
       ),
       life: 0,
       maxLife: Math.random() * (this.preset.lifetime.max - this.preset.lifetime.min) + this.preset.lifetime.min,
@@ -90,7 +95,9 @@ class VFXSystem {
       posAttr.setXYZ(i, p.position.x, p.position.y, p.position.z);
       
       const t = p.life / p.maxLife;
-      p.color.lerp(new THREE.Color().fromArray(this.preset.color2.slice(0, 3)), t);
+      const c1 = new THREE.Color().fromArray(this.preset.color1.slice(0, 3));
+      const c2 = new THREE.Color().fromArray(this.preset.color2.slice(0, 3));
+      p.color.copy(c1).lerp(c2, t);
       colAttr.setXYZ(i, p.color.r, p.color.g, p.color.b);
     }
 
@@ -107,7 +114,7 @@ class VFXSystem {
 export class VFXEngine {
   private scene: THREE.Scene;
   private texture: THREE.Texture;
-  private systems: Map<string, VFXSystem[]> = new Map();
+  private activeSystems: VFXSystem[] = [];
 
   constructor(scene: THREE.Scene) {
     this.scene = scene;
@@ -135,6 +142,7 @@ export class VFXEngine {
 
     const system = new VFXSystem(preset, this.texture);
     this.scene.add(system.points);
+    this.activeSystems.push(system);
     
     const count = preset.manualEmitCount || preset.capacity;
     for (let i = 0; i < count; i++) {
@@ -146,12 +154,13 @@ export class VFXEngine {
       this.scene.remove(system.points);
       system.points.geometry.dispose();
       (system.points.material as THREE.Material).dispose();
+      this.activeSystems = this.activeSystems.filter(s => s !== system);
     }, duration * 1000);
 
     return system;
   }
 
   update(delta: number) {
-    // Logic to update active systems if managed
+    this.activeSystems.forEach(s => s.update(delta));
   }
 }

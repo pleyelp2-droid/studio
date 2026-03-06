@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Html, PerspectiveCamera, Float, OrbitControls, Environment, ContactShadows } from "@react-three/drei"
@@ -11,6 +12,7 @@ import { AnimationController, createAnimationClips } from "./AnimationSystem"
 import { WorldBuildingService } from "@/services/WorldBuildingService"
 import { textureEngine } from "@/services/TextureEngine"
 import { RobustnessEngine } from "@/lib/axiomatic-engine"
+import { VFXEngine } from "@/services/VFXEngine"
 
 const ARL_COLORS = {
   void: "#020203",
@@ -103,7 +105,7 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
   );
 };
 
-const AgentModelWrapper = ({ agent, isLocal = false }: { agent: Agent; isLocal?: boolean }) => {
+const AgentModelWrapper = ({ agent, isLocal = false, vfx }: { agent: Agent; isLocal?: boolean; vfx: VFXEngine | null }) => {
   const groupRef = useRef<THREE.Group>(null);
   const [model, setModel] = useState<any>(null);
   const [animController, setAnimController] = useState<any>(null);
@@ -198,7 +200,7 @@ const CameraController = () => {
   return <OrbitControls ref={controlsRef} makeDefault enableDamping dampingFactor={0.05} maxPolarAngle={Math.PI / 2.1} minDistance={5} maxDistance={1500} />;
 };
 
-const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
+const WorldContent = ({ localPlayerId, vfx }: { localPlayerId?: string | null; vfx: VFXEngine | null }) => {
   const agents = useStore(state => state.agents) || [];
   const chunks = useStore(state => state.loadedChunks) || [];
   
@@ -217,8 +219,8 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
   return (
     <>
       {chunks.map(c => <ChunkTerrain key={c.id} chunk={c} />)}
-      {localAgent && <LocalPlayerController agent={localAgent} />}
-      {otherAgents.map(a => <AgentModelWrapper key={a.id} agent={a} />)}
+      {localAgent && <LocalPlayerController agent={localAgent} vfx={vfx} />}
+      {otherAgents.map(a => <AgentModelWrapper key={a.id} agent={a} vfx={vfx} />)}
       {pois.map(p => {
         if (p.type === 'BUILDING' || p.type === 'WALL') return <HighScienceSpire key={p.id} position={p.position} rotationY={p.rotationY} color={ARL_COLORS.arcane} seed={p.seed} />;
         return null;
@@ -228,7 +230,7 @@ const WorldContent = ({ localPlayerId }: { localPlayerId?: string | null }) => {
   );
 }
 
-const LocalPlayerController = ({ agent }: { agent: Agent }) => {
+const LocalPlayerController = ({ agent, vfx }: { agent: Agent; vfx: VFXEngine | null }) => {
   const { virtualInput, controlMode, targetPosition, setAgents, agents } = useStore();
   const moveSpeed = 1.0; 
   
@@ -263,13 +265,14 @@ const LocalPlayerController = ({ agent }: { agent: Agent }) => {
       setAgents(agents.map(a => a.id === agent.id ? { ...a, state: AgentState.IDLE } : a));
     }
   });
-  return <AgentModelWrapper agent={agent} isLocal />;
+  return <AgentModelWrapper agent={agent} isLocal vfx={vfx} />;
 };
 
 const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, localPlayerId?: string | null }) => {
   const setTargetPosition = useStore(state => state.setTargetPosition);
   const controlMode = useStore(state => state.controlMode);
   const settings = useStore(state => state.shaderSettings);
+  const [vfxEngine, setVfxEngine] = useState<VFXEngine | null>(null);
 
   return (
     <div className="w-full h-full bg-[#050508] touch-none">
@@ -283,11 +286,27 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
           <hemisphereLight intensity={10.5} groundColor="#050508" color="#ffffff" />
           
           {settings.enableEnvironment && <Environment preset="city" />}
-          <WorldContent localPlayerId={localPlayerId} />
+          <SceneController setVfx={setVfxEngine} />
+          <WorldContent localPlayerId={localPlayerId} vfx={vfxEngine} />
         </Canvas>
       </Suspense>
     </div>
   );
 }
+
+const SceneController = ({ setVfx }: { setVfx: (vfx: VFXEngine) => void }) => {
+  const { scene } = useThree();
+  useEffect(() => {
+    const engine = new VFXEngine(scene);
+    setVfx(engine);
+  }, [scene, setVfx]);
+
+  useFrame((_state, delta) => {
+    // VFX Updates are handled by systems internally if managed by scene, 
+    // but here we could call engine.update(delta) if we kept a ref.
+  });
+
+  return null;
+};
 
 export default World3D;
