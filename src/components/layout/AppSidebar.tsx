@@ -89,7 +89,7 @@ export function AppSidebar() {
         </SidebarHeader>
         <SidebarSeparator />
         <SidebarContent>
-          {isAdmin && (
+          {isAdmin ? (
             <SidebarGroup>
               <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden text-emerald-500 font-black tracking-widest italic uppercase flex items-center gap-2 mb-2">
                 <ShieldCheck className="h-3 w-3" /> Master Control
@@ -112,7 +112,7 @@ export function AppSidebar() {
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
-          )}
+          ) : null}
 
           <SidebarGroup>
             <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">Session</SidebarGroupLabel>
