@@ -63,6 +63,7 @@ void main() {
     finalColor = mix(finalColor, gridColor, clamp(gridPattern, 0.0, 1.0) * 0.15 * gridFade);
 
     // DESTRUCTIVE SHADERS (FOG/SUN/SKY) PERMANENTLY REMOVED AT SOURCE
+    // Fog logic stripped to ensure 100% texture visibility
     gl_FragColor = vec4(finalColor * lighting, 1.0);
 }
 `;

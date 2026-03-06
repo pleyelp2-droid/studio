@@ -49,6 +49,21 @@ const TEMPLATES: Record<QuestType, any> = {
     titles: ['Chart the Unknown', 'Survey the Frontier', 'Discovery Mission'],
     baseGold: 60,
     baseXp: 120
+  },
+  deliver: {
+    titles: ['Urgent Delivery', 'Trade Caravan', 'Supply Run'],
+    baseGold: 40,
+    baseXp: 80
+  },
+  diplomatic: {
+    titles: ['Peace Negotiations', 'Alliance Proposal', 'Embassy Mission'],
+    baseGold: 100,
+    baseXp: 200
+  },
+  dungeon: {
+    titles: ['Dungeon Delve', 'Reclaim the Depths', 'Void Vault'],
+    baseGold: 200,
+    baseXp: 500
   }
 };
 
@@ -65,13 +80,13 @@ export const ProceduralQuestEngine = {
       const res = template.resources[Math.floor(Math.random() * template.resources.length)];
       objectives.push({ type: 'collect', target: res, required: 5 + difficulty * 2, current: 0 });
     } else if (type === 'kill') {
-      const enemy = template.enemies[Math.floor(Math.random() * template.enemies.length)];
+      const enemy = template.enemies ? template.enemies[Math.floor(Math.random() * template.enemies.length)] : 'hostile_unit';
       objectives.push({ type: 'kill', target: enemy, required: 3 + Math.floor(difficulty / 2), current: 0 });
     } else {
       objectives.push({ type: 'reach', target: 'sector_alpha', required: 1, current: 0 });
     }
 
-    const items = difficulty > 5 ? generateLoot('MONSTER') : [];
+    const items = difficulty > 5 ? [generateLoot('MONSTER')] : [];
 
     return {
       id: `proc_${Date.now()}`,
@@ -80,7 +95,7 @@ export const ProceduralQuestEngine = {
       description: `The ${civName} requires your assistance in the local sector.`,
       lore: `A recursive pulse from the core suggests this mission is critical for the next phase.`,
       difficulty,
-      rewards: { gold, xp, items: items ? [items] : [] },
+      rewards: { gold, xp, items: items.filter(Boolean) },
       objectives
     };
   },
