@@ -21,8 +21,34 @@ const ARL_COLORS = {
   silver: "#e8f0f8",
   border: "#1e2a4a",
   white: "#ffffff",
-  ground: "#050508"
+  ground: "#050508",
+  forest: "#0a4040",
+  city: "#1a3040",
+  ruins: "#2a2a35",
+  energy: "#102030"
 }
+
+const ResourceNode = ({ position, type, time }: { position: [number, number, number], type: string, time: number }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  
+  useFrame(() => {
+    if (meshRef.current) {
+      meshRef.current.position.y = position[1] + Math.sin(time + position[0]) * 0.2;
+      meshRef.current.rotation.y += 0.02;
+    }
+  });
+
+  return (
+    <mesh ref={meshRef} position={position} castShadow>
+      <icosahedronGeometry args={[0.3, 2]} />
+      <meshStandardMaterial 
+        color={type === 'gold' ? "#ffd700" : "# silver"} 
+        emissive={type === 'gold' ? "#ffd700" : "#4cafcb"} 
+        emissiveIntensity={0.5} 
+      />
+    </mesh>
+  );
+};
 
 const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [number, number, number], rotationY: number, color: string, seed: number }) => {
   const [archTex, setArchTex] = useState<THREE.Texture | null>(null);
@@ -86,19 +112,44 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
     return unsub;
   }, [chunk.seed]);
 
+  const biomeTiles = useMemo(() => {
+    const tiles = [];
+    const gridSize = 40;
+    const tileSize = 40;
+    for (let x = -200; x < 200; x += tileSize) {
+      for (let z = -200; z < 200; z += tileSize) {
+        tiles.push({ x, z });
+      }
+    }
+    return tiles;
+  }, []);
+
   return (
     <group position={[chunkOffsetX, -0.1, chunkOffsetZ]}>
+      {/* Base Ground */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[400, 400]} />
         <meshStandardMaterial 
-          color={terrainTex ? "#ffffff" : "#4a4a5a"} 
-          map={terrainTex || undefined}
+          color="#0a1a2a"
           roughness={0.7} 
           metalness={0.1} 
-          emissive={forceEmissive ? (terrainTex ? "#ffffff" : "#333333") : "#111111"}
-          emissiveIntensity={forceEmissive ? 0.5 : 0.2}
         />
       </mesh>
+
+      {/* Biome Accent Tiles */}
+      {biomeTiles.map((t, i) => (
+        <mesh key={i} position={[t.x + 20, 0.02, t.z + 20]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[38, 38]} />
+          <meshStandardMaterial 
+            color={ARL_COLORS[chunk.biome.toLowerCase() as keyof typeof ARL_COLORS] || ARL_COLORS.ground} 
+            transparent
+            opacity={0.4}
+            emissive={ARL_COLORS[chunk.biome.toLowerCase() as keyof typeof ARL_COLORS] || ARL_COLORS.ground}
+            emissiveIntensity={0.2}
+          />
+        </mesh>
+      ))}
+
       <gridHelper args={[400, 20, ARL_COLORS.teal, "#1a1a24"]} position={[0, 0.05, 0]} />
     </group>
   );
@@ -206,14 +257,19 @@ const WorldContent = ({ localPlayerId, vfx }: { localPlayerId?: string | null; v
   const localAgent = useMemo(() => agents.find(a => a.id === localPlayerId), [agents, localPlayerId]);
   const otherAgents = useMemo(() => agents.filter(a => a.id !== localPlayerId), [agents, localPlayerId]);
 
-  const { pois } = useMemo(() => {
+  const { pois, resources } = useMemo(() => {
     const allPois: any[] = [];
+    const allRes: any[] = [];
     chunks.forEach(c => {
       const content = WorldBuildingService.generateAxiomaticContent(c);
       content.pois.forEach(p => allPois.push({ ...p, seed: c.seed }));
+      content.resources.forEach(r => allRes.push({ ...r, seed: c.seed }));
     });
-    return { pois: allPois };
+    return { pois: allPois, resources: allRes };
   }, [chunks]);
+
+  const [time, setTime] = useState(0);
+  useFrame((state) => setTime(state.clock.elapsedTime));
 
   return (
     <>
@@ -224,6 +280,9 @@ const WorldContent = ({ localPlayerId, vfx }: { localPlayerId?: string | null; v
         if (p.type === 'BUILDING' || p.type === 'WALL') return <HighScienceSpire key={p.id} position={p.position} rotationY={p.rotationY} color={ARL_COLORS.arcane} seed={p.seed} />;
         return null;
       })}
+      {resources.map(r => (
+        <ResourceNode key={r.id} position={r.position} type={r.type.includes('GOLD') ? 'gold' : 'iron'} time={time} />
+      ))}
       <ContactShadows resolution={1024} scale={150} blur={2.5} opacity={0.5} far={15} color="#000000" />
     </>
   );
@@ -280,7 +339,6 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
           
-          {/* HIGH SCIENCE LIGHTING - Normalized for Visibility */}
           <ambientLight intensity={2.0} />
           <hemisphereLight intensity={2.0} groundColor="#050508" color="#ffffff" />
           <pointLight position={[100, 100, 100]} intensity={3.0} color="#ffffff" />

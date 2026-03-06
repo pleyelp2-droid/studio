@@ -120,7 +120,7 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {user ? (
-                  <React.Fragment>
+                  <>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild isActive={pathname === '/profile'} tooltip="Profile">
                         <Link href="/profile">
@@ -135,7 +135,7 @@ export function AppSidebar() {
                         <span>Sign Out</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  </React.Fragment>
+                  </>
                 ) : (
                   <SidebarMenuItem>
                     <SidebarMenuButton onClick={() => setAuthModalOpen(true)} tooltip="Sign In">

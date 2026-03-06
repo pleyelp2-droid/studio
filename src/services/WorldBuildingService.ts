@@ -96,7 +96,7 @@ export class WorldBuildingService {
         type,
         position: [
           chunkOffsetX + (pseudoRandom(i + 30) - 0.5) * 350,
-          0,
+          0.8,
           chunkOffsetZ + (pseudoRandom(i + 40) - 0.5) * 350
         ],
         amount: 100
