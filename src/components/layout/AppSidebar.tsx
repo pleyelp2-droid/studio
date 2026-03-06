@@ -66,7 +66,7 @@ export function AppSidebar() {
   const { user } = useUser()
   const auth = useAuth()
   const [authModalOpen, setAuthModalOpen] = React.useState(false)
-  const setMatrixOverseerOpen = useStore(state => state.setMatrixOverseerOpen)
+  const setMatrixOverseerOpen = useStore(state => state.matrixOverseerOpen)
 
   const handleLogout = () => {
     if (auth) signOut(auth)
@@ -99,7 +99,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
-                      onClick={() => setMatrixOverseerOpen(true)}
+                      onClick={() => useStore.getState().setMatrixOverseerOpen(true)}
                       className="text-white bg-emerald-600 hover:bg-emerald-500 border-0 h-16 shadow-xl group hover:scale-[1.02] transition-all rounded-xl relative overflow-hidden mb-2"
                       tooltip="SYNC TO GITHUB"
                     >
