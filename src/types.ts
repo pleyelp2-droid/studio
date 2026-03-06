@@ -67,11 +67,25 @@ export const DEFAULT_APPEARANCE: AppearanceConfig = {
   textures: {}
 };
 
+export type NPCRole = 
+  | 'merchant' | 'guard' | 'scholar' | 'farmer' | 'artisan'
+  | 'priest' | 'soldier' | 'noble' | 'commoner' | 'wanderer';
+
+export interface MoodVector {
+  happiness: number;
+  fear: number;
+  anger: number;
+  curiosity: number;
+  trust: number;
+  hope: number;
+}
+
 export interface Agent {
   id: string;
   displayName: string;
   name?: string;
   npcClass: string;
+  role?: NPCRole;
   level: number;
   hp: number;
   maxHp: number;
@@ -87,6 +101,7 @@ export interface Agent {
   resourceInventory: Record<string, number>;
   bank: any[];
   needs: AgentNeeds;
+  mood?: MoodVector;
   memory: string[];
   memoryEvents: Memory[];
   relationships: Record<string, Relationship>;
@@ -122,7 +137,7 @@ export interface Chunk {
   resourceData: any;
   logicField: any[];
   lastUpdate: any;
-  logicString?: string; // The "logical chunk string" (F:|R:|C:|X:|D:)
+  logicString?: string;
 }
 
 export type POIType = 'SHRINE' | 'FORGE' | 'MARKET_STALL' | 'BANK_VAULT' | 'GATE' | 'WALL' | 'HOUSE' | 'TREE' | 'DUNGEON' | 'RUIN' | 'NEST' | 'BUILDING' | 'MINE' | 'FOREST';
