@@ -12,6 +12,7 @@ import { WorldBuildingService } from "@/services/WorldBuildingService"
 import { textureEngine } from "@/services/TextureEngine"
 import { RobustnessEngine } from "@/lib/axiomatic-engine"
 import { VFXEngine } from "@/services/VFXEngine"
+import skyPresets from '@/data/sky-presets.json'
 
 const ARL_COLORS = {
   void: "#020203",
@@ -114,7 +115,6 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
 
   const biomeTiles = useMemo(() => {
     const tiles = [];
-    const gridSize = 40;
     const tileSize = 40;
     for (let x = -200; x < 200; x += tileSize) {
       for (let z = -200; z < 200; z += tileSize) {
@@ -126,7 +126,6 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
 
   return (
     <group position={[chunkOffsetX, -0.1, chunkOffsetZ]}>
-      {/* Base Ground */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[400, 400]} />
         <meshStandardMaterial 
@@ -136,7 +135,6 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
         />
       </mesh>
 
-      {/* Biome Accent Tiles */}
       {biomeTiles.map((t, i) => (
         <mesh key={i} position={[t.x + 20, 0.02, t.z + 20]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[38, 38]} />
@@ -326,11 +324,14 @@ const LocalPlayerController = ({ agent, vfx }: { agent: Agent; vfx: VFXEngine | 
   return <AgentModelWrapper agent={agent} isLocal vfx={vfx} />;
 };
 
-const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, localPlayerId?: string | null }) => {
+const World3D = ({ localPlayerId }: { localPlayerId?: string | null }) => {
   const setTargetPosition = useStore(state => state.setTargetPosition);
   const controlMode = useStore(state => state.controlMode);
-  const settings = useStore(state => state.shaderSettings);
+  const shaderSettings = useStore(state => state.shaderSettings);
+  const timeOfDay = useStore(state => state.timeOfDay);
   const [vfxEngine, setVfxEngine] = useState<VFXEngine | null>(null);
+
+  const preset = (skyPresets as any)[timeOfDay] || skyPresets.day;
 
   return (
     <div className="w-full h-full bg-[#050508] touch-none">
@@ -339,11 +340,21 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
           
-          <ambientLight intensity={2.0} />
-          <hemisphereLight intensity={2.0} groundColor="#050508" color="#ffffff" />
-          <pointLight position={[100, 100, 100]} intensity={3.0} color="#ffffff" />
+          <ambientLight intensity={preset.light.ambientIntensity * 2} color={preset.light.sunColor} />
+          <hemisphereLight intensity={1.5} groundColor={preset.light.groundColor} color={preset.light.sunColor} />
           
-          {settings.enableEnvironment && <Environment preset="city" />}
+          <directionalLight 
+            position={preset.light.sunDirection as [number, number, number]} 
+            intensity={preset.light.sunIntensity} 
+            color={preset.light.sunColor}
+            castShadow
+          />
+
+          {shaderSettings.enableFog && (
+            <fog attach="fog" args={[preset.fog.color, preset.fog.near, preset.fog.far]} />
+          )}
+          
+          {shaderSettings.enableEnvironment && <Environment preset="city" />}
           <SceneController setVfx={setVfxEngine} />
           <WorldContent localPlayerId={localPlayerId} vfx={vfxEngine} />
         </Canvas>

@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { Agent, Chunk, Language, AgentState, StoreProduct, Task } from './types';
 
+export type TimeOfDay = 'day' | 'dusk' | 'night';
+
 interface AppState {
   agents: Agent[];
   loadedChunks: Chunk[];
@@ -10,6 +12,7 @@ interface AppState {
   userApiKey: string | null;
   selectedAgentId: string | null;
   language: Language;
+  timeOfDay: TimeOfDay;
   githubConfig: {
     token: string;
     owner: string;
@@ -47,7 +50,6 @@ interface AppState {
     enableEnvironment: boolean;
     forceEmissive: boolean;
   };
-  // Brain Engine Integration State
   brainEngine: {
     status: 'IDLE' | 'ACTIVE' | 'CALIBRATING' | 'ERROR';
     postgresStatus: 'OFFLINE' | 'CONNECTED' | 'ERROR';
@@ -66,6 +68,7 @@ interface AppState {
   setUserApiKey: (key: string | null) => void;
   selectAgent: (id: string | null) => void;
   setLanguage: (lang: Language) => void;
+  setTimeOfDay: (time: TimeOfDay) => void;
   setGithubConfig: (config: Partial<AppState['githubConfig']>) => void;
   setIsMobile: (isMobile: boolean) => void;
   setControlMode: (mode: 'JOYSTICK' | 'PUSH_TO_WALK' | 'KEYBOARD') => void;
@@ -83,14 +86,12 @@ interface AppState {
   setEmergenceSetting: (key: string, value: boolean) => void;
   setShaderSetting: (key: keyof AppState['shaderSettings'], value: boolean) => void;
   
-  // Brain Engine Actions
   updateBrainStatus: (status: AppState['brainEngine']['status']) => void;
   updatePostgresStatus: (status: AppState['brainEngine']['postgresStatus']) => void;
   addBrainLog: (log: string) => void;
   setCacheHealth: (health: number) => void;
   setBrainProjectStats: (stats: any) => void;
 
-  // Agent-Core Actions
   updateTrust: (agentId: string, targetId: string, delta: number) => void;
   addAgentTask: (agentId: string, task: Task) => void;
   completeAgentTask: (agentId: string, taskId: string) => void;
@@ -110,6 +111,7 @@ export const useStore = create<AppState>((set) => ({
   userApiKey: null,
   selectedAgentId: null,
   language: 'EN' as Language,
+  timeOfDay: 'day',
   githubConfig: {
     token: "",
     owner: "pleyelp2",
@@ -187,6 +189,7 @@ export const useStore = create<AppState>((set) => ({
   setUserApiKey: (key) => set({ userApiKey: key, selectedAgentId: key }),
   selectAgent: (id) => set({ selectedAgentId: id }),
   setLanguage: (lang) => set({ language: lang }),
+  setTimeOfDay: (timeOfDay) => set({ timeOfDay }),
   setGithubConfig: (config) => set((state) => ({ githubConfig: { ...state.githubConfig, ...config } })),
   setIsMobile: (isMobile) => set((state) => ({ device: { ...state.device, isMobile } })),
   setControlMode: (mode) => set({ controlMode: mode }),
@@ -216,7 +219,6 @@ export const useStore = create<AppState>((set) => ({
     shaderSettings: { ...state.shaderSettings, [key]: value }
   })),
 
-  // Brain Engine State Setters
   updateBrainStatus: (status) => set((state) => ({ brainEngine: { ...state.brainEngine, status, lastSync: Date.now() } })),
   updatePostgresStatus: (status) => set((state) => ({ brainEngine: { ...state.brainEngine, postgresStatus: status } })),
   addBrainLog: (log) => set((state) => ({ brainEngine: { ...state.brainEngine, logs: [log, ...state.brainEngine.logs].slice(0, 50) } })),
