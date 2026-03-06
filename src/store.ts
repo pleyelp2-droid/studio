@@ -1,11 +1,13 @@
 import { create } from 'zustand';
-import { Agent, Chunk, Language, AgentState, StoreProduct, Task } from './types';
+import { Agent, Chunk, Language, AgentState, StoreProduct, Task, Guild, ProceduralDungeon } from './types';
 
 export type TimeOfDay = 'day' | 'dusk' | 'night';
 
 interface AppState {
   agents: Agent[];
   loadedChunks: Chunk[];
+  guilds: Guild[];
+  activeDungeons: ProceduralDungeon[];
   user: { id: string; name: string; email: string } | null;
   isAxiomAuthenticated: boolean;
   isMatrixOverseerOpen: boolean;
@@ -100,11 +102,16 @@ interface AppState {
   moveInventoryItem: (agentId: string, from: number, to: number) => void;
   allocateStatPoint: (agentId: string, stat: string) => void;
   unstuckPlayer: (agentId: string) => void;
+  
+  createGuild: (name: string, leaderId: string) => void;
+  addDungeon: (dungeon: ProceduralDungeon) => void;
 }
 
 export const useStore = create<AppState>((set) => ({
   agents: [],
   loadedChunks: [],
+  guilds: [],
+  activeDungeons: [],
   user: null,
   isAxiomAuthenticated: false,
   isMatrixOverseerOpen: false,
@@ -263,5 +270,12 @@ export const useStore = create<AppState>((set) => ({
   })),
   unstuckPlayer: (agentId) => set((state) => ({
     agents: state.agents.map(a => a.id === agentId ? { ...a, position: { x: 20, y: 0, z: 20 }, state: AgentState.IDLE } : a)
+  })),
+  
+  createGuild: (name, leaderId) => set((state) => ({
+    guilds: [...state.guilds, { id: `guild_${Date.now()}`, name, leaderId, memberIds: [leaderId], level: 1, bank: [], infrastructure: [] }]
+  })),
+  addDungeon: (dungeon) => set((state) => ({
+    activeDungeons: [...state.activeDungeons, dungeon]
   })),
 }));

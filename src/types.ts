@@ -11,7 +11,8 @@ export enum AgentState {
   BUILDING = 'BUILDING',
   ASCENDING = 'ASCENDING',
   MARKETING = 'MARKETING',
-  ALLIANCE_FORMING = 'ALLIANCE_FORMING'
+  ALLIANCE_FORMING = 'ALLIANCE_FORMING',
+  DUNGEONEERING = 'DUNGEONEERING'
 }
 
 export type SkillCategory = 'COMBAT' | 'GATHERING' | 'CRAFTING' | 'UTILITY';
@@ -95,6 +96,7 @@ export interface Agent {
   int: number;
   vit: number;
   position: { x: number; y: number; z: number };
+  targetPosition?: { x: number; y: number; z: number } | null;
   visionRange: number;
   state: AgentState;
   inventory: any[];
@@ -123,6 +125,7 @@ export interface Agent {
   apiQuotaExceeded?: boolean;
   lastDecision?: { justification: string; decision: string };
   skills: Record<string, { level: number; xp: number }>;
+  guildId?: string | null;
 }
 
 export interface Chunk {
@@ -138,6 +141,32 @@ export interface Chunk {
   logicField: any[];
   lastUpdate: any;
   logicString?: string;
+}
+
+export interface DungeonRoom {
+  id: string;
+  x: number;
+  y: number;
+  type: 'SPAWN' | 'LOOT' | 'BOSS' | 'EMPTY' | 'CORRIDOR';
+  connections: string[];
+  threatLevel: number;
+}
+
+export interface ProceduralDungeon {
+  id: string;
+  seed: number;
+  rooms: DungeonRoom[];
+  level: number;
+}
+
+export interface Guild {
+  id: string;
+  name: string;
+  leaderId: string;
+  memberIds: string[];
+  level: number;
+  bank: any[];
+  infrastructure: string[];
 }
 
 export type POIType = 'SHRINE' | 'FORGE' | 'MARKET_STALL' | 'BANK_VAULT' | 'GATE' | 'WALL' | 'HOUSE' | 'TREE' | 'DUNGEON' | 'RUIN' | 'NEST' | 'BUILDING' | 'MINE' | 'FOREST';

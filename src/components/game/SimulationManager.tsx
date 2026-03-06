@@ -5,10 +5,11 @@ import { useStore } from '@/store';
 import { InteractionManager } from '@/services/InteractionManager';
 import { WorldController } from '@/lib/world-controller';
 import { syncAgentsBatch } from '@/services/AgentManager';
+import { DungeonGenerator } from '@/services/DungeonGenerator';
 
 /**
- * WorldEngine / SimulationManager
- * Orchestriert den WorldController und autonome Interaktionen.
+ * WorldEngine / SimulationManager - Phase 2
+ * Orchestrates all high-level MMORPG systems including AI, Economy, and Dungeons.
  */
 export const SimulationManager = () => {
   const addLog = useStore(state => state.addLog);
@@ -27,43 +28,42 @@ export const SimulationManager = () => {
       
       if (currentAgents.length === 0) return;
 
-      // 1. Initialisiere WorldController & InteractionManager
+      // 1. World Logic Tick
       const worldController = new WorldController(currentAgents);
-      const interactionManager = new InteractionManager(currentAgents);
-
-      // 2. Berechne den nächsten Welt-Tick
       const updatedAgents = worldController.tick();
 
-      // 3. Autonome Interaktionen triggern (Zufällig)
+      // 2. Interaction & Social System
+      const interactionManager = new InteractionManager(updatedAgents);
       updatedAgents.forEach(agent => {
-        if (Math.random() > 0.92 && updatedAgents.length > 1) {
-          const possibleTargets = updatedAgents.filter(a => a.id !== agent.id);
-          const target = possibleTargets[Math.floor(Math.random() * possibleTargets.length)];
-          
+        if (Math.random() > 0.95 && updatedAgents.length > 1) {
+          const target = updatedAgents.find(a => a.id !== agent.id);
           if (target) {
-            const dialogue = interactionManager.processInteraction({
-              type: agent.needs.hunger > 60 ? 'trade' : 'talk',
+            const result = interactionManager.processInteraction({
+              type: 'social',
               senderId: agent.id,
               receiverId: target.id
             });
-            
-            addLog(`${agent.displayName}: ${dialogue}`, 'LOCAL');
-            state.updateTrust(agent.id, target.id, 1);
+            addLog(`${agent.displayName}: ${result}`, 'LOCAL');
           }
         }
       });
 
-      // 4. State aktualisieren
-      state.setAgents(updatedAgents);
+      // 3. Dungeon Manifestation (Rare event)
+      if (Math.random() > 0.99) {
+        const dungeon = DungeonGenerator.generate(Date.now(), 5);
+        state.addDungeon(dungeon);
+        addLog(`[DUNGEON_PROTO]: A logic rift has manifested at [${Math.floor(Math.random() * 100)}, ${Math.floor(Math.random() * 100)}]`, 'SYSTEM');
+      }
 
-      // 5. Persistenz-Sync (Gelegentlich)
+      // 4. Persistence Sync
+      state.setAgents(updatedAgents);
       if (Math.random() > 0.98) {
         try {
           await syncAgentsBatch(updatedAgents);
         } catch (e) {}
       }
 
-    }, 5000); 
+    }, 2000); // Higher frequency for Phase 2
 
     return cleanup;
   }, [addLog]);
