@@ -1,6 +1,6 @@
 "use client"
 
-import { Html, PerspectiveCamera, Float, OrbitControls, Environment, ContactShadows } from "@react-three/drei"
+import { PerspectiveCamera, Float, OrbitControls, Environment, ContactShadows } from "@react-three/drei"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import React, { useMemo, useRef, useState, useEffect, Suspense } from "react"
 import * as THREE from "three"
@@ -43,7 +43,7 @@ const ResourceNode = ({ position, type, time }: { position: [number, number, num
     <mesh ref={meshRef} position={position} castShadow>
       <icosahedronGeometry args={[0.3, 2]} />
       <meshStandardMaterial 
-        color={type === 'gold' ? "#ffd700" : "# silver"} 
+        color={type === 'gold' ? "#ffd700" : "#e8f0f8"} 
         emissive={type === 'gold' ? "#ffd700" : "#4cafcb"} 
         emissiveIntensity={0.5} 
       />
@@ -95,7 +95,6 @@ const HighScienceSpire = ({ position, rotationY, color, seed }: { position: [num
 
 const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
   const [terrainTex, setTerrainTex] = useState<THREE.Texture | null>(null);
-  const forceEmissive = useStore(state => state.shaderSettings.forceEmissive);
   const chunkOffsetX = chunk.x * 400;
   const chunkOffsetZ = chunk.z * 400;
 
@@ -139,10 +138,10 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
         <mesh key={i} position={[t.x + 20, 0.02, t.z + 20]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[38, 38]} />
           <meshStandardMaterial 
-            color={ARL_COLORS[chunk.biome.toLowerCase() as keyof typeof ARL_COLORS] || ARL_COLORS.ground} 
+            color={ARL_COLORS[chunk.biome?.toLowerCase() as keyof typeof ARL_COLORS] || ARL_COLORS.ground} 
             transparent
             opacity={0.4}
-            emissive={ARL_COLORS[chunk.biome.toLowerCase() as keyof typeof ARL_COLORS] || ARL_COLORS.ground}
+            emissive={ARL_COLORS[chunk.biome?.toLowerCase() as keyof typeof ARL_COLORS] || ARL_COLORS.ground}
             emissiveIntensity={0.2}
           />
         </mesh>
@@ -200,24 +199,10 @@ const AgentModelWrapper = ({ agent, isLocal = false, vfx }: { agent: Agent; isLo
 
   if (!model) return null;
 
-  const lastThought = agent.memoryCache && agent.memoryCache.length > 0 
-    ? agent.memoryCache[agent.memoryCache.length - 1] 
-    : agent.state === AgentState.IDLE ? "Syncing..." : `Status: ${agent.state}`;
-
   return (
     <group ref={groupRef}>
       <primitive object={model.group} />
       {isLocal && <pointLight position={[0, 3, 0]} intensity={20} color="#4cafcb" distance={50} />}
-      <Html position={[0, 4.0, 0]} center distanceFactor={15}>
-        <div className="flex flex-col items-center gap-2 pointer-events-none">
-          <div className="bg-black/80 backdrop-blur-md border border-axiom-cyan/40 px-3 py-1.5 rounded-2xl shadow-2xl animate-bounce">
-            <p className="text-[9px] font-medium text-axiom-cyan italic whitespace-nowrap font-code">{String(lastThought)}</p>
-          </div>
-          <div className={`px-4 py-1 rounded-full bg-black/60 border-2 ${isLocal ? 'border-axiom-cyan shadow-[0_0_15px_rgba(76,175,203,0.5)]' : 'border-white/10'} text-white text-[10px] font-display font-black uppercase tracking-[0.2em] backdrop-blur-md italic whitespace-nowrap`}>
-            {agent.displayName || agent.name || "Pilot"}
-          </div>
-        </div>
-      </Html>
     </group>
   );
 };
@@ -267,7 +252,10 @@ const WorldContent = ({ localPlayerId, vfx }: { localPlayerId?: string | null; v
   }, [chunks]);
 
   const [time, setTime] = useState(0);
-  useFrame((state) => setTime(state.clock.elapsedTime));
+  useFrame((state) => {
+    setTime(state.clock.elapsedTime);
+    if (vfx) vfx.update(state.clock.getDelta());
+  });
 
   return (
     <>
@@ -325,7 +313,6 @@ const LocalPlayerController = ({ agent, vfx }: { agent: Agent; vfx: VFXEngine | 
 };
 
 const World3D = ({ localPlayerId }: { localPlayerId?: string | null }) => {
-  const setTargetPosition = useStore(state => state.setTargetPosition);
   const controlMode = useStore(state => state.controlMode);
   const shaderSettings = useStore(state => state.shaderSettings);
   const timeOfDay = useStore(state => state.timeOfDay);
@@ -336,7 +323,7 @@ const World3D = ({ localPlayerId }: { localPlayerId?: string | null }) => {
   return (
     <div className="w-full h-full bg-[#050508] touch-none">
       <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-axiom-cyan font-display animate-pulse uppercase tracking-[0.5em] text-xl">Materializing...</div>}>
-        <Canvas gl={{ antialias: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
+        <Canvas gl={{ antialias: true }} shadows>
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
           
@@ -350,10 +337,6 @@ const World3D = ({ localPlayerId }: { localPlayerId?: string | null }) => {
             castShadow
           />
 
-          {shaderSettings.enableFog && (
-            <fog attach="fog" args={[preset.fog.color, preset.fog.near, preset.fog.far]} />
-          )}
-          
           {shaderSettings.enableEnvironment && <Environment preset="city" />}
           <SceneController setVfx={setVfxEngine} />
           <WorldContent localPlayerId={localPlayerId} vfx={vfxEngine} />

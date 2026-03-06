@@ -14,3 +14,5 @@ export * from './AssetResolver';
 export * from './VFXEngine';
 export * from './InstancedAssetEngine';
 export * from './ProceduralQuestEngine';
+export * from './ComplianceManager';
+export * from './TransactionManager';

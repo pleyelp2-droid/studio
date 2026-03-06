@@ -16,7 +16,6 @@ export const ShaderController = () => {
     { key: 'enableAmbient', label: 'Ambient Light', icon: Moon },
     { key: 'enableEnvironment', label: 'IBL Maps', icon: Globe },
     { key: 'forceEmissive', label: 'Force Glow', icon: Zap },
-    { key: 'enableFog', label: 'Neural Fog', icon: Sunrise },
   ];
 
   const times: { id: TimeOfDay; icon: any; label: string }[] = [

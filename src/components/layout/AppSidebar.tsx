@@ -66,7 +66,7 @@ export function AppSidebar() {
   const { user } = useUser()
   const auth = useAuth()
   const [authModalOpen, setAuthModalOpen] = React.useState(false)
-  const setMatrixOverseerOpen = useStore(state => state.matrixOverseerOpen)
+  const setMatrixOverseerOpen = useStore(state => state.setMatrixOverseerOpen)
 
   const handleLogout = () => {
     if (auth) signOut(auth)

@@ -4,9 +4,8 @@
  * Adapted for Axiom Frontier (Three.js Edition).
  */
 
-import { Vector3 } from 'three';
+import * as THREE from 'three';
 import { Agent, NPCRole, MoodVector, ThinkingMatrix } from '../types';
-import { EconomyManager } from './EconomyManager';
 
 export interface SharedMemory {
   id: string;
@@ -20,7 +19,6 @@ export interface SharedMemory {
 
 const GOSSIP_RANGE = 50;
 const DISTORTION_RATE = 0.05;
-const GOSSIP_INTERVAL = 5000;
 
 export class HeuristicIntelligence {
   private static memories = new Map<string, SharedMemory>();
@@ -32,8 +30,8 @@ export class HeuristicIntelligence {
       const sender = updatedAgents[i];
       const nearby = updatedAgents.filter(a => 
         a.id !== sender.id && 
-        new Vector3(a.position.x, 0, a.position.z).distanceTo(
-          new Vector3(sender.position.x, 0, sender.position.z)
+        new THREE.Vector3(a.position.x, 0, a.position.z).distanceTo(
+          new THREE.Vector3(sender.position.x, 0, sender.position.z)
         ) < GOSSIP_RANGE
       );
 
@@ -60,7 +58,7 @@ export class HeuristicIntelligence {
         // Impact mood
         if (receiver.mood) {
           receiver.mood.curiosity = Math.min(1, receiver.mood.curiosity + 0.05);
-          receiver.mood.trust = Math.max(-1, receiver.mood.trust - 0.01); // Gossip slightly degrades trust
+          receiver.mood.trust = Math.max(-1, receiver.mood.trust - 0.01); 
         }
       }
     }

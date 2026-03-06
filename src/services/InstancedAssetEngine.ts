@@ -45,12 +45,10 @@ export class InstancedAssetEngine {
    */
   static generateCollisionHull(mesh: THREE.Mesh): THREE.BufferGeometry {
     // For this prototype, we use a simple bounding box as the hull
-    // In production, this would be a convex hull or decimated mesh
-    const box = new THREE.BoxGeometry(1, 1, 1);
     if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
     const size = new THREE.Vector3();
     mesh.geometry.boundingBox?.getSize(size);
-    box.scale(size.x, size.y, size.z);
+    const box = new THREE.BoxGeometry(size.x, size.y, size.z);
     return box;
   }
 }
