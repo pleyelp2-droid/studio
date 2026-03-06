@@ -2,14 +2,12 @@
 
 /**
  * @fileOverview Axiom Frontier - High Performance Anti-Artifact Shaders
- * Optimized for maximum FPS with horizon-linear-fading to eliminate visual streaks.
- * 100% Fog Deactivation: Shader ignores all fog uniforms to ensure texture visibility.
+ * Optimized for maximum FPS. Fog logic is stripped to ensure texture visibility.
  */
 
 export const axiomVertexShader = `
 varying vec2 vUv;
 varying vec3 vPosition;
-varying float vFogDepth;
 varying vec3 vNormal;
 
 uniform float uTime;
@@ -31,7 +29,6 @@ void main() {
   vec4 viewPosition = viewMatrix * modelPosition;
   
   vPosition = modelPosition.xyz;
-  vFogDepth = -viewPosition.z;
   vNormal = normalMatrix * normal;
 
   gl_Position = projectionMatrix * viewPosition;
@@ -41,7 +38,6 @@ void main() {
 export const axiomFragmentShader = `
 varying vec2 vUv;
 varying vec3 vPosition;
-varying float vFogDepth;
 varying vec3 vNormal;
 
 uniform float uTime;
@@ -57,7 +53,6 @@ void main() {
     if (abs(uBiome - 0.0) < 0.1) finalColor = vec3(0.01, 0.02, 0.06); 
     else if (abs(uBiome - 1.0) < 0.1) finalColor = vec3(0.01, 0.06, 0.03); 
 
-    // Optimized grid logic
     float dist = distance(vPosition, uCameraPosition);
     float gridFade = clamp(1.0 - (dist - 100.0) / 150.0, 0.0, 1.0);
     
@@ -71,7 +66,7 @@ void main() {
 
     finalColor *= lighting;
 
-    // FOG PERMANENTLY DISABLED AT SHADER LEVEL
+    // FOG AND SUN PERMANENTLY BYPASSED FOR CLARITY
     gl_FragColor = vec4(finalColor, 1.0);
 }
 `;
