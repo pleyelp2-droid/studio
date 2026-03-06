@@ -152,18 +152,23 @@ const ChunkTerrain = ({ chunk }: { chunk: Chunk }) => {
   );
 };
 
+/**
+ * Tactical Grid Overlay
+ * Corrected to match 400x400 chunk scale while providing the 10-unit wireframe grid logic.
+ */
 const ChunkGridOverlay = ({ chunks }: { chunks: Chunk[] }) => {
   return (
     <group name="AxiomChunkGrid">
       {chunks.map((chunk) => (
-        <mesh 
-          key={`wire-${chunk.id}`} 
-          position={[chunk.x * 10, 0.05, chunk.z * 10]} 
-          rotation={[-Math.PI / 2, 0, 0]}
-        >
-          <planeGeometry args={[10, 10]} />
-          <meshBasicMaterial color={0x223344} wireframe transparent opacity={0.5} />
-        </mesh>
+        <group key={`grid-group-${chunk.id}`} position={[chunk.x * 400, 0.1, chunk.z * 400]}>
+          {/* Main Chunk Border */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[400, 400]} />
+            <meshBasicMaterial color={0x4cafcb} wireframe transparent opacity={0.1} />
+          </mesh>
+          {/* Tactical 10-unit Wireframe requested by user */}
+          <gridHelper args={[400, 40, 0x223344, 0x111111]} />
+        </group>
       ))}
     </group>
   );

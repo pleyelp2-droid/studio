@@ -5,20 +5,22 @@ import { AppSidebar } from "@/components/layout/AppSidebar"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { useFirestore, useCollection, useMemoFirebase, useUser } from "@/firebase"
 import { collection, query, limit, orderBy } from "firebase/firestore"
 import { Cpu, Activity, Loader2, AlertTriangle, UserCheck, Zap, Database } from "lucide-react"
 import { Agent } from "@/types"
 import { NeuralCacheManager } from "@/services/NeuralCacheManager"
 
 export default function AgentsPage() {
+  const { user } = useUser()
   const db = useFirestore()
   const cacheStatus = NeuralCacheManager.getStatus();
 
   const agentsQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    // SECURITY: Prevent unauthorized queries
+    if (!db || !user) return null;
     return query(collection(db, "players"), orderBy("lastUpdate", "desc"), limit(100));
-  }, [db]);
+  }, [db, user]);
 
   const { data: agents, isLoading, error } = useCollection<Agent>(agentsQuery);
 
@@ -115,6 +117,11 @@ export default function AgentsPage() {
                 <AlertTriangle className="h-12 w-12 mb-4" />
                 <p className="text-xs font-black uppercase tracking-widest">Access Refused</p>
                 <p className="text-[10px] mt-2 font-mono uppercase opacity-60">{error.message}</p>
+              </div>
+            ) : !user ? (
+              <div className="flex flex-col items-center justify-center py-24 text-muted-foreground border-2 border-dashed border-border rounded-3xl opacity-40">
+                <Zap className="h-12 w-12 mb-4 text-accent" />
+                <p className="text-xs font-black uppercase tracking-widest italic">Neural Link Required to view Active Agents.</p>
               </div>
             ) : agents?.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 text-muted-foreground border-2 border-dashed border-border rounded-3xl opacity-40">

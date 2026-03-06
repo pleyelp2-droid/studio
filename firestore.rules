@@ -22,8 +22,14 @@ service cloud.firestore {
     // --- COLLECTION RULES ---
 
     // World State (Global singleton)
+    match /worldState/global {
+      allow read: if true; // Explicit public read for landing page stats
+      allow write: if isAdmin();
+    }
+
+    // Secondary matches for nested worldState docs
     match /worldState/{document=**} {
-      allow read: if true; // Public read for landing page stats and CI index
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 

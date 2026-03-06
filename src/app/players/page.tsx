@@ -1,4 +1,3 @@
-
 "use client"
 
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -8,23 +7,25 @@ import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase"
+import { useFirestore, useCollection, useMemoFirebase, useUser } from "@/firebase"
 import { collection, query, limit, orderBy } from "firebase/firestore"
-import { Users, Search, MoreHorizontal, UserCheck, Shield, Loader2, AlertCircle, Sparkles } from "lucide-react"
+import { Users, Search, MoreHorizontal, UserCheck, Shield, Loader2, AlertCircle, Sparkles, Zap } from "lucide-react"
 import { useState } from "react"
 
 export default function PlayersPage() {
+  const { user } = useUser()
   const db = useFirestore()
   const [searchQuery, setSearchQuery] = useState("")
 
   const playersQuery = useMemoFirebase(() => {
-    if (!db) return null;
+    // SECURITY: Prevent unauthorized queries
+    if (!db || !user) return null;
     return query(
       collection(db, "players"), 
       orderBy("level", "desc"),
       limit(50)
     );
-  }, [db]);
+  }, [db, user]);
 
   const { data: livePlayers, isLoading, error } = useCollection(playersQuery);
 
@@ -78,6 +79,11 @@ export default function PlayersPage() {
                 <AlertCircle className="h-10 w-10 mb-4" />
                 <p className="text-xs font-black uppercase tracking-[0.3em] italic">Protocol Error: {error.message}</p>
                 <p className="text-[10px] mt-2 opacity-50 uppercase font-bold tracking-widest">Verify Security Rule Sync</p>
+              </div>
+            ) : !user ? (
+              <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
+                <Zap className="h-12 w-12 text-accent mb-4" />
+                <p className="text-xs font-black uppercase tracking-widest italic">Neural Link Required to access Directory.</p>
               </div>
             ) : filteredPlayers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
