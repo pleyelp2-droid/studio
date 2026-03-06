@@ -1,10 +1,9 @@
-
 'use client';
 
 /**
  * @fileOverview Axiom Frontier - High Performance Anti-Artifact Shaders
  * Optimized for maximum FPS with horizon-linear-fading to eliminate visual streaks.
- * 100% Fog Deactivation: uFogNear and uFogFar are ignored to ensure texture visibility.
+ * 100% Fog Deactivation: Shader ignores all fog uniforms to ensure texture visibility.
  */
 
 export const axiomVertexShader = `
@@ -49,9 +48,6 @@ uniform float uTime;
 uniform float uAwakeningDensity; 
 uniform float uBiome;
 uniform vec3 uCameraPosition;
-uniform vec3 uFogColor;
-uniform float uFogNear;
-uniform float uFogFar;
 
 void main() {
     vec3 normal = normalize(vNormal);
@@ -75,9 +71,7 @@ void main() {
 
     finalColor *= lighting;
 
-    // FOG DEACTIVATED: Direct finalColor output to ensure texture visibility
-    // float fogFactor = smoothstep(uFogNear, uFogFar, vFogDepth);
-    // gl_FragColor = vec4(mix(finalColor, uFogColor, fogFactor), 1.0);
+    // FOG PERMANENTLY DISABLED AT SHADER LEVEL
     gl_FragColor = vec4(finalColor, 1.0);
 }
 `;

@@ -277,8 +277,11 @@ const World3D = ({ localPlayerId }: { tick: number, civilizationIndex: number, l
         <Canvas gl={{ antialias: true, logarithmicDepthBuffer: true }} shadows onPointerDown={(e) => controlMode === 'PUSH_TO_WALK' && setTargetPosition({ x: e.point.x, y: 0, z: e.point.z })}>
           <PerspectiveCamera makeDefault position={[100, 100, 100]} fov={45} far={5000} />
           <CameraController />
+          
+          {/* HIGH SCIENCE LIGHTING - Locked Intensities */}
           <ambientLight intensity={12.0} />
           <hemisphereLight intensity={10.5} groundColor="#050508" color="#ffffff" />
+          
           {settings.enableEnvironment && <Environment preset="city" />}
           <WorldContent localPlayerId={localPlayerId} />
         </Canvas>

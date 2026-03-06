@@ -1,8 +1,8 @@
-
 'use client';
 /**
- * ProceduralQuestEngine - Enhanced Quest Generation
- * Adapted from high-performance blueprint for Axiom Frontier integration.
+ * @fileOverview Ouroboros Procedural Quest Engine
+ * Generates quests based on Civilization needs and world state.
+ * Adapted from High-Performance blueprint.
  */
 
 import { initializeFirebase } from '@/firebase';
@@ -12,7 +12,7 @@ import { useStore } from '@/store';
 
 const { firestore: db } = initializeFirebase();
 
-export type QuestType = 'gather' | 'kill' | 'deliver' | 'explore' | 'diplomatic' | 'dungeon' | 'escort' | 'defend';
+export type QuestType = 'gather' | 'kill' | 'deliver' | 'explore' | 'diplomatic' | 'dungeon';
 
 export interface ProceduralQuest {
   id: string;
@@ -52,16 +52,21 @@ const TEMPLATES: Record<QuestType, any> = {
     baseGold: 60,
     baseXp: 120
   },
+  deliver: {
+    titles: ['Urgent Delivery', 'Trade Caravan'],
+    baseGold: 40,
+    baseXp: 80
+  },
+  diplomatic: {
+    titles: ['Peace Negotiations', 'Alliance Proposal'],
+    baseGold: 100,
+    baseXp: 200
+  },
   dungeon: {
     titles: ['Dungeon Delve', 'Reclaim the Depths', 'Vault Breach'],
     baseGold: 200,
     baseXp: 500
-  },
-  // Fallbacks for missing types
-  deliver: { titles: ['Urgent Delivery'], baseGold: 40, baseXp: 80 },
-  diplomatic: { titles: ['Peace Negotiations'], baseGold: 100, baseXp: 200 },
-  escort: { titles: ['Guard Duty'], baseGold: 120, baseXp: 250 },
-  defend: { titles: ['Hold the Line'], baseGold: 150, baseXp: 300 }
+  }
 };
 
 export const ProceduralQuestEngine = {
@@ -86,6 +91,7 @@ export const ProceduralQuestEngine = {
       objectives.push({ type: 'reach', target: 'sector_alpha', required: 1, current: 0 });
     }
 
+    // Logic: Harder quests get item rewards
     const items = difficulty > 5 ? generateLoot(Math.floor(difficulty * 5), Math.random() * 1000, 1) : [];
 
     return {
@@ -101,7 +107,7 @@ export const ProceduralQuestEngine = {
   },
 
   /**
-   * Commits a generated quest to the ledger.
+   * Commits a generated quest to the Firestore ledger.
    */
   async commitQuest(quest: ProceduralQuest, userId: string) {
     if (!db) return;
