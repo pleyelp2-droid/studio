@@ -15,8 +15,6 @@ import {
   MonitorPlay,
   BrainCircuit,
   BookOpen,
-  HardDriveDownload,
-  Wifi,
   LogIn,
   LogOut,
   User as UserIcon,
