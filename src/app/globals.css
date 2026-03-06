@@ -91,6 +91,10 @@
 }
 
 @layer utilities {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #2E2EB3 #020203;
+  }
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
   }

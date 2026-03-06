@@ -2,7 +2,7 @@
 
 /**
  * @fileOverview Axiom Frontier - High Performance Anti-Artifact Shaders
- * Optimized for maximum FPS. Fog logic is stripped to ensure texture visibility.
+ * Optimized for maximum FPS. Fog and Sky logic are stripped to ensure texture visibility.
  */
 
 export const axiomVertexShader = `
