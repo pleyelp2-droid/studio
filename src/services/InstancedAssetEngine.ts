@@ -1,11 +1,10 @@
 'use client';
 /**
  * @fileOverview Ouroboros GPU Instancing Engine (Three.js Edition)
- * Optimized for rendering 1000+ nodes with Auto-LOD and shared physics hulls.
+ * Ultra-efficient rendering for thousands of world assets with shared materials and physics hulls.
  */
 
 import * as THREE from 'three';
-import { LibraryAsset } from './LibraryManager';
 
 export interface InstanceNode {
   position: THREE.Vector3;
@@ -15,52 +14,43 @@ export interface InstanceNode {
 
 export class InstancedAssetEngine {
   /**
-   * Creates a high-performance InstancedMesh group for a specific library asset.
-   * Mirroring the "Lowest LOD as Collision Hull" strategy.
+   * Creates a high-performance THREE.InstancedMesh for world nodes.
    */
-  static createInstancedGroup(
-    asset: LibraryAsset, 
-    nodes: InstanceNode[], 
-    baseMesh: THREE.Mesh
+  static createInstancedMesh(
+    geometry: THREE.BufferGeometry,
+    material: THREE.Material,
+    nodes: InstanceNode[]
   ): THREE.InstancedMesh {
-    const count = nodes.length;
-    const instancedMesh = new THREE.InstancedMesh(
-      baseMesh.geometry,
-      baseMesh.material,
-      count
-    );
-
-    instancedMesh.name = `instanced_${asset.id}`;
-    instancedMesh.castShadow = true;
-    instancedMesh.receiveShadow = true;
+    const mesh = new THREE.InstancedMesh(geometry, material, nodes.length);
+    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
 
     const dummy = new THREE.Object3D();
-    const assetScale = asset.asset.scale || { x: 1, y: 1, z: 1 };
-    const assetOffset = asset.asset.offset || { x: 0, y: 0, z: 0 };
-
     nodes.forEach((node, i) => {
-      dummy.position.set(
-        node.position.x + assetOffset.x,
-        node.position.y + assetOffset.y,
-        node.position.z + assetOffset.z
-      );
+      dummy.position.copy(node.position);
       dummy.rotation.copy(node.rotation);
-      dummy.scale.set(
-        node.scale.x * assetScale.x,
-        node.scale.y * assetScale.y,
-        node.scale.z * assetScale.z
-      );
-      
+      dummy.scale.copy(node.scale);
       dummy.updateMatrix();
-      instancedMesh.setMatrixAt(i, dummy.matrix);
+      mesh.setMatrixAt(i, dummy.matrix);
     });
 
-    instancedMesh.instanceMatrix.needsUpdate = true;
-    
-    // Physics Hull Logic: Attach metadata for the physics engine
-    instancedMesh.userData.isSolid = asset.asset.isSolid;
-    instancedMesh.userData.isTrigger = asset.asset.isTrigger;
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
 
-    return instancedMesh;
+    return mesh;
+  }
+
+  /**
+   * Generates a simplified collision hull from a complex mesh for physics efficiency.
+   */
+  static generateCollisionHull(mesh: THREE.Mesh): THREE.BufferGeometry {
+    // For this prototype, we use a simple bounding box as the hull
+    // In production, this would be a convex hull or decimated mesh
+    const box = new THREE.BoxGeometry(1, 1, 1);
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const size = new THREE.Vector3();
+    mesh.geometry.boundingBox?.getSize(size);
+    box.scale(size.x, size.y, size.z);
+    return box;
   }
 }
