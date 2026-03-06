@@ -1,7 +1,7 @@
 'use client';
 /**
  * @fileOverview HeuristicIntelligence - Deep NPC Intelligence with Bidirectional World Impact
- * Adapted for Axiom Frontier (Three.js Edition).
+ * Implementation of NPC networks and collective behavior for Axiom Frontier.
  */
 
 import * as THREE from 'three';
@@ -23,6 +23,9 @@ const DISTORTION_RATE = 0.05;
 export class HeuristicIntelligence {
   private static memories = new Map<string, SharedMemory>();
 
+  /**
+   * Processes information sharing (gossip) between nearby NPCs.
+   */
   static async processGossip(agents: Agent[]): Promise<Agent[]> {
     const updatedAgents = [...agents];
     
@@ -47,15 +50,18 @@ export class HeuristicIntelligence {
   private static shareMemory(sender: Agent, receiver: Agent) {
     if (!sender.memoryCache || sender.memoryCache.length === 0) return;
 
+    // Pick a random memory from sender's cache
     const memory = sender.memoryCache[Math.floor(Math.random() * sender.memoryCache.length)];
     const spreadProb = (sender.thinkingMatrix.sociability + receiver.thinkingMatrix.curiosity) / 2;
 
     if (Math.random() < spreadProb) {
       const isNew = !receiver.memoryCache.includes(memory);
       if (isNew) {
-        receiver.memoryCache.push(`[GOSSIP]: ${memory}`);
+        // Apply distortion logic (simplified)
+        const distortedMemory = Math.random() < DISTORTION_RATE ? `[CORRUPTED]: ${memory}` : memory;
+        receiver.memoryCache.push(`[GOSSIP]: ${distortedMemory}`);
         
-        // Impact mood
+        // Impact mood vector
         if (receiver.mood) {
           receiver.mood.curiosity = Math.min(1, receiver.mood.curiosity + 0.05);
           receiver.mood.trust = Math.max(-1, receiver.mood.trust - 0.01); 
@@ -64,6 +70,9 @@ export class HeuristicIntelligence {
     }
   }
 
+  /**
+   * Calculates the collective impact of NPC roles on global world state.
+   */
   static calculateCollectiveInfluence(agents: Agent[]) {
     const influence = {
       economicPressure: 0,
@@ -82,3 +91,5 @@ export class HeuristicIntelligence {
     return influence;
   }
 }
+
+export const heuristicIntelligence = new HeuristicIntelligence();

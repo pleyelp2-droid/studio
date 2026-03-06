@@ -2,7 +2,7 @@
 
 /**
  * Axiom Shader - Hardened High-Clarity Edition
- * Permanently stripped of Fog, Sky, and Sun logic to ensure 100% texture visibility.
+ * Permanently stripped of Fog, Sky, and Sun mixing to ensure 100% texture visibility.
  */
 
 export const axiomVertexShader = `

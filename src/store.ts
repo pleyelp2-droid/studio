@@ -137,22 +137,8 @@ export const useStore = create<AppState>((set) => ({
   },
   controlledAgentId: null,
   auctionHouse: [
-    { 
-      id: 'auc_1', 
-      item: { name: 'Void-Forged Plate', rarity: 'EPIC' }, 
-      sellerName: 'AxiomVendor', 
-      currentBid: 450, 
-      endTime: Date.now() + 3600000, 
-      status: 'ACTIVE' 
-    },
-    { 
-      id: 'auc_2', 
-      item: { name: 'Axiom Shard x5', rarity: 'RARE' }, 
-      sellerName: 'GhostPilot', 
-      currentBid: 120, 
-      endTime: Date.now() + 1800000, 
-      status: 'ACTIVE' 
-    }
+    { id: 'auc_1', item: { name: 'Void-Forged Plate', rarity: 'EPIC' }, sellerName: 'AxiomVendor', currentBid: 450, endTime: Date.now() + 3600000, status: 'ACTIVE' },
+    { id: 'auc_2', item: { name: 'Axiom Shard x5', rarity: 'RARE' }, sellerName: 'GhostPilot', currentBid: 120, endTime: Date.now() + 1800000, status: 'ACTIVE' }
   ],
   emergenceSettings: {
     isEmergenceEnabled: true,

@@ -1,8 +1,7 @@
 'use client';
 /**
  * @fileOverview Ouroboros Three.js VFX Engine
- * Adapted from Babylon.js ParticleSystem logic.
- * Handles JSON-driven particle effects with high performance.
+ * JSON-driven particle effects system for Axiom Frontier.
  */
 
 import * as THREE from 'three';
@@ -32,7 +31,6 @@ class VFXSystem {
   particles: any[] = [];
   preset: VFXPreset;
   active = false;
-  clock = new THREE.Clock();
   texture: THREE.Texture;
 
   constructor(preset: VFXPreset, texture: THREE.Texture) {
@@ -100,7 +98,7 @@ class VFXSystem {
       colAttr.setXYZ(i, p.color.r, p.color.g, p.color.b);
     }
 
-    // Hide inactive particles
+    // Hide inactive particles by moving them out of view
     for (let i = this.particles.length; i < this.preset.capacity; i++) {
       posAttr.setXYZ(i, 0, -1000, 0);
     }

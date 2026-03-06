@@ -1,7 +1,7 @@
 'use client';
 /**
  * @fileOverview Ouroboros Procedural Quest Engine
- * Dynamically generates mission objectives based on Civilization Needs and "Axiom Frontier" vision.
+ * Dynamically generates mission objectives based on Civilization Needs.
  */
 
 import { initializeFirebase } from '@/firebase';
