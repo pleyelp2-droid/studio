@@ -15,7 +15,11 @@ Server authoritative architecture. Client renders only.
 ## Tech Stack
 Frontend: Three.js, WebGL, WebSocket, ES Modules
 Backend: Node.js WebSocket server
-Deployment: Netlify
+memchache elasticy
+valk chache
+postgre sql 2x
+vpc 
+windows server for red alert plans
 
 ## Rendering
 Use GLB models, instancing, frustum culling, texture atlases.
